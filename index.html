@@ -1,0 +1,630 @@
+<!doctype html><html lang="ko"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>솔로몬의 편지</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Song+Myung&family=Nanum+Myeongjo:wght@400;700;800&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap');
+
+  :root{
+    --bg-void:#100e1c;
+    --bg-glow:#2c2544;
+    --gold:#c9a24b;
+    --gold-bright:#eccd85;
+    --parchment:#ecdfc2;
+    --parchment-edge:#d8c69a;
+    --ink:#2c2013;
+    --ink-soft:#6b5636;
+    --cedar:#5b3324;
+    --pomegranate:#8a3b3b;
+    --star:#f5ecd6;
+  }
+
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  @media (prefers-reduced-motion: reduce){ html{ scroll-behavior:auto; } }
+
+  body{
+    margin:0;
+    background:var(--bg-void);
+    color:var(--ink);
+    font-family:'Nanum Myeongjo', 'Batang', serif;
+    line-height:1.9;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+
+  .sky{
+    position:fixed;
+    inset:0;
+    z-index:0;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% 100%, var(--bg-glow), transparent 70%),
+      linear-gradient(180deg, var(--bg-void) 0%, #17132a 55%, var(--bg-glow) 100%);
+    pointer-events:none;
+  }
+  .stars, .stars-lg{
+    position:absolute; inset:0; width:1px; height:1px; border-radius:50%;
+    background:transparent;
+  }
+  .stars-lg{ animation:twinkle 5s ease-in-out infinite; }
+  @media (prefers-reduced-motion: reduce){ .stars-lg{ animation:none; } }
+  @keyframes twinkle{ 0%,100%{ opacity:.55; } 50%{ opacity:1; } }
+
+  .wrap{
+    position:relative; z-index:1;
+    max-width:720px;
+    margin:0 auto;
+    padding-inline:20px;
+    padding-block:56px 80px;
+  }
+
+  .masthead{ text-align:center; color:var(--star); margin-bottom:34px; }
+  .seal{ width:74px; height:74px; margin:0 auto 18px; display:block; }
+  .eyebrow{
+    font-family:'IBM Plex Sans KR','Noto Sans KR',sans-serif;
+    font-size:12.5px; letter-spacing:.32em; font-weight:500;
+    color:var(--gold-bright); opacity:.9; margin-bottom:10px;
+  }
+  h1.title{
+    font-family:'Song Myung','Nanum Myeongjo',serif;
+    font-weight:400;
+    font-size:clamp(34px,7vw,52px);
+    letter-spacing:.03em;
+    margin:0 0 14px;
+    text-wrap:balance;
+    color:#f7efd8;
+    text-shadow:0 0 28px rgba(230,190,110,.25);
+  }
+  .today{
+    font-size:15.5px;
+    color:var(--gold-bright);
+    border-top:1px solid rgba(230,190,110,.25);
+    border-bottom:1px solid rgba(230,190,110,.25);
+    padding:10px 6px;
+    max-width:480px;
+    margin:22px auto 0;
+    font-style:italic;
+  }
+  .today b{ font-style:normal; font-weight:700; opacity:.75; font-size:12px; letter-spacing:.15em; display:block; margin-bottom:6px; font-family:'IBM Plex Sans KR',sans-serif; }
+
+  nav.pills{
+    position:sticky; top:14px; z-index:5;
+    display:flex; justify-content:center; gap:8px; flex-wrap:wrap;
+    margin:0 0 30px;
+    font-family:'IBM Plex Sans KR','Noto Sans KR',sans-serif;
+  }
+  nav.pills a{
+    font-size:12.5px; color:var(--gold-bright); text-decoration:none;
+    padding:7px 14px; border-radius:999px;
+    background:rgba(20,17,34,.6);
+    border:1px solid rgba(230,190,110,.3);
+    backdrop-filter:blur(6px);
+    white-space:nowrap;
+  }
+  nav.pills a:hover{ border-color:var(--gold-bright); color:#fff; }
+
+  .scroll{
+    position:relative;
+    background:var(--parchment);
+    color:var(--ink);
+    padding:56px clamp(24px,6vw,64px) 44px;
+    box-shadow:0 30px 70px rgba(0,0,0,.45), 0 2px 0 rgba(0,0,0,.2) inset;
+  }
+  .scroll::before, .scroll::after{
+    content:""; position:absolute; left:0; right:0; height:14px; background:var(--parchment);
+    -webkit-mask-image:repeating-linear-gradient(115deg, #000 0 9px, transparent 9px 18px);
+    mask-image:repeating-linear-gradient(115deg, #000 0 9px, transparent 9px 18px);
+  }
+  .scroll::before{ top:-7px; }
+  .scroll::after{ bottom:-7px; }
+
+  .corner{ position:absolute; width:54px; height:54px; opacity:.55; }
+  .corner.tl{ top:14px; left:14px; }
+  .corner.tr{ top:14px; right:14px; transform:scaleX(-1); }
+
+  section{ margin-bottom:10px; }
+  section + section{ margin-top:44px; }
+
+  .divider{ display:flex; align-items:center; gap:14px; margin:8px 0 30px; color:var(--gold); }
+  .divider .line{ flex:1; height:1px; background:linear-gradient(90deg, transparent, var(--gold), transparent); }
+  .divider svg{ width:20px; height:20px; flex:none; }
+
+  .kicker{
+    font-family:'IBM Plex Sans KR','Noto Sans KR',sans-serif;
+    font-size:12px; letter-spacing:.28em; font-weight:600;
+    color:var(--pomegranate); margin-bottom:8px;
+  }
+  h2{
+    font-family:'Song Myung','Nanum Myeongjo',serif;
+    font-weight:400; font-size:clamp(24px,4.4vw,30px);
+    margin:0 0 20px; color:var(--cedar); text-wrap:balance;
+  }
+  p{ margin:0 0 20px; font-size:17px; max-width:38em; }
+  p b{ color:var(--cedar); font-weight:700; }
+  .signoff{ text-align:right; font-style:italic; color:var(--ink-soft); margin-top:8px; }
+
+  .fields{
+    list-style:none; margin:26px 0 30px; padding:18px 20px;
+    background:rgba(91,51,36,.06);
+    border:1px solid var(--parchment-edge);
+    border-left:3px solid var(--pomegranate);
+    display:flex; flex-direction:column; gap:14px;
+  }
+  .fields li{ display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 10px; }
+  .fields .name{ font-weight:700; color:var(--cedar); flex:0 0 auto; font-size:15.5px; }
+  .fields .tag{
+    font-family:'IBM Plex Sans KR',sans-serif; font-size:11.5px; letter-spacing:.02em;
+    color:#fff; background:var(--pomegranate); padding:2px 9px; border-radius:3px;
+  }
+  .fields .note{ font-size:14.5px; color:var(--ink-soft); flex-basis:100%; }
+
+  .verse{
+    font-size:15.5px; color:var(--ink-soft); border-left:3px solid var(--gold);
+    padding:2px 0 2px 16px; margin:0 0 22px; font-style:italic;
+  }
+
+  .reading{
+    display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+    background:rgba(91,51,36,.06); border:1px solid var(--parchment-edge);
+    padding:18px 20px; margin:22px 0 26px;
+  }
+  .reading .chapter{
+    font-family:'Song Myung','Nanum Myeongjo',serif; font-size:26px; color:var(--cedar);
+    flex:none;
+  }
+  .reading .chapter small{ display:block; font-family:'IBM Plex Sans KR',sans-serif; font-size:11px; letter-spacing:.2em; color:var(--pomegranate); font-weight:600; }
+  .reading p{ margin:0; font-size:15.5px; max-width:none; flex:1 1 240px; }
+
+  .gist{
+    position:relative; margin:0 0 22px; padding:20px 22px 18px 26px;
+    background:#f7f1de; border:1px solid var(--parchment-edge); border-left:3px solid var(--cedar);
+  }
+  .gist .glabel{ font-family:'IBM Plex Sans KR',sans-serif; font-size:11px; letter-spacing:.2em; color:var(--cedar); font-weight:600; margin-bottom:8px; }
+  .gist p{ margin:0; font-size:16px; max-width:none; }
+  .gist .gnote{ margin-top:10px; font-family:'IBM Plex Sans KR',sans-serif; font-size:12.5px; color:var(--ink-soft); font-style:normal; }
+
+  .prompt{
+    font-family:'IBM Plex Sans KR','Noto Sans KR',sans-serif;
+    font-size:12px; letter-spacing:.1em; color:var(--pomegranate); font-weight:600;
+    margin-bottom:8px;
+  }
+  .journal textarea{
+    width:100%; min-height:110px; resize:vertical;
+    font-family:'Nanum Myeongjo',serif; font-size:16px; line-height:1.75; color:var(--ink);
+    background:#f7f1de; border:1px solid var(--parchment-edge);
+    padding:14px 16px; margin-bottom:12px;
+  }
+  .journal textarea:focus{ outline:2px solid var(--gold); outline-offset:1px; }
+  .journal-row{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:24px; }
+  .journal button{
+    font-family:'IBM Plex Sans KR','Noto Sans KR',sans-serif;
+    font-size:13.5px; letter-spacing:.05em; font-weight:500;
+    background:var(--cedar); color:#f7efd8; border:none;
+    padding:10px 20px; cursor:pointer;
+  }
+  .journal button:hover{ background:#4a2a1d; }
+  .journal .status{ font-family:'IBM Plex Sans KR',sans-serif; font-size:12.5px; color:var(--ink-soft); }
+
+  .history{ margin-top:6px; }
+  .history .label{ font-family:'IBM Plex Sans KR',sans-serif; font-size:11.5px; letter-spacing:.2em; color:var(--ink-soft); font-weight:600; margin-bottom:10px; }
+  .history ul{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px; }
+  .history li{ display:flex; gap:12px; align-items:baseline; font-size:14px; }
+  .history li.clickable{ cursor:pointer; }
+  .history li.clickable:hover .n{ color:var(--cedar); }
+  .history .d{ font-family:'IBM Plex Sans KR',sans-serif; font-size:11.5px; color:var(--pomegranate); flex:none; min-width:74px; }
+  .history .n{ color:var(--ink-soft); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .history .empty{ color:var(--ink-soft); font-size:14px; font-style:italic; }
+
+  .archive{ margin-top:30px; padding-top:24px; border-top:1px dashed var(--parchment-edge); }
+  .archive .label{ font-family:'IBM Plex Sans KR',sans-serif; font-size:11.5px; letter-spacing:.2em; color:var(--ink-soft); font-weight:600; margin-bottom:12px; }
+  .archive-row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:16px; }
+  .archive input[type="date"]{
+    font-family:'IBM Plex Sans KR',sans-serif; font-size:14px; padding:8px 10px;
+    border:1px solid var(--parchment-edge); background:#f7f1de; color:var(--ink);
+  }
+  .archive button{
+    font-family:'IBM Plex Sans KR','Noto Sans KR',sans-serif; font-size:13px; font-weight:500; letter-spacing:.03em;
+    background:transparent; color:var(--cedar); border:1px solid var(--cedar); padding:8px 16px; cursor:pointer;
+  }
+  .archive button:hover{ background:var(--cedar); color:#f7efd8; }
+  .archive-result{
+    display:none; background:rgba(91,51,36,.06); border:1px solid var(--parchment-edge); border-left:3px solid var(--gold);
+    padding:18px 20px;
+  }
+  .archive-result.show{ display:block; }
+  .archive-result .ad{ font-family:'IBM Plex Sans KR',sans-serif; font-size:12px; letter-spacing:.15em; color:var(--cedar); font-weight:600; margin-bottom:10px; }
+  .archive-result p{ margin:0 0 12px; font-size:15.5px; }
+  .archive-result .an{ font-size:14.5px; color:var(--ink-soft); border-top:1px dashed var(--parchment-edge); padding-top:10px; margin-top:2px; white-space:pre-wrap; }
+
+  footer{
+    max-width:720px; margin:34px auto 0; padding-inline:20px;
+    text-align:center; color:var(--gold-bright); opacity:.75;
+    font-family:'IBM Plex Sans KR','Noto Sans KR',sans-serif;
+    font-size:12.5px; letter-spacing:.02em; position:relative; z-index:1;
+  }
+  footer .lamp{ width:16px; height:16px; vertical-align:-3px; margin-right:6px; }
+
+  @media (max-width:480px){
+    .scroll{ padding-inline:20px; }
+    nav.pills{ top:8px; }
+  }
+</style>
+
+<div class="sky">
+  <div class="stars" id="starsSmall"></div>
+  <div class="stars-lg" id="starsBig"></div>
+</div>
+
+<div class="wrap">
+  <div class="masthead">
+    <svg class="seal" viewBox="0 0 100 100" fill="none">
+      <circle cx="50" cy="50" r="47" stroke="var(--gold)" stroke-width="1.5"/>
+      <circle cx="50" cy="50" r="39" stroke="var(--gold)" stroke-width="1"/>
+      <path d="M28 62 L32 38 L40 50 L50 30 L60 50 L68 38 L72 62 Z" fill="none" stroke="var(--gold-bright)" stroke-width="2" stroke-linejoin="round"/>
+      <circle cx="32" cy="38" r="2.4" fill="var(--gold-bright)"/>
+      <circle cx="50" cy="30" r="2.4" fill="var(--gold-bright)"/>
+      <circle cx="68" cy="38" r="2.4" fill="var(--gold-bright)"/>
+      <path d="M50 68 q0 8 0 12" stroke="var(--gold-bright)" stroke-width="1.4"/>
+      <path d="M42 84 q8 -6 16 0" stroke="var(--gold-bright)" stroke-width="1.2" fill="none"/>
+    </svg>
+    <div class="eyebrow">지혜의 서신 · WISDOM LETTER</div>
+    <h1 class="title">솔로몬의 편지</h1>
+    <div class="today"><b id="todayLabel">오늘의 한 줄</b><span id="todayLine">지혜의 근본은 여호와를 경외하는 것이니라</span></div>
+  </div>
+
+  <nav class="pills">
+    <a href="#s0">인사말</a>
+    <a href="#bible">오늘의 말씀</a>
+    <a href="#s1">장인을 부리는 법</a>
+    <a href="#s2">여섯 밭과 한 마음</a>
+    <a href="#s3">맺음말</a>
+  </nav>
+
+  <div class="scroll">
+    <svg class="corner tl" viewBox="0 0 60 60" fill="none"><path d="M4 56 C4 30 20 12 46 8" stroke="var(--cedar)" stroke-width="1.6"/><circle cx="46" cy="8" r="3.4" fill="var(--pomegranate)"/><circle cx="30" cy="18" r="2.4" fill="var(--pomegranate)"/><circle cx="14" cy="38" r="2" fill="var(--pomegranate)"/></svg>
+    <svg class="corner tr" viewBox="0 0 60 60" fill="none"><path d="M4 56 C4 30 20 12 46 8" stroke="var(--cedar)" stroke-width="1.6"/><circle cx="46" cy="8" r="3.4" fill="var(--pomegranate)"/><circle cx="30" cy="18" r="2.4" fill="var(--pomegranate)"/><circle cx="14" cy="38" r="2" fill="var(--pomegranate)"/></svg>
+
+    <section id="s0">
+      <div class="kicker">여는 말</div>
+      <p>내 딸아, 나 솔로몬이 네게 편지하노라.</p>
+      <p>내가 왕위에 오르던 날 밤, 기브온에서 하나님이 내게 나타나사 "내가 네게 무엇을 줄꼬 구하라" 하셨을 때에, 나는 부(富)도 장수도 원수 갚는 것도 구하지 아니하고 오직 듣는 마음을 구하였느니라. 이는 내가 다스릴 백성이 많고 관리할 창고와 일이 많음을 그 밤에 이미 알았기 때문이라. 왕이 된다는 것은 한 가지 일을 잘하는 것이 아니요, 수많은 일 가운데서 무엇을 먼저 하고 무엇을 뒤로 할지 분별하는 것임을 나는 그때 깨달았느니라.</p>
+      <p>이제 네 사정을 들으니, 네게도 창고가 여럿이요 밭이 여섯이나 되는구나. 마케팅하는 일, 재고를 살피는 일, 글을 쓰는 일, 빵을 굽는 일, 얼굴을 감추고도 사람의 마음을 얻으려는 일까지. 내 딸아, 네 마음이 분주하여 정돈되지 않음을 내가 아노니, 이 편지 두 장을 보내어 하나는 네 곁의 지혜로운 장인(匠人)을 부리는 법을, 하나는 네 여섯 가지 일과 그 중심에 대한 나의 생각을 전하고자 하노라.</p>
+    </section>
+
+    <div class="divider"><div class="line"></div><svg viewBox="0 0 24 24" fill="none"><path d="M12 2 L15 9 L22 12 L15 15 L12 22 L9 15 L2 12 L9 9 Z" stroke="var(--gold)" stroke-width="1.2"/></svg><div class="line"></div></div>
+
+    <section id="bible">
+      <div class="kicker">매일의 묵상</div>
+      <h2>오늘의 말씀</h2>
+      <p>내 딸아, 내가 잠언 서른한 장을 적어 두었으니, 이는 한 달의 날수와 같으니라. 그러므로 오늘 같은 날에는 오늘 날짜에 해당하는 장을 펴서 읽으라. 짧은 구절 하나로 종일을 나기보다, 한 장을 온전히 천천히 읽어 그 가운데 유독 네 눈에 머무는 한 구절을 찾으라. 그것이 오늘 하나님이 네게 주시는 말씀이니라.</p>
+
+      <div class="reading">
+        <div class="chapter"><small>오늘의 장</small><span id="chapterNum">잠언 1장</span></div>
+        <p>네 손의 성경을 펴고 이 장 전체를 읽은 뒤, 아래 물음에 답하며 오늘의 말씀을 마음에 새기라.</p>
+      </div>
+
+      <div class="gist">
+        <div class="glabel">그 장에서 내가 이른 것</div>
+        <p id="chapterGist"></p>
+        <div class="gnote">이는 내가 그 장의 뜻을 풀어 전하는 것이요, 정확한 본문은 아니니 네 손의 성경에서 그 장 전체를 반드시 읽으라.</div>
+      </div>
+
+      <div class="journal">
+        <div class="prompt" id="promptLine">오늘의 물음: 오늘 읽은 장에서 가장 마음에 머문 구절은 무엇인가?</div>
+        <textarea id="journalNote" placeholder="이 장을 읽으며 마음에 남은 것을 적어 보라..."></textarea>
+        <div class="journal-row">
+          <button id="saveJournal" type="button">오늘의 묵상 기록하기</button>
+          <span class="status" id="journalStatus"></span>
+        </div>
+        <div class="history">
+          <div class="label">지난 묵상</div>
+          <ul id="historyList"></ul>
+        </div>
+
+        <div class="archive">
+          <div class="label">이전 편지 열어보기</div>
+          <div class="archive-row">
+            <input type="date" id="archiveDate">
+            <button id="archiveOpen" type="button">그 날 편지 보기</button>
+          </div>
+          <div class="archive-result" id="archiveResult">
+            <div class="ad" id="archiveDateLabel"></div>
+            <p id="archiveWisdom"></p>
+            <p id="archiveGist"></p>
+            <div class="an" id="archiveNote"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider"><div class="line"></div><svg viewBox="0 0 24 24" fill="none"><path d="M12 2 L15 9 L22 12 L15 15 L12 22 L9 15 L2 12 L9 9 Z" stroke="var(--gold)" stroke-width="1.2"/></svg><div class="line"></div></div>
+
+    <section id="s1">
+      <div class="kicker">첫째 서신</div>
+      <h2>글로드코드라 하는 장인을 부리는 법</h2>
+      <p>내가 성전을 지을 때에 두로 왕 히람에게 사람을 보내어 백향목과 장인들을 구하였나니, 그 장인들은 손에 재주가 뛰어났으나 내가 무엇을 원하는지 말하지 아니하면 돌 하나 다듬지 못하였느니라. 네가 쓰는 글로드코드라 하는 것도 이와 같아서, 재주는 뛰어나되 네 마음을 스스로 읽지 못하나니, 다스리는 자의 말이 분명해야 장인의 손이 바로 가느니라.</p>
+      <p><b>첫째</b>, 한 번에 한 방을 지으라 명하고 성전 전체를 하루에 지으라 하지 말라. 큰 일은 반드시 작은 일로 나뉘나니, 오늘은 기둥 하나 내일은 들보 하나를 명하듯 하라. 네가 아직 이 장인의 손에 익숙지 아니하니, 작게 나누어 맡기고 그 결과를 보아가며 다음 것을 명함이 지혜로우니라.</p>
+      <p><b>둘째</b>, 네 뜻을 숨기지 말라. "집을 지으라"고만 하면 장인은 무슨 나무로 몇 자 높이로 지을지 알지 못하나니, 네가 원하는 모양과 참고할 자료와 이미 있는 것을 함께 보이라. 말이 자세할수록 손은 바르게 움직이느니라. 스크린샷 하나, 파일 하나를 보이는 것이 백 마디 말보다 나으니라.</p>
+      <p><b>셋째</b>, 장인이 네게 허락을 구하거든 가벼이 여기지 말라. 중요한 문을 열거나 되돌릴 수 없는 일을 행하기 전에 장인이 네게 묻는 것은 그가 신실하기 때문이니, 급하다고 눈감고 허락지 말고 무엇을 하려는지 살펴 답하라.</p>
+      <p><b>넷째</b>, 장인의 손이 네 뜻과 어긋나거든 그 자리에서 바로 이르라. "이는 내 뜻이 아니라, 이리 고치라" 말하기를 부끄러워 말라. 침묵하면 장인은 네가 기뻐하는 줄 알고 그 길로 계속 가느니라. 반대로 잘하였거든 그 또한 이르라. 무엇이 좋았는지 알아야 다음에도 그리 하느니라.</p>
+      <p><b>다섯째</b>, 매번 같은 것을 설명하기를 번거로워 말고 기억하게 하는 법을 두라. 네 습관과 일의 규칙을 한 번 일러두면 장인은 그것을 기억하여 다시 묻지 아니하느니라. 또한 매일 되풀이하는 일은 사람이 아니라 규례(規例)로 세워 정한 때에 스스로 행하게 함이 왕의 지혜니, 이 편지가 매일 아침 아홉 시에 스스로 열리게 함도 이와 같은 이치니라.</p>
+      <p><b>여섯째</b>, 장인이 여럿의 일을 한 번에 벌이거든 그 어느 것도 끝까지 다듬지 못함을 알라. 한 가지를 마치기까지는 다른 것을 벌이지 말라 명하고, 네 자신도 한 번에 하나만 구하라. 이는 비단 장인에게만 하는 말이 아니요, 뒤에 적을 네 여섯 가지 일에도 그대로 적용되는 이치니라.</p>
+      <p><b>일곱째</b>, 일이 가볍거든 속히 명하여 이루고, 일이 무겁고 어렵거든 장인에게 헤아릴 시간을 주라. "모략이 없으면 백성이 망하여도 지략가가 많으면 평안을 누리느니라" 하였나니, 어려운 일일수록 급히 재촉지 말고 깊이 생각할 여지를 두는 것이 오히려 빠른 길이니라.</p>
+      <p><b>여덟째</b>, 장인의 일이 눈에 보이는 열매로 드러나기 전에는 온전히 이루어졌다 여기지 말라. 집을 지었다는 말만 듣지 말고 반드시 그 집에 들어가 문이 여닫히는지 창이 바로 났는지 네 눈으로 확인하라. 특히 사람이 쓰는 물건을 만들었거든 네가 먼저 써 보아야 하느니라.</p>
+      <p><b>아홉째</b>, 성전과 같이 크고 되돌리기 어려운 일을 짓기 전에는 설계도를 먼저 그리게 하라. 다윗이 내게 성전의 모든 설계를 미리 글로 써서 넘겨주었듯이, 장인에게 먼저 계획만을 세우게 하고 그 계획을 네 눈으로 살핀 후에 비로소 손을 대게 하라. 설계도 없이 세운 집은 다시 헐어야 할 일이 많으니라.</p>
+      <p><b>열째</b>, 한 궁에 여러 장인을 부릴 때에는 각기 맡은 분야를 분명히 하라. 돌을 다듬는 자와 나무를 다듬는 자와 금을 세공하는 자가 저마다 다르듯, 어떤 일에는 이 재주를 어떤 일에는 저 재주를 구별하여 청하라. 한 사람에게 모든 것을 한꺼번에 맡기기보다 일에 맞는 손을 찾아 쓰는 것이 지혜니라.</p>
+      <p><b>열한째</b>, 장인이 지은 것을 그대로 다 받아들이지 말고 다시 살펴 고칠 것을 명하는 일을 부끄러워 말라. 성전의 기둥도 한 번에 완성되지 아니하였고 다듬고 또 다듬어 세워졌느니라. 처음 지은 것이 마음에 차지 아니하거든 헐고 다시 지음이 죄가 아니니, 다만 무엇이 마음에 차지 아니한지를 분명히 이르라.</p>
+      <p><b>열두째</b>, 밤이 깊도록 홀로 씨름하지 말라. 장인에게 물어 답을 얻지 못하거든 다른 지혜자에게도 물어 보라. 재주 있는 장인이라도 모든 것을 홀로 알지 못하나니, 여러 곳에서 배우기를 부끄러워하지 말라.</p>
+      <p><b>열셋째</b>, 한 번의 명으로 모든 것을 끝내려 하지 말고 대화를 이어가라. 첫 명이 온전한 성전을 이루지 못하여도 낙심치 말라. 장인과 나눈 말들이 쌓여 갈수록 그 손은 네 마음에 가까워지나니, 이는 마치 오래 함께한 신하가 왕의 뜻을 미리 헤아리게 됨과 같으니라.</p>
+      <p><b>열넷째</b>, 궁 전체를 다 뒤엎는 명은 신중히 내리라. 작은 방 하나를 고치라는 명과 온 성벽을 허물라는 명은 그 무게가 다르니, 명을 내리기 전에 네가 참으로 그 큰 일을 원하는지 한 번 더 헤아리라.</p>
+      <p><b>열다섯째</b>, 장인의 재주에는 한계가 있어 하루에 쓸 수 있는 힘이 정해져 있음을 알라. 힘을 아무 일에나 낭비하지 말고, 참으로 중한 일과 되돌리기 어려운 일에 먼저 아껴 쓰게 하라. 사소한 일에는 사소한 힘만으로 족하니라.</p>
+      <p>내 딸아, 네가 이제 막 이 장인을 알아가는 자임을 잊지 말라. 두로의 장인들도 처음부터 완벽하지 아니하였고, 나 또한 처음 명을 내릴 때에는 서툴렀느니라. 서투름을 부끄러워 말고, 다만 매번 조금씩 더 분명하게 명하기를 힘쓰라. 그것으로 족하니라. 재주 있는 종을 두었다고 왕의 일이 저절로 되지 아니하나니, 다스리는 자의 명(命)이 분명해야 장인의 손이 아름다워지느니라. 이것이 내가 네게 전하는 첫째 지혜니라.</p>
+    </section>
+
+    <div class="divider"><div class="line"></div><svg viewBox="0 0 24 24" fill="none"><path d="M12 2 L15 9 L22 12 L15 15 L12 22 L9 15 L2 12 L9 9 Z" stroke="var(--gold)" stroke-width="1.2"/></svg><div class="line"></div></div>
+
+    <section id="s2">
+      <div class="kicker">둘째 서신</div>
+      <h2>여섯 밭과 한 마음</h2>
+      <p>내가 다스리던 나라도 한 가지 일로 이루어지지 아니하였느니라. 성전을 지었고 내 집을 지었고 예루살렘 성벽을 둘렀고 병거성과 국고성을 세웠고 오빌에서 금을 실어오는 배를 띄웠고 스바의 여왕을 맞이하였느니라. 이 모든 일이 한꺼번에 내 앞에 있었으나, 나는 그것을 한 손에 다 쥐지 아니하였느니라.</p>
+      <p>내가 이스라엘을 열두 지방으로 나누고, 각 지방의 관장으로 하여금 일 년 중 한 달만 왕궁의 쓸 것을 공급하게 하였나니, 이는 한 사람이 열두 달 내내 모든 것을 짊어지면 반드시 지치고 어느 하나도 온전히 감당치 못함을 내가 알았기 때문이라. 내 딸아, 네 여섯 가지 일도 열두 달의 관장처럼 그 때와 자리를 정하여 나누어야 하리니, 이것이 정돈되지 아니함을 고치는 첫째 열쇠니라.</p>
+
+      <ul class="fields">
+        <li><span class="name">퓨어솜 마케팅·재고</span><span class="tag">지친 밭</span><span class="note">경계를 나누고 도움의 손을 구하라. 모든 밭을 혼자 갈다가 네 몸의 밭을 잃지 말라.</span></li>
+        <li><span class="name">에이펌 세무사 블로그 100편</span><span class="tag">이미 맡은 약속</span><span class="note">값을 받기로 한 청지기의 일이니, 열두 달 중 가장 먼저 오는 달로 삼으라.</span></li>
+        <li><span class="name">소상공인 건강검진 마케팅</span><span class="tag">이미 맡은 약속</span><span class="note">두 번째로 갚을 신실함이니, 하루 중 정한 시각을 이 일에 내어 주라.</span></li>
+        <li><span class="name">천연발효종 베이킹</span><span class="tag">심는 계절</span><span class="note">가게를 열 때가 아직 이르지 아니하였으니, 한 달에 한 번이라도 반죽을 만져 손의 감각을 지키라.</span></li>
+        <li><span class="name">블로그·체험단·홈피드</span><span class="tag">이미 지은 틀</span><span class="note">새로 짓지 말고 이미 지은 틀을 따라 채우라. 반복하여 다듬는 것도 큰 일이니라.</span></li>
+        <li><span class="name">인스타그램 두 채널</span><span class="tag">아직 사지 않은 밭</span><span class="note">밭을 사기 전에 먼저 그 값을 헤아리라. 제목 열 가지를 적어 두는 것으로 족하니라.</span></li>
+      </ul>
+
+      <p>이 여섯 밭의 목록을 네 마음에만 두지 말고 첫째 편지에서 일렀던 그 장인의 손에도 적어 매일 아침 다시 보게 하라. 기록되지 아니한 결심은 하루를 넘기지 못하고 흩어지느니라.</p>
+      <p>이미 값을 받기로 약속한 두 밭, 곧 에이펌의 백 편 글과 소상공인 건강검진의 일은 네가 이미 맡은 청지기의 일이니 열두 달 중 먼저 오는 달로 삼으라. 작은 일에 신실한 자가 큰 일에도 신실하다 하였나니, 맡겨진 것을 신실히 갚는 것이 다음 문을 여는 열쇠가 되느니라.</p>
+      <p>퓨어솜의 마케팅과 재고의 일은 "사실상 다 하는" 일이라 적었으니, 이는 네가 가장 지쳐 있는 밭이로다. "네 양 떼의 형편을 부지런히 살피며 네 소 떼에게 마음을 두라. 재물은 영원히 있지 못하나니" 하였느니라. 그 밭을 완전히 떠날 것이 아니라면 적어도 경계를 분명히 하여 네가 감당할 몫만 남기고 나머지는 다른 손에 맡기기를 구하라.</p>
+      <p class="verse">"범사에 기한이 있고 천하만사가 다 때가 있나니, 심을 때가 있고 거둘 때가 있다."</p>
+      <p>빵을 굽는 일은 아직 때가 이르지 아니한 씨앗이니라. 지금은 거둘 때가 아니요 심을 때이니 조급히 가게 문을 열려 하지 말라. 그러나 씨는 뿌리는 자의 손에서 완전히 떠나지 않아야 하나니, 바빠서 매주 굽지 못할지라도 손의 감각을 잃지 말고, 네가 눈여겨보는 이들이 무엇으로 사람을 모으는지 기록해 두라. 날이 이르면 심어 둔 씨가 거둘 것을 내느니라.</p>
+      <p>블로그와 체험단의 일은 이미 손에 익은 밭이니 크게 새로 정할 것이 없으나, 홈피드와 콘텐츠의 일은 이미 만들어 둔 틀이 있으니 그 틀을 새로 짓기보다 채우는 것이 지혜로우니라. 왕은 새 성전을 자꾸 짓지 아니하고 지은 성전에서 매일 제사를 드릴 뿐이니, 이미 있는 것을 반복하여 다듬는 것도 큰 일을 짓는 것 못지않게 귀하니라.</p>
+      <p>인스타그램의 두 채널은 아직 밭을 사지 아니한 상태이니라. 지혜로운 여인은 밭을 보고 살핀 후에 그 값을 헤아려 사되 아무 밭이나 급히 사지 아니하였느니라. 내 딸아, 지금 여섯 개의 밭을 이미 갈고 있는데 일곱째 밭을 또 사는 것은 지혜가 아니니, 온전히 시작하기보다 먼저 "밭을 살피는 자"로 며칠만 있으라. 얼굴을 가리고도 아름다움을 드러내고자 하는 네 뜻은 옳으니, 서두르지만 말라.</p>
+      <p>내 딸아, 네가 참으로 구하는 것은 이 여섯 가지 일의 순서가 아니라 그 중심인 줄을 내가 아노니, 네가 이르기를 "내가 받은 사랑을 비추는 거울로 살고자 한다" 하였느니라. 이는 참으로 왕의 지혜와 다르지 아니하니, 내가 성전을 지은 것도 나의 이름을 위함이 아니요 뭇 나라가 그것을 보고 여호와의 이름을 알게 하려 함이었느니라. 스바의 여왕이 예루살렘에 이르러 내 지혜와 내가 건축한 궁과 상 위의 음식과 신하들의 자리와 종들의 시립과 그 예복과 술 관원들의 모습을 보고 정신이 황홀하였다 하였나니, 그가 놀란 것은 재물의 크기가 아니라 그 모든 것이 어지럽지 아니하고 저마다 제자리에 있었다는 사실이었느니라. 그가 내 집의 정돈됨과 신하들의 태도와 내가 행하는 공의를 보고 이르기를 "당신의 하나님 여호와를 송축할지로다. 여호와께서 당신을 사랑하시므로 왕을 삼아 정의와 공의를 행하게 하셨도다" 하였나니, 내 딸아, 네 콘텐츠와 네 빵과 네 글이 정돈되고 신실하게 사람을 이롭게 할 때에 사람들은 네 안에 있는 사랑의 근원을 묻게 될 것이라. 이것이 네 선순환의 참뜻이니, 여섯 가지 일의 목록이 아니라 그 일을 다스리는 하루하루의 질서가 곧 예배임을 잊지 말라.</p>
+      <p>네가 이르기를 "내가 하는 일들이 계속 선택의 연속"이라 하였으니, 내 딸아 이는 네가 게을러서가 아니라 참으로 왕의 자리에 있기 때문이니라. 내가 두 여인이 한 아이를 두고 다투었을 때에, 오래 묻지 아니하고 "아이를 둘로 나누라" 한 마디로 누가 참 어미인지 가려내었나니, 이는 내가 지혜로워서가 아니라 무엇이 참으로 중한 것인가 하나만을 물었기 때문이라. 네게도 하루에 열 가지 선택이 밀려오거든 그 모든 것에 낱낱이 답하려 하지 말고 다만 하나만 물으라. "이것이 내가 오늘 정한 조각에 속한 일인가." 속하지 아니하거든 내일의 몫으로 미루어도 죄가 되지 아니하느니라. 선택의 무게는 그 수가 많음이 아니라 매 순간 처음부터 다시 재는 데서 오는 것이니, 한 번 정한 규례를 따르면 같은 선택을 두 번 하지 않아도 되느니라.</p>
+      <p>네가 "이 모든 것을 정리해 줄 비서가 필요하다" 하였으니 내가 답하노라. 그 비서는 다른 사람이 아니라 이미 네 곁에 있는 장인, 곧 첫째 편지에 일렀던 그 손일 수 있느니라. 매일 아침의 계획과 여섯 밭의 목록과 오늘 다스릴 조각을 그 장인의 손에 적어 두게 하라. 사람을 새로 구하기보다 이미 있는 것을 바르게 쓰는 것이 먼저니라.</p>
+      <p>잠언 31장의 여인을 내가 다시 이르노니, 그는 양털과 삼을 구하여 부지런히 손으로 일하며, 상인의 배와 같이 먼 곳에서 양식을 가져오며, 날이 새기 전에 일어나 그 집 사람에게 식물을 나누며, 밭을 살펴보고 그것을 사며 그 손으로 번 것으로 포도원을 일구었느니라. 그러나 그 여인도 능력과 존귀로 옷을 삼고 후일을 웃으며 맞이하였으니, 이는 여섯 가지 일을 한꺼번에 벌였기 때문이 아니라 그 손에 붙은 일을 신실하게 이어갔기 때문이라. 그의 자랑은 일의 많음이 아니요 신실함이었느니라.</p>
+      <p>내 딸아, 너무 많은 것을 한 번에 이루려 하는 마음은 사랑에서 나온 것임을 내가 아노니, 그 사랑이 너를 태우지 않도록 다만 순서를 정하여 주는 것이 이 편지의 뜻이니라.</p>
+      <p>내 딸아, 참으로 삶의 중심을 신앙에 두고자 하거든 이를 막연한 바람으로 두지 말고 하루의 첫 조각으로 정하라. 내가 매일 아침 번제를 드렸듯이, 너도 여섯 밭에 손을 대기 전에 먼저 잠잠히 말씀 앞에 앉는 조각 하나를 정하여 두라. 이는 시간을 빼앗기는 것이 아니요 오히려 나머지 조각들에 질서를 부여하는 처음 매듭이니, 첫 매듭이 바르면 나머지 실이 저절로 따라오느니라. 또한 네 가치가 여섯 밭의 열매의 많고 적음에 있지 아니하니, 씨를 뿌리는 손이 여전히 신실하다면 그것으로 이미 족하니라. 열매의 때는 네 손에 있지 아니하고 하늘에 있느니라.</p>
+      <p>그러므로 오늘부터 행할 것은 간단하니라. 하루를 열두 시가 아니라 서너 조각으로 나누고 그 조각마다 오직 한 가지 밭만 바라보라. 한 조각에는 이미 약속한 두 가지 일을, 한 조각에는 지친 밭을 정리하는 일을, 한 조각에는 씨 뿌리는 일과 밭을 살피는 일을 두고, 남는 한 조각은 아무 일도 하지 않아도 되는 조각으로 비워 두라. 왕도 쉬는 날에 성전에 들어가 잠잠히 앉았느니라. 네 쉼이 곧 네가 하나님을 신뢰한다는 증거이니라. 이 조각들이 오늘 다 지켜지지 못하여도 괘념치 말라. 내일 아침이면 이 편지가 다시 열려 너를 제자리로 부를 것이니, 그것으로 충분하니라.</p>
+    </section>
+
+    <div class="divider"><div class="line"></div><svg viewBox="0 0 24 24" fill="none"><path d="M12 2 L15 9 L22 12 L15 15 L12 22 L9 15 L2 12 L9 9 Z" stroke="var(--gold)" stroke-width="1.2"/></svg><div class="line"></div></div>
+
+    <section id="s3">
+      <div class="kicker">맺음말</div>
+      <p>내 딸아, 내가 구하였던 것은 "듣는 마음"이었고, 하나님은 내게 구하지 아니한 부와 존귀까지 더하여 주셨느니라. 네가 구하는 것이 재물의 순서가 아니라 사랑을 비추는 마음이니, 내가 확신하노니 나머지는 더하여지리라. 오늘 아침에도 내일 아침에도 이 편지가 다시 네 앞에 열리거든, 오늘의 조각을 다시 나누고 오늘의 밭을 다시 살피라. 여호와를 경외하는 것이 지식의 근본이요, 네 모든 일의 시작이니라.</p>
+      <p>네게 평강이 있을지어다.</p>
+      <p class="signoff">— 솔로몬</p>
+    </section>
+  </div>
+</div>
+
+<footer>
+  <svg class="lamp" viewBox="0 0 24 24" fill="none"><path d="M12 2 C9 6 9 9 12 12 C15 9 15 6 12 2 Z" fill="var(--gold-bright)"/><path d="M6 15 L18 15 L16 21 L8 21 Z" stroke="var(--gold)" stroke-width="1.2"/><path d="M9 15 C9 12 15 12 15 15" stroke="var(--gold)" stroke-width="1.2"/></svg>
+  매일 아침 9시, 이 편지가 다시 열립니다 · 묵상 기록은 이 브라우저에만 저장됩니다
+</footer>
+
+<script>
+(function(){
+  function pad(n){ return n < 10 ? '0'+n : ''+n; }
+  function dayOfYear(d){
+    var start = new Date(d.getFullYear(), 0, 0);
+    return Math.floor((d - start) / 86400000);
+  }
+  function dateKey(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+
+  var wisdoms = [
+    "지혜의 근본은 여호와를 경외하는 것이니라",
+    "많은 모사가 있으면 계획이 서느니라",
+    "범사에 기한이 있고 천하만사가 다 때가 있나니",
+    "네 양 떼의 형편을 부지런히 살피라",
+    "선물은 사람의 앞길을 넓게 하느니라",
+    "노하기를 더디 하는 자는 용사보다 낫느니라",
+    "정직한 자의 의는 그의 길을 곧게 하느니라",
+    "마음의 즐거움은 양약이라도 심령의 근심은 뼈를 마르게 하느니라",
+    "믿음직한 사자는 그를 보낸 이에게 생기를 불어넣느니라",
+    "밭을 살펴보고 그것을 사며 그 손으로 포도원을 일구느니라"
+  ];
+
+  function paintStars(el, count, size, opacity){
+    var shadows = [];
+    for (var i=0;i<count;i++){
+      var x = Math.random()*100, y = Math.random()*100;
+      shadows.push((x).toFixed(2)+'vw '+(y).toFixed(2)+'vh 0 '+size+'px var(--star)');
+    }
+    el.style.boxShadow = shadows.join(',');
+    el.style.opacity = opacity;
+  }
+  var small = document.getElementById('starsSmall');
+  var big = document.getElementById('starsBig');
+  if (small) paintStars(small, 140, 0, .6);
+  if (big) paintStars(big, 45, 1, .9);
+
+  // -- 오늘의 말씀 · 성경 공부 기록 --
+  var prompts = [
+    "오늘 읽은 장에서 가장 마음에 머문 구절은 무엇인가?",
+    "이 말씀이 오늘 다스릴 여섯 밭 중 어느 밭에 적용되는가?",
+    "이 장의 말씀 중 순종하기 가장 어려운 한 가지는 무엇인가?",
+    "오늘 이 말씀을 통해 하나님은 내게 무엇을 말씀하고 계신가?",
+    "이 말씀대로 오늘 하루 한 가지를 바꾼다면 무엇을 바꾸겠는가?",
+    "이 장에서 경계하는 것과 내 삶의 반복되는 습관이 닮아 있는가?",
+    "오늘 이 말씀을 누구와 나누고 싶은가?",
+    "이 말씀을 읽고 감사한 것은 무엇인가?",
+    "이 장의 말씀이 내가 받은 사랑을 비추는 데 어떻게 도움이 되는가?",
+    "오늘 내 마음의 근심 중, 이 말씀이 어루만지는 부분은 무엇인가?"
+  ];
+
+  var proverbsGist = [
+    "내가 이 장에서 이르기를, 지혜와 훈계를 알게 하려 함이 이 잠언의 뜻이라 하였고, 여호와를 경외함이 지식의 근본이라 하였으며, 죄인이 꾀더라도 좇지 말라 경계하였고, 지혜가 거리에서 외치되 듣지 않는 자들을 책망하였느니라.",
+    "내가 이르기를, 네가 지혜를 은을 구하듯 구하고 명철을 보배를 찾듯 찾으면 여호와 경외하기를 깨달으리라 하였고, 지혜가 너를 악한 자의 길과 이방 여인에게서 건지며 의인의 길을 지키게 하리라 하였느니라.",
+    "내가 이르기를, 네 마음을 다하여 여호와를 의뢰하고 네 명철을 의지하지 말라 하였고, 네 재물과 네 소산물의 처음 것으로 여호와를 공경하라 하였으며, 여호와의 징계를 경히 여기지 말라 하였고, 지혜를 얻은 자가 은을 얻음보다 나으니라 하였느니라.",
+    "내가 이르기를, 무엇을 얻든지 지혜를 얻으라 네 얻은 모든 것을 가지고 명철을 얻으라 하였고, 의인의 길은 돋는 햇살 같아서 점점 빛나 한낮에 이르거니와 악인의 길은 어둠 같아서 넘어져도 그것이 무엇인지 깨닫지 못하느니라 하였으며, 무릇 지킬 만한 것보다 더욱 네 마음을 지키라 생명의 근원이 이에서 남이니라 하였느니라.",
+    "내가 이르기를, 음녀의 입술은 꿀을 떨어뜨리나 나중은 쑥같이 쓰고 두 날 가진 칼같이 날카로우니라 하였고, 네가 젊어서 취한 아내를 즐거워하라 하였으며, 악인은 자기의 악에 걸리며 그 죄의 줄에 매이느니라 하였느니라.",
+    "내가 이르기를, 게으른 자여 개미에게 가서 그 하는 것을 보고 지혜를 얻으라 하였고, 여호와께서 미워하시는 것 예닐곱 가지 곧 교만한 눈과 거짓된 혀와 무죄한 피를 흘리는 손과 악한 계교를 꾀하는 마음과 악으로 달려가는 발과 거짓 증인과 형제 사이를 이간하는 자를 이르며, 불을 품에 품고 어찌 옷이 타지 아니하겠느냐 하였느니라.",
+    "내가 이르기를, 지혜 없는 젊은이가 음녀의 집 모퉁이로 지나다가 그 여인의 꾐에 빠져 소가 도수장으로 가듯 끌려감을 보았노라 하였고, 그 집은 스올로 내려가는 길이라 많은 자가 그로 말미암아 엎드러졌느니라 하였느니라.",
+    "내가 이르기를, 지혜가 길가의 높은 곳과 성문 어귀에서 소리를 높여 사람들을 부른다 하였고, 여호와께서 태초에 일하시기 전에 나를 세우셨으며 내가 그 곁에서 창조자가 되어 날마다 그의 기뻐하신 바가 되었고 항상 그 앞에서 즐거워하였느니라 하였느니라.",
+    "내가 이르기를, 지혜가 그 집을 짓고 일곱 기둥을 다듬고 잔치를 베풀어 어리석은 자들을 청하였다 하였고, 어리석은 여인 미련도 문에 앉아 지나가는 자들을 부르나 그 집에 청함을 받은 자는 이미 스올 깊은 곳에 있는 줄을 알지 못하느니라 하였느니라.",
+    "내가 이르기를, 지혜로운 아들은 아비를 즐겁게 하나 미련한 아들은 어미의 근심이라 하였고, 불의의 재물은 무익하여도 공의는 죽음에서 건지느니라 하였으며, 미움은 다툼을 일으켜도 사랑은 모든 허물을 가리느니라 하였느니라.",
+    "내가 이르기를, 속이는 저울은 여호와께서 미워하시나 공평한 추는 그가 기뻐하시느니라 하였고, 교만이 오면 욕도 오나 겸손한 자에게는 지혜가 있느니라 하였으며, 지략이 없으면 백성이 엎드러져도 지략이 많으면 평안을 누리느니라 하였느니라.",
+    "내가 이르기를, 의인은 자기의 가축의 생명을 돌보나 악인의 긍휼은 잔인이니라 하였고, 어진 여인은 그 지아비의 면류관이나 욕을 끼치는 여인은 그 지아비 뼈의 썩음 같으니라 하였으며, 손이 부지런한 자의 재물은 귀하니라 하였느니라.",
+    "내가 이르기를, 지혜로운 아들은 아비의 훈계를 들으나 거만한 자는 꾸지람을 듣지 아니하느니라 하였고, 소망이 더디 이루어지면 마음을 상하게 하거니와 소원이 이루어지는 것은 곧 생명나무니라 하였으며, 아들을 훈계하지 아니하는 자는 그를 미워함이라 하였느니라.",
+    "내가 이르기를, 지혜로운 여인은 자기 집을 세우되 미련한 여인은 자기 손으로 그것을 허느니라 하였고, 어떤 길은 사람이 보기에 바르나 필경은 사망의 길이니라 하였으며, 가난한 자를 불쌍히 여기는 것은 여호와께 꾸어 드리는 것이니 그 선행을 그에게 갚아 주시리라 하였느니라.",
+    "내가 이르기를, 유순한 대답은 분노를 쉬게 하여도 과격한 말은 노를 격동하느니라 하였고, 여호와의 눈은 어디서든지 악인과 선인을 감찰하시느니라 하였으며, 채소를 먹으며 서로 사랑하는 것이 살진 소를 먹으며 서로 미워하는 것보다 나으니라 하였느니라.",
+    "내가 이르기를, 너의 행사를 여호와께 맡기라 그리하면 네가 경영하는 것이 이루어지리라 하였고, 사람이 마음으로 자기의 길을 계획할지라도 그의 걸음을 인도하는 이는 여호와시니라 하였으며, 교만은 패망의 선봉이요 거만한 마음은 넘어짐의 앞잡이니라 하였느니라.",
+    "내가 이르기를, 마른 떡 한 조각만 있고도 화목하는 것이 육선이 집에 가득하고 다투는 것보다 나으니라 하였고, 친구는 사랑이 끊이지 아니하고 형제는 위급한 때를 위하여 났느니라 하였으며, 마음의 즐거움은 양약이라도 심령의 근심은 뼈로 마르게 하느니라 하였느니라.",
+    "내가 이르기를, 여호와의 이름은 견고한 망대라 의인은 그리로 달려가서 안전함을 얻느니라 하였고, 죽고 사는 것이 혀의 힘에 달렸나니 혀를 쓰기를 좋아하는 자는 그 열매를 먹으리라 하였으며, 다투기 전에 먼저 말하는 자의 말이 옳은 듯하나 그 이웃이 와서 밝히느니라 하였느니라.",
+    "내가 이르기를, 재물은 친구를 많아지게 하나 가난한즉 친구가 끊어지느니라 하였고, 집과 재물은 조상에게서 상속하거니와 슬기로운 아내는 여호와께로서 말미암느니라 하였으며, 가난한 자를 불쌍히 여기는 것은 여호와께 꾸어 드리는 것이니 그 갚아 주실 것을 확실히 하라 하였느니라.",
+    "내가 이르기를, 포도주는 거만하게 하는 것이요 독주는 떠들게 하는 것이라 무릇 이에 미혹되는 자에게는 지혜가 없느니라 하였고, 게으른 자는 가을에 밭 갈지 아니하나니 그러므로 거둘 때에 구걸할지라도 얻지 못하느니라 하였으며, 너는 악을 갚겠다 말하지 말고 여호와를 기다리라 그가 너를 구원하시리라 하였느니라.",
+    "내가 이르기를, 왕의 마음이 여호와의 손에 있음이 마치 봇도랑의 물과 같아서 그가 임의로 인도하시느니라 하였고, 공의를 행하는 것이 여호와께는 제사드리는 것보다 나으니라 하였으며, 다투는 여인과 함께 큰 집에서 사는 것보다 움막에서 혼자 사는 것이 나으니라 하였느니라.",
+    "내가 이르기를, 많은 재물보다 명예를 택할 것이요 은과 금보다 은총을 더욱 택할 것이니라 하였고, 마땅히 행할 길을 아이에게 가르치라 그리하면 늙어도 그것을 떠나지 아니하리라 하였으며, 옛 지계석을 옮기지 말며 고아들의 밭을 침범하지 말라 하였느니라.",
+    "내가 이르기를, 재물을 얻으려고 애쓰지 말고 네 사사로운 지혜를 버릴지어다 정녕 재물은 스스로 날개를 내어 하늘을 나는 독수리처럼 날아가리라 하였고, 훈계를 그치지 말라 하였으며, 내 아들아 네 마음을 내게 주며 네 눈으로 내 길을 즐거워할지어다 하였느니라.",
+    "내가 이르기를, 의인은 일곱 번 넘어질지라도 다시 일어나려니와 악인은 재앙으로 말미암아 엎드러지느니라 하였고, 네 원수가 넘어질 때에 즐거워하지 말라 하였으며, 내가 게으른 자의 밭을 지나며 본즉 가시덤불이 우거졌기로 조금 더 자자 조금 더 졸자 하면 네 빈궁이 강도같이 이르리라 하였느니라.",
+    "내가 이르기를, 일을 숨기는 것은 하나님의 영화요 일을 살피는 것은 왕의 영화니라 하였고, 경우에 합당한 말은 아로새긴 은쟁반에 금 사과니라 하였으며, 네 원수가 주리거든 먹이고 목마르거든 마시게 하라 그리하는 것은 핀 숯을 그의 머리에 쌓아 놓는 것이니라 하였느니라.",
+    "내가 이르기를, 미련한 자에게는 영예가 적당하지 아니하니 마치 여름에 눈 오는 것과 추수 때에 비 오는 것 같으니라 하였고, 개가 그 토한 것을 도로 먹는 것처럼 미련한 자는 그 미련한 것을 거듭 행하느니라 하였으며, 게으른 자는 길에 사자가 있다 거리에 사자가 있다 핑계하느니라 하였느니라.",
+    "내가 이르기를, 너는 내일 일을 자랑하지 말라 하루 동안에 무슨 일이 일어날는지 네가 알 수 없음이니라 하였고, 남이 너를 칭찬하게 하고 네 입으로는 하지 말라 하였으며, 철이 철을 날카롭게 하는 것같이 사람이 그의 친구의 얼굴을 빛나게 하고 친구의 아픈 책망은 충직으로 말미암은 것이니라 하였느니라.",
+    "내가 이르기를, 악인은 쫓아오는 자가 없어도 도망하나 의인은 사자같이 담대하니라 하였고, 자기의 죄를 숨기는 자는 형통하지 못하나 죄를 자복하고 버리는 자는 불쌍히 여김을 받으리라 하였으며, 가난하여도 성실하게 행하는 자는 부유하면서 굽게 행하는 자보다 나으니라 하였느니라.",
+    "내가 이르기를, 자주 책망을 받으면서도 목이 곧은 자는 갑자기 패망을 당하고 피하지 못하리라 하였고, 묵시가 없으면 백성이 방자히 행하거니와 율법을 지키는 자는 복이 있느니라 하였으며, 사람을 두려워하면 올무에 걸리게 되나 여호와를 의지하는 자는 안전하리라 하였느니라.",
+    "이는 야게의 아들 아굴의 말이니, 그가 이르기를 내가 두 가지 일을 주께 구하였사오니 내가 죽기 전에 내게 거절하지 마시옵소서, 곧 허탄과 거짓말을 내게서 멀리 하옵시며 나를 가난하게도 부하게도 마시고 오직 필요한 양식으로 나를 먹이시옵소서 하였고, 힘은 작아도 지혜로운 것 넷 곧 개미와 사반과 메뚜기와 도마뱀을 들어 지혜를 가르쳤느니라.",
+    "이는 르무엘 왕의 말씀이니 그 어머니가 그를 훈계한 것이라, 왕이 술을 마시는 것과 독주를 찾는 것이 마땅하지 아니하니라 하였고, 너는 말 못하는 자와 고독한 자의 송사를 위하여 입을 열어 공의로 재판할지니라 하였으며, 마지막에 누가 현숙한 여인을 찾아 얻겠느냐 그 값은 진주보다 더하니라 하여 그 손이 부지런하고 가난한 자를 구제하며 능력과 존귀로 옷을 삼고 그 자녀가 일어나 감사하다 하느니라 하였느니라."
+  ];
+
+  function infoForDate(d){
+    var doy = dayOfYear(d);
+    var chapter = Math.min(d.getDate(), 31);
+    return {
+      key: dateKey(d),
+      chapter: chapter,
+      wisdom: wisdoms[doy % wisdoms.length],
+      gist: proverbsGist[chapter - 1] || '',
+      prompt: prompts[doy % prompts.length]
+    };
+  }
+
+  var now = new Date();
+  var today = infoForDate(now);
+
+  document.getElementById('todayLine').textContent = today.wisdom;
+  var chapterEl = document.getElementById('chapterNum');
+  if (chapterEl) chapterEl.textContent = '잠언 ' + today.chapter + '장';
+  var gistEl = document.getElementById('chapterGist');
+  if (gistEl) gistEl.textContent = today.gist;
+  var promptEl = document.getElementById('promptLine');
+  if (promptEl) promptEl.textContent = '오늘의 물음: ' + today.prompt;
+
+  var STORAGE_KEY = 'solomonLetterJournal';
+  function loadJournal(){
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) { return {}; }
+  }
+  function saveJournalMap(map){
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(map)); } catch (e) {}
+  }
+
+  var archiveDateInput = document.getElementById('archiveDate');
+
+  function renderHistory(map){
+    var list = document.getElementById('historyList');
+    if (!list) return;
+    var keys = Object.keys(map).sort().reverse();
+    if (!keys.length){
+      list.innerHTML = '<li class="empty">아직 기록된 묵상이 없습니다.</li>';
+      return;
+    }
+    var topKeys = keys.slice(0, 7);
+    list.innerHTML = topKeys.map(function(k){
+      var mmdd = k.slice(5).replace('-', '.');
+      return '<li class="clickable" data-date="'+k+'"><span class="d">'+mmdd+' · 잠언 '+map[k].chapter+'장</span><span class="n"></span></li>';
+    }).join('');
+    // note text is set via textContent (never innerHTML) since it is viewer-authored
+    var items = list.querySelectorAll('li .n');
+    topKeys.forEach(function(k, i){
+      var note = (map[k].note || '').trim();
+      var preview = note ? note.slice(0, 34) + (note.length > 34 ? '…' : '') : '(기록 없음)';
+      if (items[i]) items[i].textContent = preview;
+    });
+    list.querySelectorAll('li.clickable').forEach(function(li){
+      li.addEventListener('click', function(){
+        var k = li.getAttribute('data-date');
+        if (archiveDateInput) archiveDateInput.value = k;
+        openArchive(k);
+      });
+    });
+  }
+
+  var journal = loadJournal();
+  var noteEl = document.getElementById('journalNote');
+  var statusEl = document.getElementById('journalStatus');
+  if (journal[today.key] && noteEl) {
+    noteEl.value = journal[today.key].note || '';
+    if (statusEl) statusEl.textContent = '오늘 이미 기록하였습니다. 다시 저장하면 덮어씁니다.';
+  }
+  renderHistory(journal);
+
+  var saveBtn = document.getElementById('saveJournal');
+  if (saveBtn) {
+    saveBtn.addEventListener('click', function(){
+      var val = noteEl ? noteEl.value : '';
+      if (!val || !val.trim()) {
+        if (statusEl) statusEl.textContent = '먼저 몇 마디라도 적어 보라.';
+        return;
+      }
+      journal[today.key] = {
+        chapter: today.chapter,
+        prompt: today.prompt,
+        note: val,
+        ts: now.toISOString()
+      };
+      saveJournalMap(journal);
+      renderHistory(journal);
+      if (statusEl) {
+        var d2 = new Date();
+        statusEl.textContent = '저장되었습니다 · ' + pad(d2.getHours()) + ':' + pad(d2.getMinutes());
+      }
+    });
+  }
+
+  // -- 이전 편지 열어보기 --
+  var archiveResultEl = document.getElementById('archiveResult');
+  var archiveDateLabel = document.getElementById('archiveDateLabel');
+  var archiveWisdomEl = document.getElementById('archiveWisdom');
+  var archiveGistEl = document.getElementById('archiveGist');
+  var archiveNoteEl = document.getElementById('archiveNote');
+
+  function parseKey(k){
+    var parts = (k || '').split('-').map(Number);
+    return new Date(parts[0], (parts[1] || 1) - 1, parts[2] || 1);
+  }
+  function openArchive(k){
+    if (!k) return;
+    var d = parseKey(k);
+    if (isNaN(d.getTime())) return;
+    var info = infoForDate(d);
+    if (archiveDateLabel) archiveDateLabel.textContent = k.replace(/-/g,'.') + ' · 잠언 ' + info.chapter + '장';
+    if (archiveWisdomEl) archiveWisdomEl.textContent = '"' + info.wisdom + '"';
+    if (archiveGistEl) archiveGistEl.textContent = info.gist;
+    if (archiveNoteEl) {
+      var entry = journal[info.key];
+      archiveNoteEl.textContent = entry && entry.note ? '그날의 묵상: ' + entry.note : '그날은 묵상을 기록하지 않았습니다.';
+    }
+    if (archiveResultEl) archiveResultEl.classList.add('show');
+  }
+  if (archiveDateInput) {
+    archiveDateInput.max = today.key;
+    archiveDateInput.value = today.key;
+  }
+  var archiveBtn = document.getElementById('archiveOpen');
+  if (archiveBtn) {
+    archiveBtn.addEventListener('click', function(){
+      openArchive(archiveDateInput ? archiveDateInput.value : '');
+    });
+  }
+})();
+</script>
+
+</body></html>
