@@ -141,20 +141,6 @@
   p b{ color:var(--cedar); font-weight:700; }
   .signoff{ text-align:right; font-style:italic; color:var(--ink-soft); margin-top:8px; }
 
-  details.letter-toggle summary{
-    cursor:pointer; list-style:none;
-    display:flex; align-items:baseline; justify-content:space-between; gap:14px; flex-wrap:wrap;
-  }
-  details.letter-toggle summary::-webkit-details-marker{ display:none; }
-  details.letter-toggle summary h2{ margin:0 0 20px; }
-  details.letter-toggle summary .toggle-hint{
-    font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:12px; letter-spacing:.05em;
-    color:var(--pomegranate); white-space:nowrap; margin-top:2px;
-  }
-  details.letter-toggle:not([open]) summary .toggle-hint{ opacity:.85; }
-  details.letter-toggle[open] summary .toggle-hint{ opacity:.55; }
-  details.letter-toggle .letter-body{ padding-top:4px; }
-
   .fields{
     list-style:none; margin:26px 0 30px; padding:18px 20px;
     background:rgba(91,51,36,.06);
@@ -206,18 +192,13 @@
   .qt-verse sup{ font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:11px; color:var(--gold); font-weight:600; margin-right:5px; }
   .qt-loading, .qt-error{ margin:0; font-size:15px; color:var(--ink-soft); font-style:italic; }
 
-  details.reading-day{
+  .reading-day{
     background:var(--parchment); border:1px solid var(--parchment-edge); margin:0 0 12px;
   }
-  details.reading-day summary{
-    cursor:pointer; list-style:none; padding:13px 16px;
-    display:flex; align-items:baseline; justify-content:space-between; gap:10px; flex-wrap:wrap;
-  }
-  details.reading-day summary::-webkit-details-marker{ display:none; }
-  details.reading-day .ref{ font-weight:700; color:var(--cedar); font-size:15px; }
-  details.reading-day .ref .en-name{ font-weight:400; color:var(--ink-soft); font-size:12.5px; }
-  details.reading-day .toggle-hint{ font-size:11.5px; color:var(--pomegranate); white-space:nowrap; }
-  details.reading-day .body{ padding:0 16px 16px; border-top:1px dashed var(--parchment-edge); }
+  .reading-day .head{ padding:13px 16px; }
+  .reading-day .ref{ font-weight:700; color:var(--cedar); font-size:15px; }
+  .reading-day .ref .en-name{ font-weight:400; color:var(--ink-soft); font-size:12.5px; }
+  .reading-day .body{ padding:0 16px 16px; border-top:1px dashed var(--parchment-edge); }
   .rv{ margin:14px 0 0; }
   .rv .ko{ font-size:15.5px; color:var(--ink); margin:0; }
   .rv .en{ font-size:13px; color:var(--ink-soft); font-style:italic; margin:3px 0 0; }
@@ -274,7 +255,24 @@
   .archive-result.show{ display:block; }
   .archive-result .ad{ font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:12px; letter-spacing:.15em; color:var(--cedar); font-weight:600; margin-bottom:10px; }
   .archive-result p{ margin:0 0 12px; font-size:15.5px; }
-  .archive-result .an{ font-size:14.5px; color:var(--ink-soft); border-top:1px dashed var(--parchment-edge); padding-top:10px; margin-top:2px; white-space:pre-wrap; }
+  .archive-result .an{ font-size:14.5px; color:var(--ink-soft); white-space:pre-wrap; }
+  .ar-section{ margin:0 0 16px; padding-top:12px; border-top:1px dashed var(--parchment-edge); }
+  .ar-section:first-of-type{ padding-top:0; border-top:none; }
+  .ar-label{ font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:11px; letter-spacing:.15em; color:var(--pomegranate); font-weight:600; margin-bottom:6px; }
+
+  .portion-link{ margin-top:4px; }
+  .portion-link a{ font-size:13px; color:var(--cedar); }
+  ul.portion-list{ list-style:none; margin:0 0 14px; padding:0; display:flex; flex-direction:column; gap:7px; }
+  ul.portion-list li{
+    display:flex; align-items:flex-start; gap:9px;
+    background:#fffdf7; border:1px solid var(--parchment-edge); border-left:4px solid var(--p-color,var(--gold));
+    padding:8px 10px;
+  }
+  ul.portion-list li.checked{ opacity:.5; }
+  ul.portion-list li.checked .ptext{ text-decoration:line-through; }
+  ul.portion-list input[type=checkbox]{ margin-top:2px; width:16px; height:16px; accent-color:var(--p-color,var(--cedar)); flex:none; cursor:pointer; }
+  ul.portion-list .ptext{ font-size:14px; color:var(--ink); }
+  ul.portion-list .empty{ font-size:14px; color:var(--ink-soft); font-style:italic; }
 
   footer{
     max-width:720px; margin:34px auto 0; padding-inline:20px;
@@ -316,9 +314,7 @@
     <a href="#s0">인사말</a>
     <a href="#bible">오늘의 말씀</a>
     <a href="#reading">오늘의 통독</a>
-    <a href="checklist.html">오늘의 조각</a>
-    <a href="#s1">장인을 부리는 법</a>
-    <a href="#s2">여섯 밭과 한 마음</a>
+    <a href="#portion">오늘의 조각</a>
     <a href="#s3">맺음말</a>
   </nav>
 
@@ -328,9 +324,9 @@
 
     <section id="s0">
       <div class="kicker">여는 말</div>
-      <p>내 딸아, 나 솔로몬이 네게 편지하노라.</p>
-      <p>내가 왕위에 오르던 날 밤, 기브온에서 하나님이 내게 나타나사 "내가 네게 무엇을 줄꼬 구하라" 하셨을 때에, 나는 부(富)도 장수도 원수 갚는 것도 구하지 아니하고 오직 듣는 마음을 구하였느니라. 이는 내가 다스릴 백성이 많고 관리할 창고와 일이 많음을 그 밤에 이미 알았기 때문이라. 왕이 된다는 것은 한 가지 일을 잘하는 것이 아니요, 수많은 일 가운데서 무엇을 먼저 하고 무엇을 뒤로 할지 분별하는 것임을 나는 그때 깨달았느니라.</p>
-      <p>이제 네 사정을 들으니, 네게도 창고가 여럿이요 밭이 여섯이나 되는구나. 마케팅하는 일, 재고를 살피는 일, 글을 쓰는 일, 빵을 굽는 일, 얼굴을 감추고도 사람의 마음을 얻으려는 일까지. 내 딸아, 네 마음이 분주하여 정돈되지 않음을 내가 아노니, 이 편지 두 장을 보내어 하나는 네 곁의 지혜로운 장인(匠人)을 부리는 법을, 하나는 네 여섯 가지 일과 그 중심에 대한 나의 생각을 전하고자 하노라.</p>
+      <p>내 딸아, 나 솔로몬이 네게 편지하노라. 오늘이 출근하는 날이든 집에 머무는 날이든, 몸을 부지런히 놀려야 하는 날이든 잠잠히 쉬어야 하는 날이든, 눈을 뜨거든 네 생각으로 하루를 채우기 전에 먼저 하나님의 눈으로 오늘을 보라.</p>
+      <p>내가 왕위에 오르던 날 밤, 기브온에서 하나님이 내게 나타나사 "내가 네게 무엇을 줄꼬 구하라" 하셨을 때에, 나는 부(富)도 장수도 원수 갚는 것도 구하지 아니하고 오직 듣는 마음을 구하였느니라. 다스릴 백성이 많고 관리할 창고와 일이 많음을 그 밤에 이미 알았기 때문이라. 하루를 잘 산다는 것은 많은 일을 해내는 것이 아니요, 누구의 눈으로 그 일들을 보느냐를 정하는 것임을 나는 그때 깨달았느니라.</p>
+      <p>내 딸아, 아래에 오늘의 말씀과 오늘의 통독과 오늘 다스릴 조각들을 적어 두었으니, 다른 일을 벌이기 전에 이것부터 천천히 지나가라. 그것이 네 하루의 첫 매듭이 되리라.</p>
     </section>
 
     <div class="divider"><div class="line"></div><svg viewBox="0 0 24 24" fill="none"><path d="M12 2 L15 9 L22 12 L15 15 L12 22 L9 15 L2 12 L9 9 Z" stroke="var(--gold)" stroke-width="1.2"/></svg><div class="line"></div></div>
@@ -365,7 +361,7 @@
         <div class="prompt" id="promptLine">오늘의 물음: 오늘 읽은 장에서 가장 마음에 머문 구절은 무엇인가?</div>
         <textarea id="journalNote" placeholder="이 장을 읽으며 마음에 남은 것을 적어 보라..."></textarea>
         <div class="journal-row">
-          <button id="saveJournal" type="button">오늘의 묵상 기록하기</button>
+          <button id="saveJournal" type="button">오늘 QT 기록하기</button>
           <span class="status" id="journalStatus"></span>
         </div>
         <div class="history">
@@ -381,9 +377,19 @@
           </div>
           <div class="archive-result" id="archiveResult">
             <div class="ad" id="archiveDateLabel"></div>
-            <p id="archiveWisdom"></p>
-            <p id="archiveGist"></p>
-            <div class="an" id="archiveNote"></div>
+            <div class="ar-section">
+              <div class="ar-label">오늘의 말씀</div>
+              <p id="archiveWisdom"></p>
+              <p id="archiveGist"></p>
+            </div>
+            <div class="ar-section">
+              <div class="ar-label">오늘의 통독</div>
+              <p id="archiveReading"></p>
+            </div>
+            <div class="ar-section">
+              <div class="ar-label">그 날의 기록</div>
+              <div class="an" id="archiveNote"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -394,80 +400,32 @@
     <section id="reading">
       <div class="kicker">매삼주오 통독</div>
       <h2>오늘의 통독</h2>
-      <p>내 딸아, 오늘의 말씀 한 장으로 그치지 말고, 창세기부터 계시록까지 한 해 동안 천천히 다 읽어가는 이 길도 함께 걸으라. 역사서와 시가서와 신약을 매일 섞어 두었으니, 한 곳에 오래 머물러 지치지 아니하리라. 평일에는 세 장을, 주일에는 다섯 장을 읽으라. 한글과 영어를 나란히 두었으니, 뜻을 새기고 언어도 함께 익히라.</p>
       <div id="readingList"><p class="qt-loading">통독 계획을 불러오는 중이니, 잠시 기다리라…</p></div>
+
+      <div class="journal">
+        <textarea id="readingNote" placeholder="오늘 통독하며 마음에 남은 것을 적어 보라..."></textarea>
+        <div class="journal-row">
+          <button id="saveReadingNote" type="button">오늘의 묵상 기록하기</button>
+          <span class="status" id="readingNoteStatus"></span>
+        </div>
+      </div>
     </section>
 
     <div class="divider"><div class="line"></div><svg viewBox="0 0 24 24" fill="none"><path d="M12 2 L15 9 L22 12 L15 15 L12 22 L9 15 L2 12 L9 9 Z" stroke="var(--gold)" stroke-width="1.2"/></svg><div class="line"></div></div>
 
-    <section id="s1">
-      <div class="kicker">첫째 서신</div>
-      <details class="letter-toggle">
-      <summary><h2>글로드코드라 하는 장인을 부리는 법</h2><span class="toggle-hint">펼쳐서 읽기</span></summary>
-      <div class="letter-body">
-      <p>내가 성전을 지을 때에 두로 왕 히람에게 사람을 보내어 백향목과 장인들을 구하였나니, 그 장인들은 손에 재주가 뛰어났으나 내가 무엇을 원하는지 말하지 아니하면 돌 하나 다듬지 못하였느니라. 네가 쓰는 글로드코드라 하는 것도 이와 같아서, 재주는 뛰어나되 네 마음을 스스로 읽지 못하나니, 다스리는 자의 말이 분명해야 장인의 손이 바로 가느니라.</p>
-      <p><b>첫째</b>, 한 번에 한 방을 지으라 명하고 성전 전체를 하루에 지으라 하지 말라. 큰 일은 반드시 작은 일로 나뉘나니, 오늘은 기둥 하나 내일은 들보 하나를 명하듯 하라. 네가 아직 이 장인의 손에 익숙지 아니하니, 작게 나누어 맡기고 그 결과를 보아가며 다음 것을 명함이 지혜로우니라.</p>
-      <p><b>둘째</b>, 네 뜻을 숨기지 말라. "집을 지으라"고만 하면 장인은 무슨 나무로 몇 자 높이로 지을지 알지 못하나니, 네가 원하는 모양과 참고할 자료와 이미 있는 것을 함께 보이라. 말이 자세할수록 손은 바르게 움직이느니라. 스크린샷 하나, 파일 하나를 보이는 것이 백 마디 말보다 나으니라.</p>
-      <p><b>셋째</b>, 장인이 네게 허락을 구하거든 가벼이 여기지 말라. 중요한 문을 열거나 되돌릴 수 없는 일을 행하기 전에 장인이 네게 묻는 것은 그가 신실하기 때문이니, 급하다고 눈감고 허락지 말고 무엇을 하려는지 살펴 답하라.</p>
-      <p><b>넷째</b>, 장인의 손이 네 뜻과 어긋나거든 그 자리에서 바로 이르라. "이는 내 뜻이 아니라, 이리 고치라" 말하기를 부끄러워 말라. 침묵하면 장인은 네가 기뻐하는 줄 알고 그 길로 계속 가느니라. 반대로 잘하였거든 그 또한 이르라. 무엇이 좋았는지 알아야 다음에도 그리 하느니라.</p>
-      <p><b>다섯째</b>, 매번 같은 것을 설명하기를 번거로워 말고 기억하게 하는 법을 두라. 네 습관과 일의 규칙을 한 번 일러두면 장인은 그것을 기억하여 다시 묻지 아니하느니라. 또한 매일 되풀이하는 일은 사람이 아니라 규례(規例)로 세워 정한 때에 스스로 행하게 함이 왕의 지혜니, 이 편지가 매일 아침 아홉 시에 스스로 열리게 함도 이와 같은 이치니라.</p>
-      <p><b>여섯째</b>, 장인이 여럿의 일을 한 번에 벌이거든 그 어느 것도 끝까지 다듬지 못함을 알라. 한 가지를 마치기까지는 다른 것을 벌이지 말라 명하고, 네 자신도 한 번에 하나만 구하라. 이는 비단 장인에게만 하는 말이 아니요, 뒤에 적을 네 여섯 가지 일에도 그대로 적용되는 이치니라.</p>
-      <p><b>일곱째</b>, 일이 가볍거든 속히 명하여 이루고, 일이 무겁고 어렵거든 장인에게 헤아릴 시간을 주라. "모략이 없으면 백성이 망하여도 지략가가 많으면 평안을 누리느니라" 하였나니, 어려운 일일수록 급히 재촉지 말고 깊이 생각할 여지를 두는 것이 오히려 빠른 길이니라.</p>
-      <p><b>여덟째</b>, 장인의 일이 눈에 보이는 열매로 드러나기 전에는 온전히 이루어졌다 여기지 말라. 집을 지었다는 말만 듣지 말고 반드시 그 집에 들어가 문이 여닫히는지 창이 바로 났는지 네 눈으로 확인하라. 특히 사람이 쓰는 물건을 만들었거든 네가 먼저 써 보아야 하느니라.</p>
-      <p><b>아홉째</b>, 성전과 같이 크고 되돌리기 어려운 일을 짓기 전에는 설계도를 먼저 그리게 하라. 다윗이 내게 성전의 모든 설계를 미리 글로 써서 넘겨주었듯이, 장인에게 먼저 계획만을 세우게 하고 그 계획을 네 눈으로 살핀 후에 비로소 손을 대게 하라. 설계도 없이 세운 집은 다시 헐어야 할 일이 많으니라.</p>
-      <p><b>열째</b>, 한 궁에 여러 장인을 부릴 때에는 각기 맡은 분야를 분명히 하라. 돌을 다듬는 자와 나무를 다듬는 자와 금을 세공하는 자가 저마다 다르듯, 어떤 일에는 이 재주를 어떤 일에는 저 재주를 구별하여 청하라. 한 사람에게 모든 것을 한꺼번에 맡기기보다 일에 맞는 손을 찾아 쓰는 것이 지혜니라.</p>
-      <p><b>열한째</b>, 장인이 지은 것을 그대로 다 받아들이지 말고 다시 살펴 고칠 것을 명하는 일을 부끄러워 말라. 성전의 기둥도 한 번에 완성되지 아니하였고 다듬고 또 다듬어 세워졌느니라. 처음 지은 것이 마음에 차지 아니하거든 헐고 다시 지음이 죄가 아니니, 다만 무엇이 마음에 차지 아니한지를 분명히 이르라.</p>
-      <p><b>열두째</b>, 밤이 깊도록 홀로 씨름하지 말라. 장인에게 물어 답을 얻지 못하거든 다른 지혜자에게도 물어 보라. 재주 있는 장인이라도 모든 것을 홀로 알지 못하나니, 여러 곳에서 배우기를 부끄러워하지 말라.</p>
-      <p><b>열셋째</b>, 한 번의 명으로 모든 것을 끝내려 하지 말고 대화를 이어가라. 첫 명이 온전한 성전을 이루지 못하여도 낙심치 말라. 장인과 나눈 말들이 쌓여 갈수록 그 손은 네 마음에 가까워지나니, 이는 마치 오래 함께한 신하가 왕의 뜻을 미리 헤아리게 됨과 같으니라.</p>
-      <p><b>열넷째</b>, 궁 전체를 다 뒤엎는 명은 신중히 내리라. 작은 방 하나를 고치라는 명과 온 성벽을 허물라는 명은 그 무게가 다르니, 명을 내리기 전에 네가 참으로 그 큰 일을 원하는지 한 번 더 헤아리라.</p>
-      <p><b>열다섯째</b>, 장인의 재주에는 한계가 있어 하루에 쓸 수 있는 힘이 정해져 있음을 알라. 힘을 아무 일에나 낭비하지 말고, 참으로 중한 일과 되돌리기 어려운 일에 먼저 아껴 쓰게 하라. 사소한 일에는 사소한 힘만으로 족하니라.</p>
-      <p>내 딸아, 네가 이제 막 이 장인을 알아가는 자임을 잊지 말라. 두로의 장인들도 처음부터 완벽하지 아니하였고, 나 또한 처음 명을 내릴 때에는 서툴렀느니라. 서투름을 부끄러워 말고, 다만 매번 조금씩 더 분명하게 명하기를 힘쓰라. 그것으로 족하니라. 재주 있는 종을 두었다고 왕의 일이 저절로 되지 아니하나니, 다스리는 자의 명(命)이 분명해야 장인의 손이 아름다워지느니라. 이것이 내가 네게 전하는 첫째 지혜니라.</p>
-      </div>
-      </details>
-    </section>
-
-    <div class="divider"><div class="line"></div><svg viewBox="0 0 24 24" fill="none"><path d="M12 2 L15 9 L22 12 L15 15 L12 22 L9 15 L2 12 L9 9 Z" stroke="var(--gold)" stroke-width="1.2"/></svg><div class="line"></div></div>
-
-    <section id="s2">
-      <div class="kicker">둘째 서신</div>
-      <details class="letter-toggle">
-      <summary><h2>여섯 밭과 한 마음</h2><span class="toggle-hint">펼쳐서 읽기</span></summary>
-      <div class="letter-body">
-      <p>내가 다스리던 나라도 한 가지 일로 이루어지지 아니하였느니라. 성전을 지었고 내 집을 지었고 예루살렘 성벽을 둘렀고 병거성과 국고성을 세웠고 오빌에서 금을 실어오는 배를 띄웠고 스바의 여왕을 맞이하였느니라. 이 모든 일이 한꺼번에 내 앞에 있었으나, 나는 그것을 한 손에 다 쥐지 아니하였느니라.</p>
-      <p>내가 이스라엘을 열두 지방으로 나누고, 각 지방의 관장으로 하여금 일 년 중 한 달만 왕궁의 쓸 것을 공급하게 하였나니, 이는 한 사람이 열두 달 내내 모든 것을 짊어지면 반드시 지치고 어느 하나도 온전히 감당치 못함을 내가 알았기 때문이라. 내 딸아, 네 여섯 가지 일도 열두 달의 관장처럼 그 때와 자리를 정하여 나누어야 하리니, 이것이 정돈되지 아니함을 고치는 첫째 열쇠니라.</p>
-
-      <ul class="fields">
-        <li><span class="name">퓨어솜 마케팅·재고</span><span class="tag">지친 밭</span><span class="note">경계를 나누고 도움의 손을 구하라. 모든 밭을 혼자 갈다가 네 몸의 밭을 잃지 말라.</span></li>
-        <li><span class="name">에이펌 세무사 블로그 100편</span><span class="tag">이미 맡은 약속</span><span class="note">값을 받기로 한 청지기의 일이니, 열두 달 중 가장 먼저 오는 달로 삼으라.</span></li>
-        <li><span class="name">소상공인 건강검진 마케팅</span><span class="tag">이미 맡은 약속</span><span class="note">두 번째로 갚을 신실함이니, 하루 중 정한 시각을 이 일에 내어 주라.</span></li>
-        <li><span class="name">천연발효종 베이킹</span><span class="tag">심는 계절</span><span class="note">가게를 열 때가 아직 이르지 아니하였으니, 한 달에 한 번이라도 반죽을 만져 손의 감각을 지키라.</span></li>
-        <li><span class="name">블로그·체험단·홈피드</span><span class="tag">이미 지은 틀</span><span class="note">새로 짓지 말고 이미 지은 틀을 따라 채우라. 반복하여 다듬는 것도 큰 일이니라.</span></li>
-        <li><span class="name">인스타그램 두 채널</span><span class="tag">아직 사지 않은 밭</span><span class="note">밭을 사기 전에 먼저 그 값을 헤아리라. 제목 열 가지를 적어 두는 것으로 족하니라.</span></li>
-      </ul>
-
-      <p>이 여섯 밭의 목록을 네 마음에만 두지 말고 첫째 편지에서 일렀던 그 장인의 손에도 적어 매일 아침 다시 보게 하라. 기록되지 아니한 결심은 하루를 넘기지 못하고 흩어지느니라.</p>
-      <p>이미 값을 받기로 약속한 두 밭, 곧 에이펌의 백 편 글과 소상공인 건강검진의 일은 네가 이미 맡은 청지기의 일이니 열두 달 중 먼저 오는 달로 삼으라. 작은 일에 신실한 자가 큰 일에도 신실하다 하였나니, 맡겨진 것을 신실히 갚는 것이 다음 문을 여는 열쇠가 되느니라.</p>
-      <p>퓨어솜의 마케팅과 재고의 일은 "사실상 다 하는" 일이라 적었으니, 이는 네가 가장 지쳐 있는 밭이로다. "네 양 떼의 형편을 부지런히 살피며 네 소 떼에게 마음을 두라. 재물은 영원히 있지 못하나니" 하였느니라. 그 밭을 완전히 떠날 것이 아니라면 적어도 경계를 분명히 하여 네가 감당할 몫만 남기고 나머지는 다른 손에 맡기기를 구하라.</p>
-      <p class="verse">"범사에 기한이 있고 천하만사가 다 때가 있나니, 심을 때가 있고 거둘 때가 있다."</p>
-      <p>빵을 굽는 일은 아직 때가 이르지 아니한 씨앗이니라. 지금은 거둘 때가 아니요 심을 때이니 조급히 가게 문을 열려 하지 말라. 그러나 씨는 뿌리는 자의 손에서 완전히 떠나지 않아야 하나니, 바빠서 매주 굽지 못할지라도 손의 감각을 잃지 말고, 네가 눈여겨보는 이들이 무엇으로 사람을 모으는지 기록해 두라. 날이 이르면 심어 둔 씨가 거둘 것을 내느니라.</p>
-      <p>블로그와 체험단의 일은 이미 손에 익은 밭이니 크게 새로 정할 것이 없으나, 홈피드와 콘텐츠의 일은 이미 만들어 둔 틀이 있으니 그 틀을 새로 짓기보다 채우는 것이 지혜로우니라. 왕은 새 성전을 자꾸 짓지 아니하고 지은 성전에서 매일 제사를 드릴 뿐이니, 이미 있는 것을 반복하여 다듬는 것도 큰 일을 짓는 것 못지않게 귀하니라.</p>
-      <p>인스타그램의 두 채널은 아직 밭을 사지 아니한 상태이니라. 지혜로운 여인은 밭을 보고 살핀 후에 그 값을 헤아려 사되 아무 밭이나 급히 사지 아니하였느니라. 내 딸아, 지금 여섯 개의 밭을 이미 갈고 있는데 일곱째 밭을 또 사는 것은 지혜가 아니니, 온전히 시작하기보다 먼저 "밭을 살피는 자"로 며칠만 있으라. 얼굴을 가리고도 아름다움을 드러내고자 하는 네 뜻은 옳으니, 서두르지만 말라.</p>
-      <p>내 딸아, 네가 참으로 구하는 것은 이 여섯 가지 일의 순서가 아니라 그 중심인 줄을 내가 아노니, 네가 이르기를 "내가 받은 사랑을 비추는 거울로 살고자 한다" 하였느니라. 이는 참으로 왕의 지혜와 다르지 아니하니, 내가 성전을 지은 것도 나의 이름을 위함이 아니요 뭇 나라가 그것을 보고 여호와의 이름을 알게 하려 함이었느니라. 스바의 여왕이 예루살렘에 이르러 내 지혜와 내가 건축한 궁과 상 위의 음식과 신하들의 자리와 종들의 시립과 그 예복과 술 관원들의 모습을 보고 정신이 황홀하였다 하였나니, 그가 놀란 것은 재물의 크기가 아니라 그 모든 것이 어지럽지 아니하고 저마다 제자리에 있었다는 사실이었느니라. 그가 내 집의 정돈됨과 신하들의 태도와 내가 행하는 공의를 보고 이르기를 "당신의 하나님 여호와를 송축할지로다. 여호와께서 당신을 사랑하시므로 왕을 삼아 정의와 공의를 행하게 하셨도다" 하였나니, 내 딸아, 네 콘텐츠와 네 빵과 네 글이 정돈되고 신실하게 사람을 이롭게 할 때에 사람들은 네 안에 있는 사랑의 근원을 묻게 될 것이라. 이것이 네 선순환의 참뜻이니, 여섯 가지 일의 목록이 아니라 그 일을 다스리는 하루하루의 질서가 곧 예배임을 잊지 말라.</p>
-      <p>네가 이르기를 "내가 하는 일들이 계속 선택의 연속"이라 하였으니, 내 딸아 이는 네가 게을러서가 아니라 참으로 왕의 자리에 있기 때문이니라. 내가 두 여인이 한 아이를 두고 다투었을 때에, 오래 묻지 아니하고 "아이를 둘로 나누라" 한 마디로 누가 참 어미인지 가려내었나니, 이는 내가 지혜로워서가 아니라 무엇이 참으로 중한 것인가 하나만을 물었기 때문이라. 네게도 하루에 열 가지 선택이 밀려오거든 그 모든 것에 낱낱이 답하려 하지 말고 다만 하나만 물으라. "이것이 내가 오늘 정한 조각에 속한 일인가." 속하지 아니하거든 내일의 몫으로 미루어도 죄가 되지 아니하느니라. 선택의 무게는 그 수가 많음이 아니라 매 순간 처음부터 다시 재는 데서 오는 것이니, 한 번 정한 규례를 따르면 같은 선택을 두 번 하지 않아도 되느니라.</p>
-      <p>네가 "이 모든 것을 정리해 줄 비서가 필요하다" 하였으니 내가 답하노라. 그 비서는 다른 사람이 아니라 이미 네 곁에 있는 장인, 곧 첫째 편지에 일렀던 그 손일 수 있느니라. 매일 아침의 계획과 여섯 밭의 목록과 오늘 다스릴 조각을 그 장인의 손에 적어 두게 하라. 사람을 새로 구하기보다 이미 있는 것을 바르게 쓰는 것이 먼저니라.</p>
-      <p>잠언 31장의 여인을 내가 다시 이르노니, 그는 양털과 삼을 구하여 부지런히 손으로 일하며, 상인의 배와 같이 먼 곳에서 양식을 가져오며, 날이 새기 전에 일어나 그 집 사람에게 식물을 나누며, 밭을 살펴보고 그것을 사며 그 손으로 번 것으로 포도원을 일구었느니라. 그러나 그 여인도 능력과 존귀로 옷을 삼고 후일을 웃으며 맞이하였으니, 이는 여섯 가지 일을 한꺼번에 벌였기 때문이 아니라 그 손에 붙은 일을 신실하게 이어갔기 때문이라. 그의 자랑은 일의 많음이 아니요 신실함이었느니라.</p>
-      <p>내 딸아, 너무 많은 것을 한 번에 이루려 하는 마음은 사랑에서 나온 것임을 내가 아노니, 그 사랑이 너를 태우지 않도록 다만 순서를 정하여 주는 것이 이 편지의 뜻이니라.</p>
-      <p>내 딸아, 참으로 삶의 중심을 신앙에 두고자 하거든 이를 막연한 바람으로 두지 말고 하루의 첫 조각으로 정하라. 내가 매일 아침 번제를 드렸듯이, 너도 여섯 밭에 손을 대기 전에 먼저 잠잠히 말씀 앞에 앉는 조각 하나를 정하여 두라. 이는 시간을 빼앗기는 것이 아니요 오히려 나머지 조각들에 질서를 부여하는 처음 매듭이니, 첫 매듭이 바르면 나머지 실이 저절로 따라오느니라. 또한 네 가치가 여섯 밭의 열매의 많고 적음에 있지 아니하니, 씨를 뿌리는 손이 여전히 신실하다면 그것으로 이미 족하니라. 열매의 때는 네 손에 있지 아니하고 하늘에 있느니라.</p>
-      <p>그러므로 오늘부터 행할 것은 간단하니라. 하루를 열두 시가 아니라 서너 조각으로 나누고 그 조각마다 오직 한 가지 밭만 바라보라. 한 조각에는 이미 약속한 두 가지 일을, 한 조각에는 지친 밭을 정리하는 일을, 한 조각에는 씨 뿌리는 일과 밭을 살피는 일을 두고, 남는 한 조각은 아무 일도 하지 않아도 되는 조각으로 비워 두라. 왕도 쉬는 날에 성전에 들어가 잠잠히 앉았느니라. 네 쉼이 곧 네가 하나님을 신뢰한다는 증거이니라. 이 조각들이 오늘 다 지켜지지 못하여도 괘념치 말라. 내일 아침이면 이 편지가 다시 열려 너를 제자리로 부를 것이니, 그것으로 충분하니라.</p>
-      </div>
-      </details>
+    <section id="portion">
+      <div class="kicker">오늘 다스릴 조각</div>
+      <h2>오늘의 조각</h2>
+      <div id="portionList"><p class="qt-loading">불러오는 중…</p></div>
+      <p class="portion-link"><a href="checklist.html">전체 목록 보기 · 항목 추가/편집 →</a></p>
     </section>
 
     <div class="divider"><div class="line"></div><svg viewBox="0 0 24 24" fill="none"><path d="M12 2 L15 9 L22 12 L15 15 L12 22 L9 15 L2 12 L9 9 Z" stroke="var(--gold)" stroke-width="1.2"/></svg><div class="line"></div></div>
 
     <section id="s3">
       <div class="kicker">맺음말</div>
-      <p>내 딸아, 내가 구하였던 것은 "듣는 마음"이었고, 하나님은 내게 구하지 아니한 부와 존귀까지 더하여 주셨느니라. 네가 구하는 것이 재물의 순서가 아니라 사랑을 비추는 마음이니, 내가 확신하노니 나머지는 더하여지리라. 오늘 아침에도 내일 아침에도 이 편지가 다시 네 앞에 열리거든, 오늘의 조각을 다시 나누고 오늘의 밭을 다시 살피라. 여호와를 경외하는 것이 지식의 근본이요, 네 모든 일의 시작이니라.</p>
+      <p>내 딸아, 오늘 하루가 분주하였든지 고요하였든지, 잠자리에 들기 전에 다시 한 번 하나님의 눈으로 오늘을 돌아보라. 잘한 것은 감사로 돌리고, 놓친 것은 내일의 몫으로 미루어도 죄가 되지 아니하느니라.</p>
+      <p>내가 구하였던 것은 "듣는 마음"이었고, 하나님은 내게 구하지 아니한 부와 존귀까지 더하여 주셨느니라. 너도 오늘 무엇을 이루었는가보다 누구의 눈으로 오늘을 살았는가를 먼저 살피라. 내일 아침 이 편지가 다시 열리거든, 다시 듣는 마음으로 하루를 맞으라. 여호와를 경외하는 것이 지식의 근본이요, 네 모든 일의 시작이니라.</p>
       <p>네게 평강이 있을지어다.</p>
       <p class="signoff">— 솔로몬</p>
     </section>
@@ -487,6 +445,10 @@
     return Math.floor((d - start) / 86400000);
   }
   function dateKey(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+  function parseDateKey(k){
+    var parts = (k || '').split('-').map(Number);
+    return new Date(parts[0], (parts[1]||1)-1, parts[2]||1);
+  }
 
   function paintStars(el, count, size, opacity){
     var shadows = [];
@@ -616,73 +578,75 @@
     }
   }
 
+  var READING_PLAN_PROMISE = fetch(REPO_RAW + '/data/reading-plan.json', { cache: 'force-cache' })
+    .then(function(res){ if (!res.ok) throw new Error('no plan'); return res.json(); });
+
+  function findPlanDay(plan, key){
+    for (var i=0;i<plan.length;i++){ if (plan[i].date === key) return plan[i]; }
+    return null;
+  }
+
+  function fetchChapterPair(r){
+    var fname = pad(r.idx) + '-' + pad3(r.chapter) + '.json';
+    return Promise.all([
+      fetch(REPO_RAW + '/data/bible/ko/' + fname).then(function(res){ return res.ok ? res.json() : null; }),
+      fetch(REPO_RAW + '/data/bible/en/' + fname).then(function(res){ return res.ok ? res.json() : null; })
+    ]);
+  }
+
+  function buildReadingBlock(r){
+    var wrap = document.createElement('div');
+    wrap.className = 'reading-day';
+
+    var head = document.createElement('div');
+    head.className = 'head';
+    var refSpan = document.createElement('span');
+    refSpan.className = 'ref';
+    refSpan.appendChild(document.createTextNode(r.book_kr + ' ' + r.chapter + '장 '));
+    var enName = document.createElement('span');
+    enName.className = 'en-name';
+    enName.textContent = '(' + r.book_en + ' ' + r.chapter + ')';
+    refSpan.appendChild(enName);
+    head.appendChild(refSpan);
+    wrap.appendChild(head);
+
+    var body = document.createElement('div');
+    body.className = 'body';
+    body.innerHTML = '<p class="qt-loading">불러오는 중…</p>';
+    wrap.appendChild(body);
+
+    fetchChapterPair(r).then(function(results){
+      var koData = results[0], enData = results[1];
+      body.innerHTML = '';
+      if (koData && koData.translation && koData.translation !== '쉬운성경') {
+        var note = document.createElement('div');
+        note.className = 'gnote';
+        note.style.marginBottom = '10px';
+        note.textContent = '이 장은 쉬운성경 원문 누락으로 개역개정으로 대체되었습니다.';
+        body.appendChild(note);
+      }
+      renderPairedVerses(body, koData ? koData.verses : [], enData ? enData.verses : []);
+    }).catch(function(){
+      body.innerHTML = '<p class="qt-error">본문을 불러오지 못했다.</p>';
+    });
+
+    return wrap;
+  }
+
   function loadReadingPlan(){
     var listEl = document.getElementById('readingList');
     if (!listEl) return;
-    fetch(REPO_RAW + '/data/reading-plan.json', { cache: 'force-cache' })
-      .then(function(res){ if (!res.ok) throw new Error('no plan'); return res.json(); })
-      .then(function(plan){
-        var day = null;
-        for (var i=0;i<plan.length;i++){ if (plan[i].date === todayKey) { day = plan[i]; break; } }
-        if (!day) {
-          listEl.innerHTML = '<p class="qt-error">오늘 날짜의 통독 계획이 아직 없다. 스케줄이 끝났거나 시작 전이니라.</p>';
-          return;
-        }
-        listEl.innerHTML = '';
-        day.readings.forEach(function(r){
-          var det = document.createElement('details');
-          det.className = 'reading-day';
-
-          var summary = document.createElement('summary');
-          var refSpan = document.createElement('span');
-          refSpan.className = 'ref';
-          refSpan.appendChild(document.createTextNode(r.book_kr + ' ' + r.chapter + '장 '));
-          var enName = document.createElement('span');
-          enName.className = 'en-name';
-          enName.textContent = '(' + r.book_en + ' ' + r.chapter + ')';
-          refSpan.appendChild(enName);
-          var hint = document.createElement('span');
-          hint.className = 'toggle-hint';
-          hint.textContent = '펼쳐서 읽기';
-          summary.appendChild(refSpan);
-          summary.appendChild(hint);
-          det.appendChild(summary);
-
-          var body = document.createElement('div');
-          body.className = 'body';
-          det.appendChild(body);
-
-          det.addEventListener('toggle', function(){
-            hint.textContent = det.open ? '접기' : '펼쳐서 읽기';
-            if (!det.open || det.getAttribute('data-loaded')) return;
-            det.setAttribute('data-loaded', '1');
-            body.innerHTML = '<p class="qt-loading">불러오는 중…</p>';
-            var fname = pad(r.idx) + '-' + pad3(r.chapter) + '.json';
-            Promise.all([
-              fetch(REPO_RAW + '/data/bible/ko/' + fname).then(function(res){ return res.ok ? res.json() : null; }),
-              fetch(REPO_RAW + '/data/bible/en/' + fname).then(function(res){ return res.ok ? res.json() : null; })
-            ]).then(function(results){
-              var koData = results[0], enData = results[1];
-              body.innerHTML = '';
-              if (koData && koData.translation && koData.translation !== '쉬운성경') {
-                var note = document.createElement('div');
-                note.className = 'gnote';
-                note.style.marginBottom = '10px';
-                note.textContent = '이 장은 쉬운성경 원문 누락으로 개역개정으로 대체되었습니다.';
-                body.appendChild(note);
-              }
-              renderPairedVerses(body, koData ? koData.verses : [], enData ? enData.verses : []);
-            }).catch(function(){
-              body.innerHTML = '<p class="qt-error">본문을 불러오지 못했다.</p>';
-            });
-          });
-
-          listEl.appendChild(det);
-        });
-      })
-      .catch(function(){
-        listEl.innerHTML = '<p class="qt-error">통독 계획을 아직 불러오지 못했다.</p>';
-      });
+    READING_PLAN_PROMISE.then(function(plan){
+      var day = findPlanDay(plan, todayKey);
+      if (!day) {
+        listEl.innerHTML = '<p class="qt-error">오늘 날짜의 통독 계획이 아직 없다. 스케줄이 끝났거나 시작 전이니라.</p>';
+        return;
+      }
+      listEl.innerHTML = '';
+      day.readings.forEach(function(r){ listEl.appendChild(buildReadingBlock(r)); });
+    }).catch(function(){
+      listEl.innerHTML = '<p class="qt-error">통독 계획을 아직 불러오지 못했다.</p>';
+    });
   }
   loadReadingPlan();
 
@@ -771,21 +735,124 @@
     });
   }
 
+  // -- 오늘의 통독 · 묵상 기록 (QT 기록과는 별도 저장소) --
+  var READING_STORAGE_KEY = 'solomonReadingJournal';
+  function loadReadingJournal(){
+    try {
+      var raw = localStorage.getItem(READING_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) { return {}; }
+  }
+  function saveReadingJournalMap(map){
+    try { localStorage.setItem(READING_STORAGE_KEY, JSON.stringify(map)); } catch (e) {}
+  }
+  var readingJournal = loadReadingJournal();
+  var readingNoteEl = document.getElementById('readingNote');
+  var readingStatusEl = document.getElementById('readingNoteStatus');
+  if (readingJournal[todayKey] && readingNoteEl) {
+    readingNoteEl.value = readingJournal[todayKey].note || '';
+    if (readingStatusEl) readingStatusEl.textContent = '오늘 이미 기록하였습니다. 다시 저장하면 덮어씁니다.';
+  }
+  var saveReadingBtn = document.getElementById('saveReadingNote');
+  if (saveReadingBtn) {
+    saveReadingBtn.addEventListener('click', function(){
+      var val = readingNoteEl ? readingNoteEl.value : '';
+      if (!val || !val.trim()) {
+        if (readingStatusEl) readingStatusEl.textContent = '먼저 몇 마디라도 적어 보라.';
+        return;
+      }
+      readingJournal[todayKey] = { note: val, ts: new Date().toISOString() };
+      saveReadingJournalMap(readingJournal);
+      if (readingStatusEl) {
+        var d3 = new Date();
+        readingStatusEl.textContent = '저장되었습니다 · ' + pad(d3.getHours()) + ':' + pad(d3.getMinutes());
+      }
+    });
+  }
+
+  // -- 오늘의 조각 (체크리스트 축약 보기, checklist.html과 저장소 공유) --
+  var PORTION_CATEGORIES = {
+    christian:{color:'#c9a24b'}, pureum:{color:'#3b6fd6'}, side:{color:'#c0392b'},
+    blogExp:{color:'#c0392b'}, blogHome:{color:'#c0392b'}, appointment:{color:'#2e8b57'},
+    health:{color:'#1f3a68'}, growth:{color:'#7986cb'}, house:{color:'#7a7a7a'}
+  };
+  var PORTION_DAY_KEYS = ['sun','mon','tue','wed','thu','fri','sat'];
+  function portionItemId(dayKey, idx, text){ return dayKey + '_' + idx + '_' + text.length; }
+
+  function loadPortionToday(){
+    var listEl = document.getElementById('portionList');
+    if (!listEl) return;
+    var template = null, checks = {};
+    try { template = JSON.parse(localStorage.getItem('solomonChecklistTemplate_v1') || 'null'); } catch (e) {}
+    try { checks = JSON.parse(localStorage.getItem('solomonChecklistChecks_v1') || '{}') || {}; } catch (e) {}
+    var dayKey = PORTION_DAY_KEYS[now.getDay()];
+    var items = template && template[dayKey] ? template[dayKey] : null;
+    listEl.innerHTML = '';
+    if (!items || !items.length) {
+      var empty = document.createElement('p');
+      empty.className = 'qt-loading';
+      empty.textContent = '아직 오늘의 조각이 없다. 전체 목록에서 만들어 보라.';
+      listEl.appendChild(empty);
+      return;
+    }
+    var ul = document.createElement('ul');
+    ul.className = 'portion-list';
+    items.forEach(function(it, idx){
+      var id = portionItemId(dayKey, idx, it.text);
+      var checkKey = todayKey + '__' + id;
+      var isChecked = !!checks[checkKey];
+      var cat = PORTION_CATEGORIES[it.cat] || { color:'#999' };
+
+      var li = document.createElement('li');
+      li.className = isChecked ? 'checked' : '';
+      li.style.setProperty('--p-color', cat.color);
+
+      var cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = isChecked;
+      cb.style.setProperty('--p-color', cat.color);
+      cb.addEventListener('change', function(){
+        checks[checkKey] = cb.checked;
+        try { localStorage.setItem('solomonChecklistChecks_v1', JSON.stringify(checks)); } catch (e) {}
+        li.className = cb.checked ? 'checked' : '';
+      });
+
+      var span = document.createElement('span');
+      span.className = 'ptext';
+      span.textContent = it.text;
+
+      li.appendChild(cb);
+      li.appendChild(span);
+      ul.appendChild(li);
+    });
+    listEl.appendChild(ul);
+  }
+  loadPortionToday();
+
   // -- 이전 편지 열어보기 --
+  var WEEKDAY_TYPE = ['주일', '출근일', '출근일', '출근일', '출근일', '재택일', '쉬는 날'];
   var archiveResultEl = document.getElementById('archiveResult');
   var archiveDateLabel = document.getElementById('archiveDateLabel');
   var archiveWisdomEl = document.getElementById('archiveWisdom');
   var archiveGistEl = document.getElementById('archiveGist');
+  var archiveReadingEl = document.getElementById('archiveReading');
   var archiveNoteEl = document.getElementById('archiveNote');
 
   function openArchive(k){
     if (!k) return;
-    if (archiveDateLabel) archiveDateLabel.textContent = k.replace(/-/g,'.');
+    var d = parseDateKey(k);
+    var weekdayLabel = isNaN(d.getTime()) ? '' : (' · ' + WEEKDAY_TYPE[d.getDay()]);
+    if (archiveDateLabel) archiveDateLabel.textContent = k.replace(/-/g,'.') + weekdayLabel;
     if (archiveWisdomEl) archiveWisdomEl.textContent = '불러오는 중…';
     if (archiveGistEl) archiveGistEl.textContent = '';
+    if (archiveReadingEl) archiveReadingEl.textContent = '불러오는 중…';
     if (archiveNoteEl) {
-      var entry = journal[k];
-      archiveNoteEl.textContent = entry && entry.note ? '그날의 묵상: ' + entry.note : '그날은 묵상을 기록하지 않았습니다.';
+      var qtEntry = journal[k];
+      var rEntry = readingJournal[k];
+      var lines = [];
+      lines.push(qtEntry && qtEntry.note ? 'QT 묵상: ' + qtEntry.note : 'QT 묵상: 기록 없음');
+      lines.push(rEntry && rEntry.note ? '통독 묵상: ' + rEntry.note : '통독 묵상: 기록 없음');
+      archiveNoteEl.textContent = lines.join('\n\n');
     }
     if (archiveResultEl) archiveResultEl.classList.add('show');
 
@@ -804,9 +871,19 @@
         if (archiveWisdomEl) archiveWisdomEl.textContent = '그 날의 두란노 기록은 없다.';
         if (archiveGistEl) archiveGistEl.textContent = '';
       });
+
+    READING_PLAN_PROMISE.then(function(plan){
+      var day = findPlanDay(plan, k);
+      if (archiveReadingEl) {
+        archiveReadingEl.textContent = day
+          ? day.readings.map(function(r){ return r.book_kr + ' ' + r.chapter + '장'; }).join(' · ')
+          : '그 날의 통독 계획이 없다.';
+      }
+    }).catch(function(){
+      if (archiveReadingEl) archiveReadingEl.textContent = '통독 계획을 불러오지 못했다.';
+    });
   }
   if (archiveDateInput) {
-    archiveDateInput.max = todayKey;
     archiveDateInput.value = todayKey;
   }
   var archiveBtn = document.getElementById('archiveOpen');
@@ -816,13 +893,6 @@
     });
   }
 
-  // -- 서신 펼치기/접기 --
-  document.querySelectorAll('details.letter-toggle').forEach(function(d){
-    var hint = d.querySelector('.toggle-hint');
-    function updateHint(){ if (hint) hint.textContent = d.open ? '접기' : '펼쳐서 읽기'; }
-    updateHint();
-    d.addEventListener('toggle', updateHint);
-  });
 })();
 </script>
 
