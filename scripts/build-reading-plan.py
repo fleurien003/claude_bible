@@ -20,7 +20,7 @@ def load_tracks():
     en = json.load(open("data/bible-en-web.json", encoding="utf-8"))
 
     track_a, track_b, track_c = [], [], []
-    for book in ko:
+    for i, book in enumerate(ko, start=1):
         name = book["korean"]
         testament = book["testament"]
         en_book = en[name]
@@ -29,7 +29,12 @@ def load_tracks():
         )
         for ch in sorted(book["chapters"], key=lambda c: int(c["chapterNum"])):
             bucket.append(
-                {"book_kr": name, "book_en": en_book["english"], "chapter": int(ch["chapterNum"])}
+                {
+                    "idx": i,
+                    "book_kr": name,
+                    "book_en": en_book["english"],
+                    "chapter": int(ch["chapterNum"]),
+                }
             )
     return {"A": track_a, "B": track_b, "C": track_c}
 

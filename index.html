@@ -1,7 +1,7 @@
 <!doctype html><html lang="ko"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>솔로몬의 편지</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Song+Myung&family=Nanum+Myeongjo:wght@400;700;800&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Song+Myung&family=Nanum+Myeongjo:wght@400;700;800&family=IBM+Plex+Sans+KR:wght@400;500;600&family=Nanum+Square:wght@400;700;800&display=swap');
 
   :root{
     --bg-void:#100e1c;
@@ -25,7 +25,7 @@
     margin:0;
     background:var(--bg-void);
     color:var(--ink);
-    font-family:'Nanum Myeongjo', 'Batang', serif;
+    font-family:'Nanum Square','Noto Sans KR',sans-serif;
     line-height:1.9;
     -webkit-font-smoothing:antialiased;
     overflow-x:hidden;
@@ -59,7 +59,7 @@
   .masthead{ text-align:center; color:var(--star); margin-bottom:34px; }
   .seal{ width:74px; height:74px; margin:0 auto 18px; display:block; }
   .eyebrow{
-    font-family:'IBM Plex Sans KR','Noto Sans KR',sans-serif;
+    font-family:'Nanum Square','Noto Sans KR',sans-serif;
     font-size:12.5px; letter-spacing:.32em; font-weight:500;
     color:var(--gold-bright); opacity:.9; margin-bottom:10px;
   }
@@ -83,13 +83,13 @@
     margin:22px auto 0;
     font-style:italic;
   }
-  .today b{ font-style:normal; font-weight:700; opacity:.75; font-size:12px; letter-spacing:.15em; display:block; margin-bottom:6px; font-family:'IBM Plex Sans KR',sans-serif; }
+  .today b{ font-style:normal; font-weight:700; opacity:.75; font-size:12px; letter-spacing:.15em; display:block; margin-bottom:6px; font-family:'Nanum Square','Noto Sans KR',sans-serif; }
 
   nav.pills{
     position:sticky; top:14px; z-index:5;
     display:flex; justify-content:center; gap:8px; flex-wrap:wrap;
     margin:0 0 30px;
-    font-family:'IBM Plex Sans KR','Noto Sans KR',sans-serif;
+    font-family:'Nanum Square','Noto Sans KR',sans-serif;
   }
   nav.pills a{
     font-size:12.5px; color:var(--gold-bright); text-decoration:none;
@@ -128,12 +128,12 @@
   .divider svg{ width:20px; height:20px; flex:none; }
 
   .kicker{
-    font-family:'IBM Plex Sans KR','Noto Sans KR',sans-serif;
+    font-family:'Nanum Square','Noto Sans KR',sans-serif;
     font-size:12px; letter-spacing:.28em; font-weight:600;
     color:var(--pomegranate); margin-bottom:8px;
   }
   h2{
-    font-family:'Song Myung','Nanum Myeongjo',serif;
+    font-family:'Nanum Square','Noto Sans KR',sans-serif;
     font-weight:400; font-size:clamp(24px,4.4vw,30px);
     margin:0 0 20px; color:var(--cedar); text-wrap:balance;
   }
@@ -148,7 +148,7 @@
   details.letter-toggle summary::-webkit-details-marker{ display:none; }
   details.letter-toggle summary h2{ margin:0 0 20px; }
   details.letter-toggle summary .toggle-hint{
-    font-family:'IBM Plex Sans KR','Noto Sans KR',sans-serif; font-size:12px; letter-spacing:.05em;
+    font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:12px; letter-spacing:.05em;
     color:var(--pomegranate); white-space:nowrap; margin-top:2px;
   }
   details.letter-toggle:not([open]) summary .toggle-hint{ opacity:.85; }
@@ -165,7 +165,7 @@
   .fields li{ display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 10px; }
   .fields .name{ font-weight:700; color:var(--cedar); flex:0 0 auto; font-size:15.5px; }
   .fields .tag{
-    font-family:'IBM Plex Sans KR',sans-serif; font-size:11.5px; letter-spacing:.02em;
+    font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:11.5px; letter-spacing:.02em;
     color:#fff; background:var(--pomegranate); padding:2px 9px; border-radius:3px;
   }
   .fields .note{ font-size:14.5px; color:var(--ink-soft); flex-basis:100%; }
@@ -181,72 +181,89 @@
     padding:18px 20px; margin:22px 0 26px;
   }
   .reading .chapter{
-    font-family:'Song Myung','Nanum Myeongjo',serif; font-size:26px; color:var(--cedar);
+    font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:26px; color:var(--cedar);
     flex:none;
   }
-  .reading .chapter small{ display:block; font-family:'IBM Plex Sans KR',sans-serif; font-size:11px; letter-spacing:.2em; color:var(--pomegranate); font-weight:600; }
+  .reading .chapter small{ display:block; font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:11px; letter-spacing:.2em; color:var(--pomegranate); font-weight:600; }
   .reading p{ margin:0; font-size:15.5px; max-width:none; flex:1 1 240px; }
 
   .gist{
     position:relative; margin:0 0 22px; padding:20px 22px 18px 26px;
     background:#f7f1de; border:1px solid var(--parchment-edge); border-left:3px solid var(--cedar);
   }
-  .gist .glabel{ font-family:'IBM Plex Sans KR',sans-serif; font-size:11px; letter-spacing:.2em; color:var(--cedar); font-weight:600; margin-bottom:8px; }
+  .gist .glabel{ font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:11px; letter-spacing:.2em; color:var(--cedar); font-weight:600; margin-bottom:8px; }
   .gist p{ margin:0; font-size:16px; max-width:none; }
-  .gist .gnote{ margin-top:10px; font-family:'IBM Plex Sans KR',sans-serif; font-size:12.5px; color:var(--ink-soft); font-style:normal; }
+  .gist .gnote{ margin-top:10px; font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:12.5px; color:var(--ink-soft); font-style:normal; }
   .gist.qt-side{ border-left-color:var(--gold); padding:16px 20px 14px 24px; }
   .gist.qt-side p{ font-size:14.5px; color:var(--ink-soft); line-height:1.8; white-space:pre-line; }
 
   .qt-section-title{
-    font-family:'IBM Plex Sans KR','Noto Sans KR',sans-serif; font-weight:600; font-size:12.5px;
+    font-family:'Nanum Square','Noto Sans KR',sans-serif; font-weight:600; font-size:12.5px;
     letter-spacing:.04em; color:var(--pomegranate); margin:18px 0 8px;
   }
   .qt-section-title:first-child{ margin-top:0; }
   .qt-verse{ margin:0 0 10px; font-size:16.5px; }
-  .qt-verse sup{ font-family:'IBM Plex Sans KR',sans-serif; font-size:11px; color:var(--gold); font-weight:600; margin-right:5px; }
+  .qt-verse sup{ font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:11px; color:var(--gold); font-weight:600; margin-right:5px; }
   .qt-loading, .qt-error{ margin:0; font-size:15px; color:var(--ink-soft); font-style:italic; }
 
+  details.reading-day{
+    background:var(--parchment); border:1px solid var(--parchment-edge); margin:0 0 12px;
+  }
+  details.reading-day summary{
+    cursor:pointer; list-style:none; padding:13px 16px;
+    display:flex; align-items:baseline; justify-content:space-between; gap:10px; flex-wrap:wrap;
+  }
+  details.reading-day summary::-webkit-details-marker{ display:none; }
+  details.reading-day .ref{ font-weight:700; color:var(--cedar); font-size:15px; }
+  details.reading-day .ref .en-name{ font-weight:400; color:var(--ink-soft); font-size:12.5px; }
+  details.reading-day .toggle-hint{ font-size:11.5px; color:var(--pomegranate); white-space:nowrap; }
+  details.reading-day .body{ padding:0 16px 16px; border-top:1px dashed var(--parchment-edge); }
+  .rv{ margin:14px 0 0; }
+  .rv .ko{ font-size:15.5px; color:var(--ink); margin:0; }
+  .rv .en{ font-size:13px; color:var(--ink-soft); font-style:italic; margin:3px 0 0; }
+  .rv sup{ font-size:11px; color:var(--gold); font-weight:600; margin-right:4px; }
+
   .prompt{
-    font-family:'IBM Plex Sans KR','Noto Sans KR',sans-serif;
+    font-family:'Nanum Square','Noto Sans KR',sans-serif;
     font-size:12px; letter-spacing:.1em; color:var(--pomegranate); font-weight:600;
     margin-bottom:8px;
   }
   .journal textarea{
     width:100%; min-height:110px; resize:vertical;
-    font-family:'Nanum Myeongjo',serif; font-size:16px; line-height:1.75; color:var(--ink);
+    font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:16px; line-height:1.75; color:var(--ink);
     background:#f7f1de; border:1px solid var(--parchment-edge);
     padding:14px 16px; margin-bottom:12px;
   }
   .journal textarea:focus{ outline:2px solid var(--gold); outline-offset:1px; }
   .journal-row{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:24px; }
   .journal button{
-    font-family:'IBM Plex Sans KR','Noto Sans KR',sans-serif;
+    font-family:'Nanum Square','Noto Sans KR',sans-serif;
     font-size:13.5px; letter-spacing:.05em; font-weight:500;
     background:var(--cedar); color:#f7efd8; border:none;
     padding:10px 20px; cursor:pointer;
   }
   .journal button:hover{ background:#4a2a1d; }
-  .journal .status{ font-family:'IBM Plex Sans KR',sans-serif; font-size:12.5px; color:var(--ink-soft); }
+  .journal .status{ font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:12.5px; color:var(--ink-soft); }
 
   .history{ margin-top:6px; }
-  .history .label{ font-family:'IBM Plex Sans KR',sans-serif; font-size:11.5px; letter-spacing:.2em; color:var(--ink-soft); font-weight:600; margin-bottom:10px; }
+  .history .label{ font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:11.5px; letter-spacing:.2em; color:var(--ink-soft); font-weight:600; margin-bottom:10px; }
   .history ul{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px; }
   .history li{ display:flex; gap:12px; align-items:baseline; font-size:14px; }
   .history li.clickable{ cursor:pointer; }
   .history li.clickable:hover .n{ color:var(--cedar); }
-  .history .d{ font-family:'IBM Plex Sans KR',sans-serif; font-size:11.5px; color:var(--pomegranate); flex:none; min-width:74px; }
+  .history .d{ font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:11.5px; color:var(--pomegranate); flex:none; min-width:74px; }
   .history .n{ color:var(--ink-soft); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .history .empty{ color:var(--ink-soft); font-size:14px; font-style:italic; }
 
   .archive{ margin-top:30px; padding-top:24px; border-top:1px dashed var(--parchment-edge); }
-  .archive .label{ font-family:'IBM Plex Sans KR',sans-serif; font-size:11.5px; letter-spacing:.2em; color:var(--ink-soft); font-weight:600; margin-bottom:12px; }
+  .archive .label{ font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:11.5px; letter-spacing:.2em; color:var(--ink-soft); font-weight:600; margin-bottom:12px; }
   .archive-row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:16px; }
   .archive input[type="date"]{
-    font-family:'IBM Plex Sans KR',sans-serif; font-size:14px; padding:8px 10px;
+    font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:14px; padding:8px 10px;
     border:1px solid var(--parchment-edge); background:#f7f1de; color:var(--ink);
   }
   .archive button{
-    font-family:'IBM Plex Sans KR','Noto Sans KR',sans-serif; font-size:13px; font-weight:500; letter-spacing:.03em;
+    font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:13px; font-weight:500; letter-spacing:.03em;
     background:transparent; color:var(--cedar); border:1px solid var(--cedar); padding:8px 16px; cursor:pointer;
   }
   .archive button:hover{ background:var(--cedar); color:#f7efd8; }
@@ -255,14 +272,14 @@
     padding:18px 20px;
   }
   .archive-result.show{ display:block; }
-  .archive-result .ad{ font-family:'IBM Plex Sans KR',sans-serif; font-size:12px; letter-spacing:.15em; color:var(--cedar); font-weight:600; margin-bottom:10px; }
+  .archive-result .ad{ font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:12px; letter-spacing:.15em; color:var(--cedar); font-weight:600; margin-bottom:10px; }
   .archive-result p{ margin:0 0 12px; font-size:15.5px; }
   .archive-result .an{ font-size:14.5px; color:var(--ink-soft); border-top:1px dashed var(--parchment-edge); padding-top:10px; margin-top:2px; white-space:pre-wrap; }
 
   footer{
     max-width:720px; margin:34px auto 0; padding-inline:20px;
     text-align:center; color:var(--gold-bright); opacity:.75;
-    font-family:'IBM Plex Sans KR','Noto Sans KR',sans-serif;
+    font-family:'Nanum Square','Noto Sans KR',sans-serif;
     font-size:12.5px; letter-spacing:.02em; position:relative; z-index:1;
   }
   footer .lamp{ width:16px; height:16px; vertical-align:-3px; margin-right:6px; }
@@ -298,6 +315,7 @@
   <nav class="pills">
     <a href="#s0">인사말</a>
     <a href="#bible">오늘의 말씀</a>
+    <a href="#reading">오늘의 통독</a>
     <a href="checklist.html">오늘의 조각</a>
     <a href="#s1">장인을 부리는 법</a>
     <a href="#s2">여섯 밭과 한 마음</a>
@@ -369,6 +387,15 @@
           </div>
         </div>
       </div>
+    </section>
+
+    <div class="divider"><div class="line"></div><svg viewBox="0 0 24 24" fill="none"><path d="M12 2 L15 9 L22 12 L15 15 L12 22 L9 15 L2 12 L9 9 Z" stroke="var(--gold)" stroke-width="1.2"/></svg><div class="line"></div></div>
+
+    <section id="reading">
+      <div class="kicker">매삼주오 통독</div>
+      <h2>오늘의 통독</h2>
+      <p>내 딸아, 오늘의 말씀 한 장으로 그치지 말고, 창세기부터 계시록까지 한 해 동안 천천히 다 읽어가는 이 길도 함께 걸으라. 역사서와 시가서와 신약을 매일 섞어 두었으니, 한 곳에 오래 머물러 지치지 아니하리라. 평일에는 세 장을, 주일에는 다섯 장을 읽으라. 한글과 영어를 나란히 두었으니, 뜻을 새기고 언어도 함께 익히라.</p>
+      <div id="readingList"><p class="qt-loading">통독 계획을 불러오는 중이니, 잠시 기다리라…</p></div>
     </section>
 
     <div class="divider"><div class="line"></div><svg viewBox="0 0 24 24" fill="none"><path d="M12 2 L15 9 L22 12 L15 15 L12 22 L9 15 L2 12 L9 9 Z" stroke="var(--gold)" stroke-width="1.2"/></svg><div class="line"></div></div>
@@ -560,6 +587,104 @@
     .then(function(res){ if (!res.ok) throw new Error('no data'); return res.json(); })
     .then(renderTodayQT)
     .catch(renderTodayQTError);
+
+  // -- 매삼주오 통독 --
+  function pad3(n){ n = String(n); while (n.length < 3) n = '0'+n; return n; }
+
+  function renderPairedVerses(container, koVerses, enVerses){
+    var max = Math.max(koVerses.length, enVerses.length);
+    for (var i=0;i<max;i++){
+      var kv = koVerses[i], ev = enVerses[i];
+      var div = document.createElement('div');
+      div.className = 'rv';
+      if (kv) {
+        var ko = document.createElement('p');
+        ko.className = 'ko';
+        var sup = document.createElement('sup');
+        sup.textContent = kv.n;
+        ko.appendChild(sup);
+        ko.appendChild(document.createTextNode(kv.t));
+        div.appendChild(ko);
+      }
+      if (ev) {
+        var en = document.createElement('p');
+        en.className = 'en';
+        en.textContent = ev.t;
+        div.appendChild(en);
+      }
+      container.appendChild(div);
+    }
+  }
+
+  function loadReadingPlan(){
+    var listEl = document.getElementById('readingList');
+    if (!listEl) return;
+    fetch(REPO_RAW + '/data/reading-plan.json', { cache: 'force-cache' })
+      .then(function(res){ if (!res.ok) throw new Error('no plan'); return res.json(); })
+      .then(function(plan){
+        var day = null;
+        for (var i=0;i<plan.length;i++){ if (plan[i].date === todayKey) { day = plan[i]; break; } }
+        if (!day) {
+          listEl.innerHTML = '<p class="qt-error">오늘 날짜의 통독 계획이 아직 없다. 스케줄이 끝났거나 시작 전이니라.</p>';
+          return;
+        }
+        listEl.innerHTML = '';
+        day.readings.forEach(function(r){
+          var det = document.createElement('details');
+          det.className = 'reading-day';
+
+          var summary = document.createElement('summary');
+          var refSpan = document.createElement('span');
+          refSpan.className = 'ref';
+          refSpan.appendChild(document.createTextNode(r.book_kr + ' ' + r.chapter + '장 '));
+          var enName = document.createElement('span');
+          enName.className = 'en-name';
+          enName.textContent = '(' + r.book_en + ' ' + r.chapter + ')';
+          refSpan.appendChild(enName);
+          var hint = document.createElement('span');
+          hint.className = 'toggle-hint';
+          hint.textContent = '펼쳐서 읽기';
+          summary.appendChild(refSpan);
+          summary.appendChild(hint);
+          det.appendChild(summary);
+
+          var body = document.createElement('div');
+          body.className = 'body';
+          det.appendChild(body);
+
+          det.addEventListener('toggle', function(){
+            hint.textContent = det.open ? '접기' : '펼쳐서 읽기';
+            if (!det.open || det.getAttribute('data-loaded')) return;
+            det.setAttribute('data-loaded', '1');
+            body.innerHTML = '<p class="qt-loading">불러오는 중…</p>';
+            var fname = pad(r.idx) + '-' + pad3(r.chapter) + '.json';
+            Promise.all([
+              fetch(REPO_RAW + '/data/bible/ko/' + fname).then(function(res){ return res.ok ? res.json() : null; }),
+              fetch(REPO_RAW + '/data/bible/en/' + fname).then(function(res){ return res.ok ? res.json() : null; })
+            ]).then(function(results){
+              var koData = results[0], enData = results[1];
+              body.innerHTML = '';
+              if (koData && koData.translation && koData.translation !== '쉬운성경') {
+                var note = document.createElement('div');
+                note.className = 'gnote';
+                note.style.marginBottom = '10px';
+                note.textContent = '이 장은 쉬운성경 원문 누락으로 개역개정으로 대체되었습니다.';
+                body.appendChild(note);
+              }
+              renderPairedVerses(body, koData ? koData.verses : [], enData ? enData.verses : []);
+            }).catch(function(){
+              body.innerHTML = '<p class="qt-error">본문을 불러오지 못했다.</p>';
+            });
+          });
+
+          listEl.appendChild(det);
+        });
+      })
+      .catch(function(){
+        listEl.innerHTML = '<p class="qt-error">통독 계획을 아직 불러오지 못했다.</p>';
+      });
+  }
+  loadReadingPlan();
 
   var STORAGE_KEY = 'solomonLetterJournal';
   function loadJournal(){
