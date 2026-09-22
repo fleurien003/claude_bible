@@ -397,7 +397,6 @@
       <div class="gist" id="qtTextBox">
         <div class="glabel">오늘의 말씀 (개역개정)</div>
         <div id="bibleText"><p class="qt-loading">두란노에서 오늘의 본문을 불러오는 중이니, 잠시 기다리라…</p></div>
-        <div class="gnote">두란노 생명의삶 진도를 매일 자동으로 가져온 것이며, 본문 저작권은 대한성서공회에 있습니다.</div>
       </div>
 
       <div class="gist qt-side" id="qtHelperBox" hidden>
@@ -453,15 +452,8 @@
     <section id="reading">
       <div class="kicker">매삼주오 통독</div>
       <h2>오늘의 통독</h2>
-      <div id="readingList"><p class="qt-loading">통독 계획을 불러오는 중이니, 잠시 기다리라…</p></div>
-
-      <div class="journal">
-        <textarea id="readingNote" placeholder="오늘 통독하며 마음에 남은 것을 적어 보라..."></textarea>
-        <div class="journal-row">
-          <button id="saveReadingNote" type="button">오늘의 묵상 기록하기</button>
-          <span class="status" id="readingNoteStatus"></span>
-        </div>
-      </div>
+      <p id="readingSummary" class="qt-loading">불러오는 중…</p>
+      <p class="portion-link"><a href="reading.html">오늘의 본문 전체 보기 · 묵상 질문 →</a></p>
     </section>
 
     <div class="divider"><div class="line"></div><svg viewBox="0 0 24 24" fill="none"><path d="M12 2 L15 9 L22 12 L15 15 L12 22 L9 15 L2 12 L9 9 Z" stroke="var(--gold)" stroke-width="1.2"/></svg><div class="line"></div></div>
@@ -765,6 +757,8 @@
     var todayRefEl = document.getElementById('todayRef');
     if (todayRefEl) todayRefEl.textContent = data.reference || '';
 
+    if (data.question && promptEl) promptEl.textContent = '오늘의 물음: ' + data.question;
+
     var helperBox = document.getElementById('qtHelperBox');
     var helperEl = document.getElementById('qtHelper');
     if (data.helper && helperBox && helperEl) {
@@ -819,94 +813,21 @@
   }
   loadTodayQT();
 
-  // -- 매삼주오 통독 --
-  function renderPairedVerses(container, koVerses, enVerses){
-    var max = Math.max(koVerses.length, enVerses.length);
-    for (var i=0;i<max;i++){
-      var kv = koVerses[i], ev = enVerses[i];
-      var div = document.createElement('div');
-      div.className = 'rv';
-      if (kv) {
-        var ko = document.createElement('p');
-        ko.className = 'ko';
-        var sup = document.createElement('sup');
-        sup.textContent = kv.n;
-        ko.appendChild(sup);
-        ko.appendChild(document.createTextNode(kv.t));
-        div.appendChild(ko);
-      }
-      if (ev) {
-        var en = document.createElement('p');
-        en.className = 'en';
-        en.textContent = ev.t;
-        div.appendChild(en);
-      }
-      container.appendChild(div);
-    }
-  }
-
-  function buildReadingBlock(r){
-    var wrap = document.createElement('div');
-    wrap.className = 'reading-day';
-
-    var head = document.createElement('div');
-    head.className = 'head';
-    var refSpan = document.createElement('span');
-    refSpan.className = 'ref';
-    refSpan.appendChild(document.createTextNode(r.book_kr + ' ' + r.chapter + '장 '));
-    var enName = document.createElement('span');
-    enName.className = 'en-name';
-    enName.textContent = '(' + r.book_en + ' ' + r.chapter + ')';
-    refSpan.appendChild(enName);
-    head.appendChild(refSpan);
-    wrap.appendChild(head);
-
-    var body = document.createElement('div');
-    body.className = 'body';
-    if (r.translation && r.translation !== '쉬운성경') {
-      var note = document.createElement('div');
-      note.className = 'gnote';
-      note.style.marginBottom = '10px';
-      note.textContent = '이 장은 쉬운성경 원문 누락으로 개역개정으로 대체되었습니다.';
-      body.appendChild(note);
-    }
-    renderPairedVerses(body, r.koVerses || [], r.enVerses || []);
-    wrap.appendChild(body);
-
-    return wrap;
-  }
-
-  function loadReadingPlan(k, listEl){
-    if (!listEl) return;
-    listEl.innerHTML = '<p class="qt-loading">통독 본문을 불러오는 중이니, 잠시 기다리라…</p>';
+  // -- 매삼주오 통독 (요약만 여기서 보여주고, 전체 본문·묵상 질문은 reading.html에서) --
+  function loadReadingSummary(){
+    var summaryEl = document.getElementById('readingSummary');
+    if (!summaryEl) return;
     DB_PROMISE.then(function(db){
-      if (!db) { showReadingError(listEl, true); return; }
-      db.doc('reading/' + k).get().then(function(snap){
-        if (!snap.exists) { showReadingError(listEl, true); return; }
+      if (!db) { summaryEl.textContent = '오늘의 통독 정보를 불러오지 못했다. 새로고침해 보라.'; return; }
+      db.doc('reading/' + todayKey).get().then(function(snap){
+        if (!snap.exists) { summaryEl.textContent = '그 날의 통독 계획이 없다.'; return; }
         var day = snap.data();
-        listEl.innerHTML = '';
-        (day.readings || []).forEach(function(r){ listEl.appendChild(buildReadingBlock(r)); });
-      }).catch(function(){ showReadingError(listEl, false); });
-    }).catch(function(){ showReadingError(listEl, true); });
+        summaryEl.textContent = (day.readings || [])
+          .map(function(r){ return r.book_kr + ' ' + r.chapter + '장'; }).join(' · ');
+      }).catch(function(){ summaryEl.textContent = '통독 정보를 불러오지 못했다.'; });
+    }).catch(function(){ summaryEl.textContent = '통독 정보를 불러오지 못했다.'; });
   }
-  function showReadingError(listEl, noRetry){
-    listEl.innerHTML = '';
-    var p = document.createElement('p');
-    p.className = 'qt-error';
-    p.textContent = noRetry
-      ? '그 날의 통독 본문이 없다. (계속 비어 있으면 페이지를 새로고침해 보라.)'
-      : '통독 본문을 아직 불러오지 못했다.';
-    listEl.appendChild(p);
-    if (!noRetry) {
-      var retryBtn = document.createElement('button');
-      retryBtn.type = 'button';
-      retryBtn.className = 'retry-btn';
-      retryBtn.textContent = '다시 불러오기';
-      retryBtn.addEventListener('click', function(){ loadReadingPlan(todayKey, document.getElementById('readingList')); });
-      listEl.appendChild(retryBtn);
-    }
-  }
-  loadReadingPlan(todayKey, document.getElementById('readingList'));
+  loadReadingSummary();
 
   var STORAGE_KEY = 'solomonLetterJournal';
   function loadJournal(){
@@ -993,7 +914,8 @@
     });
   }
 
-  // -- 오늘의 통독 · 묵상 기록 (QT 기록과는 별도 저장소) --
+  // -- 오늘의 통독 묵상 기록은 reading.html에서 쓰지만, 저장소(solomonReadingJournal)는 공유하므로
+  //    여기서는 "이전 편지 열어보기"에 보여주기 위해 읽기만 한다. --
   var READING_STORAGE_KEY = 'solomonReadingJournal';
   function loadReadingJournal(){
     try {
@@ -1001,32 +923,7 @@
       return raw ? JSON.parse(raw) : {};
     } catch (e) { return {}; }
   }
-  function saveReadingJournalMap(map){
-    try { localStorage.setItem(READING_STORAGE_KEY, JSON.stringify(map)); } catch (e) {}
-  }
   var readingJournal = loadReadingJournal();
-  var readingNoteEl = document.getElementById('readingNote');
-  var readingStatusEl = document.getElementById('readingNoteStatus');
-  if (readingJournal[todayKey] && readingNoteEl) {
-    readingNoteEl.value = readingJournal[todayKey].note || '';
-    if (readingStatusEl) readingStatusEl.textContent = '오늘 이미 기록하였습니다. 다시 저장하면 덮어씁니다.';
-  }
-  var saveReadingBtn = document.getElementById('saveReadingNote');
-  if (saveReadingBtn) {
-    saveReadingBtn.addEventListener('click', function(){
-      var val = readingNoteEl ? readingNoteEl.value : '';
-      if (!val || !val.trim()) {
-        if (readingStatusEl) readingStatusEl.textContent = '먼저 몇 마디라도 적어 보라.';
-        return;
-      }
-      readingJournal[todayKey] = { note: val, ts: new Date().toISOString() };
-      saveReadingJournalMap(readingJournal);
-      if (readingStatusEl) {
-        var d3 = new Date();
-        readingStatusEl.textContent = '저장되었습니다 · ' + pad(d3.getHours()) + ':' + pad(d3.getMinutes());
-      }
-    });
-  }
 
   // -- 오늘의 조각 (체크리스트 축약 보기, checklist.html과 저장소 공유) --
   var PORTION_CATEGORIES = {

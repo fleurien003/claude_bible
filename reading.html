@@ -1,0 +1,292 @@
+<!doctype html><html lang="ko"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>오늘의 통독</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Song+Myung&family=Nanum+Myeongjo:wght@400;700;800&family=Nanum+Square:wght@400;700;800&display=swap');
+
+  :root{
+    --bg-void:#100e1c;
+    --bg-glow:#2c2544;
+    --gold:#c9a24b;
+    --gold-bright:#eccd85;
+    --parchment:#ecdfc2;
+    --parchment-edge:#d8c69a;
+    --ink:#2c2013;
+    --ink-soft:#6b5636;
+    --cedar:#5b3324;
+    --pomegranate:#8a3b3b;
+    --star:#f5ecd6;
+  }
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  @media (prefers-reduced-motion: reduce){ html{ scroll-behavior:auto; } }
+
+  body{
+    margin:0; background:var(--bg-void); color:var(--ink);
+    font-family:'Nanum Square','Noto Sans KR',sans-serif;
+    line-height:1.7; -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  }
+  .sky{
+    position:fixed; inset:0; z-index:0;
+    background: radial-gradient(ellipse 80% 50% at 50% 100%, var(--bg-glow), transparent 70%),
+      linear-gradient(180deg, var(--bg-void) 0%, #17132a 55%, var(--bg-glow) 100%);
+    pointer-events:none;
+  }
+  .wrap{ position:relative; z-index:1; max-width:720px; margin:0 auto; padding:44px 18px 70px; }
+
+  .masthead{ text-align:center; color:var(--star); margin-bottom:28px; }
+  .eyebrow{ font-size:12px; letter-spacing:.3em; font-weight:500; color:var(--gold-bright); opacity:.9; margin-bottom:8px; }
+  h1.title{
+    font-family:'Song Myung','Nanum Myeongjo',serif; font-weight:400;
+    font-size:clamp(28px,6.5vw,40px); margin:0 0 8px; color:#f7efd8;
+    text-shadow:0 0 24px rgba(230,190,110,.25);
+  }
+  .sub{ font-size:14px; color:var(--gold-bright); opacity:.85; }
+  a.back{
+    display:inline-block; margin-top:14px; font-size:12.5px; color:var(--gold-bright);
+    text-decoration:none; border-bottom:1px solid rgba(230,190,110,.4);
+  }
+
+  .scroll{
+    position:relative; background:var(--parchment); color:var(--ink);
+    padding:36px clamp(20px,6vw,48px) 32px;
+    box-shadow:0 20px 50px rgba(0,0,0,.4);
+  }
+
+  .kicker{ font-size:12px; letter-spacing:.28em; font-weight:600; color:var(--pomegranate); margin-bottom:8px; }
+  h2{ font-family:'Nanum Square','Noto Sans KR',sans-serif; font-weight:400; font-size:clamp(22px,4.4vw,28px); margin:0 0 18px; color:var(--cedar); }
+
+  .reading-day{ background:var(--parchment); border:1px solid var(--parchment-edge); margin:0 0 14px; }
+  .reading-day .head{ padding:13px 16px; }
+  .reading-day .ref{ font-weight:700; color:var(--cedar); font-size:15.5px; }
+  .reading-day .ref .en-name{ font-weight:400; color:var(--ink-soft); font-size:12.5px; }
+  .reading-day .body{ padding:0 16px 16px; border-top:1px dashed var(--parchment-edge); }
+  .rv{ margin:14px 0 0; }
+  .rv .ko{ font-size:15.5px; color:var(--ink); margin:0; }
+  .rv .en{ font-size:13px; color:var(--ink-soft); font-style:italic; margin:3px 0 0; }
+  .rv sup{ font-size:11px; color:var(--gold); font-weight:600; margin-right:4px; }
+  .gnote{ font-size:12.5px; color:var(--ink-soft); margin-bottom:10px; }
+
+  .qt-loading, .qt-error{ margin:0; font-size:15px; color:var(--ink-soft); font-style:italic; }
+  .retry-btn{
+    font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:12.5px; font-weight:500;
+    background:transparent; color:var(--cedar); border:1px solid var(--cedar);
+    padding:7px 14px; cursor:pointer; margin-top:6px;
+  }
+  .retry-btn:hover{ background:var(--cedar); color:#f7efd8; }
+
+  .meditate{ margin-top:30px; padding-top:24px; border-top:1px dashed var(--parchment-edge); }
+  .meditate .label{ font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:11.5px; letter-spacing:.2em; color:var(--ink-soft); font-weight:600; margin-bottom:14px; }
+  ol.questions{ margin:0 0 20px; padding-left:20px; }
+  ol.questions li{ font-size:16px; color:var(--ink); margin-bottom:10px; }
+  .journal textarea{
+    width:100%; min-height:110px; resize:vertical;
+    font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:16px; line-height:1.75; color:var(--ink);
+    background:#f7f1de; border:1px solid var(--parchment-edge);
+    padding:14px 16px; margin-bottom:12px;
+  }
+  .journal textarea:focus{ outline:2px solid var(--gold); outline-offset:1px; }
+  .journal-row{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  .journal button{
+    font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:13.5px; letter-spacing:.05em; font-weight:500;
+    background:var(--cedar); color:#f7efd8; border:none; padding:10px 20px; cursor:pointer;
+  }
+  .journal button:hover{ background:#4a2a1d; }
+  .journal .status{ font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:12.5px; color:var(--ink-soft); }
+
+  footer{
+    max-width:720px; margin:30px auto 0; padding-inline:18px; text-align:center;
+    color:var(--gold-bright); opacity:.7; font-size:12px; position:relative; z-index:1;
+  }
+
+  @media (max-width:480px){ .scroll{ padding-inline:20px; } }
+</style>
+
+<div class="sky"></div>
+
+<div class="wrap">
+  <div class="masthead">
+    <div class="eyebrow">매삼주오 통독</div>
+    <h1 class="title">오늘의 통독</h1>
+    <div class="sub" id="dateLabel"></div>
+    <a class="back" href="index.html">← 솔로몬의 편지로 돌아가기</a>
+  </div>
+
+  <div class="scroll">
+    <div class="kicker">오늘의 본문</div>
+    <h2>말씀을 따라 걷는 길</h2>
+    <div id="readingList"><p class="qt-loading">불러오는 중…</p></div>
+
+    <div class="meditate">
+      <div class="label">오늘의 통독 묵상</div>
+      <ol class="questions" id="questionList"></ol>
+      <div class="journal">
+        <textarea id="readingNote" placeholder="오늘 통독하며 마음에 남은 것을 적어 보라..."></textarea>
+        <div class="journal-row">
+          <button id="saveReadingNote" type="button">오늘의 묵상 기록하기</button>
+          <span class="status" id="readingNoteStatus"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>묵상 기록은 이 브라우저에만 저장됩니다</footer>
+
+<script>
+(function(){
+  function pad(n){ return n < 10 ? '0'+n : ''+n; }
+  function dateKey(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+
+  var now = new Date();
+  var todayKey = dateKey(now);
+
+  var dateLabelEl = document.getElementById('dateLabel');
+  if (dateLabelEl) dateLabelEl.textContent = (now.getMonth()+1)+'월 '+now.getDate()+'일';
+
+  var DB_PROMISE = (window.claude && typeof window.claude.use === 'function')
+    ? window.claude.use('db')
+    : Promise.resolve(null);
+
+  function renderPairedVerses(container, koVerses, enVerses){
+    var max = Math.max(koVerses.length, enVerses.length);
+    for (var i=0;i<max;i++){
+      var kv = koVerses[i], ev = enVerses[i];
+      var div = document.createElement('div');
+      div.className = 'rv';
+      if (kv) {
+        var ko = document.createElement('p');
+        ko.className = 'ko';
+        var sup = document.createElement('sup');
+        sup.textContent = kv.n;
+        ko.appendChild(sup);
+        ko.appendChild(document.createTextNode(kv.t));
+        div.appendChild(ko);
+      }
+      if (ev) {
+        var en = document.createElement('p');
+        en.className = 'en';
+        en.textContent = ev.t;
+        div.appendChild(en);
+      }
+      container.appendChild(div);
+    }
+  }
+
+  function buildReadingBlock(r){
+    var wrap = document.createElement('div');
+    wrap.className = 'reading-day';
+
+    var head = document.createElement('div');
+    head.className = 'head';
+    var refSpan = document.createElement('span');
+    refSpan.className = 'ref';
+    refSpan.appendChild(document.createTextNode(r.book_kr + ' ' + r.chapter + '장 '));
+    var enName = document.createElement('span');
+    enName.className = 'en-name';
+    enName.textContent = '(' + r.book_en + ' ' + r.chapter + ')';
+    refSpan.appendChild(enName);
+    head.appendChild(refSpan);
+    wrap.appendChild(head);
+
+    var body = document.createElement('div');
+    body.className = 'body';
+    if (r.translation && r.translation !== '쉬운성경') {
+      var note = document.createElement('div');
+      note.className = 'gnote';
+      note.style.marginTop = '10px';
+      note.textContent = '이 장은 쉬운성경 원문 누락으로 개역개정으로 대체되었습니다.';
+      body.appendChild(note);
+    }
+    renderPairedVerses(body, r.koVerses || [], r.enVerses || []);
+    wrap.appendChild(body);
+
+    return wrap;
+  }
+
+  function renderQuestions(questions){
+    var listEl = document.getElementById('questionList');
+    if (!listEl) return;
+    listEl.innerHTML = '';
+    (questions && questions.length ? questions : [
+      '오늘 읽은 본문에서 가장 마음에 머문 장면은 무엇인가?',
+      '오늘 본문의 말씀을 오늘 하루 어떻게 적용해 보겠는가?'
+    ]).forEach(function(q){
+      var li = document.createElement('li');
+      li.textContent = q;
+      listEl.appendChild(li);
+    });
+  }
+
+  function showError(noRetry){
+    var listEl = document.getElementById('readingList');
+    listEl.innerHTML = '';
+    var p = document.createElement('p');
+    p.className = 'qt-error';
+    p.textContent = noRetry
+      ? '그 날의 통독 본문이 없다. (계속 비어 있으면 페이지를 새로고침해 보라.)'
+      : '통독 본문을 아직 불러오지 못했다.';
+    listEl.appendChild(p);
+    if (!noRetry) {
+      var retryBtn = document.createElement('button');
+      retryBtn.type = 'button';
+      retryBtn.className = 'retry-btn';
+      retryBtn.textContent = '다시 불러오기';
+      retryBtn.addEventListener('click', loadReading);
+      listEl.appendChild(retryBtn);
+    }
+    renderQuestions(null);
+  }
+
+  function loadReading(){
+    var listEl = document.getElementById('readingList');
+    listEl.innerHTML = '<p class="qt-loading">통독 본문을 불러오는 중이니, 잠시 기다리라…</p>';
+    DB_PROMISE.then(function(db){
+      if (!db) { showError(true); return; }
+      db.doc('reading/' + todayKey).get().then(function(snap){
+        if (!snap.exists) { showError(true); return; }
+        var day = snap.data();
+        listEl.innerHTML = '';
+        (day.readings || []).forEach(function(r){ listEl.appendChild(buildReadingBlock(r)); });
+        renderQuestions(day.questions);
+      }).catch(function(){ showError(false); });
+    }).catch(function(){ showError(true); });
+  }
+  loadReading();
+
+  var READING_STORAGE_KEY = 'solomonReadingJournal';
+  function loadReadingJournal(){
+    try {
+      var raw = localStorage.getItem(READING_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) { return {}; }
+  }
+  function saveReadingJournalMap(map){
+    try { localStorage.setItem(READING_STORAGE_KEY, JSON.stringify(map)); } catch (e) {}
+  }
+  var readingJournal = loadReadingJournal();
+  var readingNoteEl = document.getElementById('readingNote');
+  var readingStatusEl = document.getElementById('readingNoteStatus');
+  if (readingJournal[todayKey] && readingNoteEl) {
+    readingNoteEl.value = readingJournal[todayKey].note || '';
+    if (readingStatusEl) readingStatusEl.textContent = '오늘 이미 기록하였습니다. 다시 저장하면 덮어씁니다.';
+  }
+  var saveReadingBtn = document.getElementById('saveReadingNote');
+  if (saveReadingBtn) {
+    saveReadingBtn.addEventListener('click', function(){
+      var val = readingNoteEl ? readingNoteEl.value : '';
+      if (!val || !val.trim()) {
+        if (readingStatusEl) readingStatusEl.textContent = '먼저 몇 마디라도 적어 보라.';
+        return;
+      }
+      readingJournal[todayKey] = { note: val, ts: new Date().toISOString() };
+      saveReadingJournalMap(readingJournal);
+      if (readingStatusEl) {
+        var d = new Date();
+        readingStatusEl.textContent = '저장되었습니다 · ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+      }
+    });
+  }
+})();
+</script>
+
+</body></html>
