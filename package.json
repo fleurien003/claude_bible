@@ -1,0 +1,12 @@
+{
+  "name": "claude-bible",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "fetch-duranno": "node scripts/fetch-duranno.mjs"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0",
+    "iconv-lite": "^0.6.3"
+  }
+}
