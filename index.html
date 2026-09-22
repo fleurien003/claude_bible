@@ -540,26 +540,13 @@
 
   var FALLBACK_WISDOM = "지혜의 근본은 여호와를 경외하는 것이니라";
 
-  // 아티팩트 화면 안에서는 임의 외부 도메인 fetch가 막힐 수 있어, jsDelivr(허용 도메인)를
-  // 1순위로 쓰고 raw.githubusercontent.com을 백업으로 쓴다. 둘 다 실패하면 재시도 버튼을 보여준다.
-  var DATA_MIRRORS = [
-    'https://cdn.jsdelivr.net/gh/fleurien003/claude_bible@main',
-    'https://raw.githubusercontent.com/fleurien003/claude_bible/main'
-  ];
-  function fetchJSON(path, opts){
-    opts = opts || {};
-    function tryMirror(i){
-      if (i >= DATA_MIRRORS.length) return Promise.reject(new Error('all mirrors failed'));
-      var controller = ('AbortController' in window) ? new AbortController() : null;
-      var timer = controller ? setTimeout(function(){ controller.abort(); }, 8000) : null;
-      var fetchOpts = { cache: opts.cache || 'default' };
-      if (controller) fetchOpts.signal = controller.signal;
-      return fetch(DATA_MIRRORS[i] + path, fetchOpts)
-        .then(function(res){ if (timer) clearTimeout(timer); if (!res.ok) throw new Error('bad status'); return res.json(); })
-        .catch(function(){ if (timer) clearTimeout(timer); return tryMirror(i + 1); });
-    }
-    return tryMirror(0);
-  }
+  // 아티팩트 화면 안에서는 raw.githubusercontent.com 같은 임의 외부 도메인으로의 fetch()가
+  // 막혀 있다 — 대신 artifact 자체의 db 저장소(claude.use('db'))를 쓴다. 두란노 QT와 통독 본문은
+  // 미리 이 db에 기록해 두고(수집·정적 통독 데이터를 옮기는 자동화가 따로 처리), 페이지는 그
+  // db를 읽기만 한다.
+  var DB_PROMISE = (window.claude && typeof window.claude.use === 'function')
+    ? window.claude.use('db')
+    : Promise.resolve(null);
 
   var now = new Date();
   var todayKey = dateKey(now);
@@ -575,37 +562,46 @@
   }
 
   // -- 지난 목장의 기도제목 (읽기 전용). 목장 나눔 자체는 위 "목장 나눔 노트 ↗" 링크에서 그대로
-  //    작성하고, 여기에는 가장 최근에 기록된 내용의 스냅샷만 보여준다. 매주 토요일 09:00 KST에
-  //    자동화가 이 LAST_CELL_GROUP 객체를 최신 내용으로 교체하고 다시 커밋·배포한다. --
-  var LAST_CELL_GROUP = {
-    weekLabel: '2026. 09. 18. 목장 나눔',
-    savedAt: 1789740627733,
-    people: [
-      { name: '은아', prayer: '하나님과 동행하는 삶 살기를 소망합니다. 하나님 앞으로 나아갈 때 장애물을 치워주시고 장애물을 이겨낼 수 있는 힘을 주세요. 아무것도 하나님의 자리를 대신할 순 없습니다. 시스템 구축 잘해서 삶의 정돈을 이루기를 소망합니다. 앞으로 1년 안에 공동체 근처로 이사 올 수 있도록 기도해 주세요.' },
-      { name: '수환', prayer: '추석을 앞두고 어머니와 더 시간을 잘 보낼 수 있기를 기도해 주세요.' },
-      { name: '승학', prayer: '수요예배, 새벽기도 나가기로 결단했습니다. 기도해 주세요. 심전도 체크(통증 등 상태 기록)를 하고 있습니다. 10월 12일에 진료 결과가 나옵니다. 건강을 위해 기도해 주세요.' },
-      { name: '목자님', prayer: '다음주에도 회주 자매님도 만나는데 계속 목장나오실 수 있도록 기도해 주세요.' },
-      { name: '목녀님', prayer: 'ai를 잘 배울 수 있도록 기도해 주세요. 시간과 체력을 잘 아끼고 남은 4개월 잘 보낼 수 있도록 기도해 주세요.' }
-    ]
-  };
+  //    작성하고, 여기에는 db 문서 prayer/current의 스냅샷만 보여준다. 매주 토요일 09:00 KST에
+  //    자동화가 그 문서를 최신 내용으로 갱신한다(이 페이지를 다시 배포할 필요가 없다). --
   (function(){
     var labelEl = document.getElementById('prayerWeekLabel');
     var listEl = document.getElementById('prayerFieldsList');
-    if (labelEl) labelEl.textContent = LAST_CELL_GROUP.weekLabel + ' · 매주 토요일 아침 갱신';
-    if (!listEl) return;
-    listEl.innerHTML = '';
-    (LAST_CELL_GROUP.people || []).forEach(function(p){
+    if (!labelEl || !listEl) return;
+    listEl.innerHTML = '<li class="empty">불러오는 중…</li>';
+
+    function renderPrayer(data){
+      labelEl.textContent = (data.weekLabel || '지난 목장') + ' · 매주 토요일 아침 갱신';
+      listEl.innerHTML = '';
+      (data.people || []).forEach(function(p){
+        var li = document.createElement('li');
+        var name = document.createElement('span');
+        name.className = 'name';
+        name.textContent = p.name;
+        var note = document.createElement('span');
+        note.className = 'note';
+        note.textContent = p.prayer;
+        li.appendChild(name);
+        li.appendChild(note);
+        listEl.appendChild(li);
+      });
+    }
+    function showPrayerError(){
+      labelEl.textContent = '';
+      listEl.innerHTML = '';
       var li = document.createElement('li');
-      var name = document.createElement('span');
-      name.className = 'name';
-      name.textContent = p.name;
-      var note = document.createElement('span');
-      note.className = 'note';
-      note.textContent = p.prayer;
-      li.appendChild(name);
-      li.appendChild(note);
+      li.className = 'empty';
+      li.textContent = '아직 기도제목을 불러오지 못했다. 페이지를 새로고침해 보라.';
       listEl.appendChild(li);
-    });
+    }
+
+    DB_PROMISE.then(function(db){
+      if (!db) { showPrayerError(); return; }
+      db.doc('prayer/current').get().then(function(snap){
+        if (!snap.exists) { showPrayerError(); return; }
+        renderPrayer(snap.data());
+      }).catch(showPrayerError);
+    }).catch(showPrayerError);
   })();
 
   // -- 이번주 암송 구절 (일요일 시작 기준). 이번 주는 위 목장 나눔과 맞닿는 구절을 먼저 골라 두고,
@@ -783,7 +779,7 @@
     }
   }
 
-  function renderTodayQTError(){
+  function renderTodayQTError(noRetry){
     var chapterEl = document.getElementById('chapterNum');
     if (chapterEl) chapterEl.textContent = '오늘의 본문';
     var textEl = document.getElementById('bibleText');
@@ -791,14 +787,18 @@
       textEl.innerHTML = '';
       var p = document.createElement('p');
       p.className = 'qt-error';
-      p.textContent = '아직 오늘의 본문을 불러오지 못했다. 네트워크가 늦었거나 자동 수집이 지연되었을 수 있으니, 아래에서 다시 시도하거나 네 손의 성경을 직접 펴 보라.';
-      var retryBtn = document.createElement('button');
-      retryBtn.type = 'button';
-      retryBtn.className = 'retry-btn';
-      retryBtn.textContent = '다시 불러오기';
-      retryBtn.addEventListener('click', loadTodayQT);
+      p.textContent = noRetry
+        ? '아직 오늘의 본문을 불러오지 못했다. 자동 수집이 지연되었을 수 있으니, 네 손의 성경을 직접 펴 보라. (계속 비어 있으면 페이지를 새로고침해 보라.)'
+        : '아직 오늘의 본문을 불러오지 못했다. 아래에서 다시 시도하거나 네 손의 성경을 직접 펴 보라.';
       textEl.appendChild(p);
-      textEl.appendChild(retryBtn);
+      if (!noRetry) {
+        var retryBtn = document.createElement('button');
+        retryBtn.type = 'button';
+        retryBtn.className = 'retry-btn';
+        retryBtn.textContent = '다시 불러오기';
+        retryBtn.addEventListener('click', loadTodayQT);
+        textEl.appendChild(retryBtn);
+      }
     }
     var todayLineEl = document.getElementById('todayLine');
     if (todayLineEl) todayLineEl.textContent = FALLBACK_WISDOM;
@@ -808,16 +808,18 @@
 
   function loadTodayQT(){
     var textEl = document.getElementById('bibleText');
-    if (textEl) textEl.innerHTML = '<p class="qt-loading">두란노에서 오늘의 본문을 불러오는 중이니, 잠시 기다리라…</p>';
-    fetchJSON('/data/qt/' + todayKey + '.json', { cache: 'no-store' })
-      .then(renderTodayQT)
-      .catch(renderTodayQTError);
+    if (textEl) textEl.innerHTML = '<p class="qt-loading">오늘의 본문을 불러오는 중이니, 잠시 기다리라…</p>';
+    DB_PROMISE.then(function(db){
+      if (!db) { renderTodayQTError(true); return; }
+      db.doc('qt/' + todayKey).get().then(function(snap){
+        if (!snap.exists) { renderTodayQTError(true); return; }
+        renderTodayQT(snap.data());
+      }).catch(function(){ renderTodayQTError(false); });
+    }).catch(function(){ renderTodayQTError(true); });
   }
   loadTodayQT();
 
   // -- 매삼주오 통독 --
-  function pad3(n){ n = String(n); while (n.length < 3) n = '0'+n; return n; }
-
   function renderPairedVerses(container, koVerses, enVerses){
     var max = Math.max(koVerses.length, enVerses.length);
     for (var i=0;i<max;i++){
@@ -843,21 +845,6 @@
     }
   }
 
-  var READING_PLAN_PROMISE = fetchJSON('/data/reading-plan.json', { cache: 'force-cache' });
-
-  function findPlanDay(plan, key){
-    for (var i=0;i<plan.length;i++){ if (plan[i].date === key) return plan[i]; }
-    return null;
-  }
-
-  function fetchChapterPair(r){
-    var fname = pad(r.idx) + '-' + pad3(r.chapter) + '.json';
-    return Promise.all([
-      fetchJSON('/data/bible/ko/' + fname).catch(function(){ return null; }),
-      fetchJSON('/data/bible/en/' + fname).catch(function(){ return null; })
-    ]);
-  }
-
   function buildReadingBlock(r){
     var wrap = document.createElement('div');
     wrap.className = 'reading-day';
@@ -876,57 +863,50 @@
 
     var body = document.createElement('div');
     body.className = 'body';
-    body.innerHTML = '<p class="qt-loading">불러오는 중…</p>';
+    if (r.translation && r.translation !== '쉬운성경') {
+      var note = document.createElement('div');
+      note.className = 'gnote';
+      note.style.marginBottom = '10px';
+      note.textContent = '이 장은 쉬운성경 원문 누락으로 개역개정으로 대체되었습니다.';
+      body.appendChild(note);
+    }
+    renderPairedVerses(body, r.koVerses || [], r.enVerses || []);
     wrap.appendChild(body);
-
-    fetchChapterPair(r).then(function(results){
-      var koData = results[0], enData = results[1];
-      body.innerHTML = '';
-      if (koData && koData.translation && koData.translation !== '쉬운성경') {
-        var note = document.createElement('div');
-        note.className = 'gnote';
-        note.style.marginBottom = '10px';
-        note.textContent = '이 장은 쉬운성경 원문 누락으로 개역개정으로 대체되었습니다.';
-        body.appendChild(note);
-      }
-      renderPairedVerses(body, koData ? koData.verses : [], enData ? enData.verses : []);
-    }).catch(function(){
-      body.innerHTML = '<p class="qt-error">본문을 불러오지 못했다.</p>';
-    });
 
     return wrap;
   }
 
-  function loadReadingPlan(){
-    var listEl = document.getElementById('readingList');
+  function loadReadingPlan(k, listEl){
     if (!listEl) return;
-    listEl.innerHTML = '<p class="qt-loading">통독 계획을 불러오는 중이니, 잠시 기다리라…</p>';
-    READING_PLAN_PROMISE.then(function(plan){
-      var day = findPlanDay(plan, todayKey);
-      if (!day) {
-        listEl.innerHTML = '<p class="qt-error">오늘 날짜의 통독 계획이 아직 없다. 스케줄이 끝났거나 시작 전이니라.</p>';
-        return;
-      }
-      listEl.innerHTML = '';
-      day.readings.forEach(function(r){ listEl.appendChild(buildReadingBlock(r)); });
-    }).catch(function(){
-      listEl.innerHTML = '';
-      var p = document.createElement('p');
-      p.className = 'qt-error';
-      p.textContent = '통독 계획을 아직 불러오지 못했다.';
+    listEl.innerHTML = '<p class="qt-loading">통독 본문을 불러오는 중이니, 잠시 기다리라…</p>';
+    DB_PROMISE.then(function(db){
+      if (!db) { showReadingError(listEl, true); return; }
+      db.doc('reading/' + k).get().then(function(snap){
+        if (!snap.exists) { showReadingError(listEl, true); return; }
+        var day = snap.data();
+        listEl.innerHTML = '';
+        (day.readings || []).forEach(function(r){ listEl.appendChild(buildReadingBlock(r)); });
+      }).catch(function(){ showReadingError(listEl, false); });
+    }).catch(function(){ showReadingError(listEl, true); });
+  }
+  function showReadingError(listEl, noRetry){
+    listEl.innerHTML = '';
+    var p = document.createElement('p');
+    p.className = 'qt-error';
+    p.textContent = noRetry
+      ? '그 날의 통독 본문이 없다. (계속 비어 있으면 페이지를 새로고침해 보라.)'
+      : '통독 본문을 아직 불러오지 못했다.';
+    listEl.appendChild(p);
+    if (!noRetry) {
       var retryBtn = document.createElement('button');
       retryBtn.type = 'button';
       retryBtn.className = 'retry-btn';
       retryBtn.textContent = '다시 불러오기';
-      retryBtn.addEventListener('click', function(){
-        READING_PLAN_PROMISE = fetchJSON('/data/reading-plan.json', { cache: 'no-store' });
-        loadReadingPlan();
-      });
-      listEl.appendChild(p);
+      retryBtn.addEventListener('click', function(){ loadReadingPlan(todayKey, document.getElementById('readingList')); });
       listEl.appendChild(retryBtn);
-    });
+    }
   }
-  loadReadingPlan();
+  loadReadingPlan(todayKey, document.getElementById('readingList'));
 
   var STORAGE_KEY = 'solomonLetterJournal';
   function loadJournal(){
@@ -1134,8 +1114,18 @@
     }
     if (archiveResultEl) archiveResultEl.classList.add('show');
 
-    fetchJSON('/data/qt/' + k + '.json', { cache: 'no-store' })
-      .then(function(data){
+    DB_PROMISE.then(function(db){
+      if (!db) {
+        if (archiveWisdomEl) archiveWisdomEl.textContent = '그 날의 두란노 기록은 없다.';
+        if (archiveReadingEl) archiveReadingEl.textContent = '통독 계획을 불러오지 못했다.';
+        return;
+      }
+      db.doc('qt/' + k).get().then(function(snap){
+        if (!snap.exists) {
+          if (archiveWisdomEl) archiveWisdomEl.textContent = '그 날의 두란노 기록은 없다.';
+          return;
+        }
+        var data = snap.data();
         if (archiveWisdomEl) archiveWisdomEl.textContent = data.reference + (data.subtitle ? ' · ' + data.subtitle : '');
         if (archiveGistEl) {
           var text = (data.sections || []).map(function(sec){
@@ -1143,20 +1133,22 @@
           }).join(' ');
           archiveGistEl.textContent = text;
         }
-      })
-      .catch(function(){
+      }).catch(function(){
         if (archiveWisdomEl) archiveWisdomEl.textContent = '그 날의 두란노 기록은 없다.';
         if (archiveGistEl) archiveGistEl.textContent = '';
       });
 
-    READING_PLAN_PROMISE.then(function(plan){
-      var day = findPlanDay(plan, k);
-      if (archiveReadingEl) {
-        archiveReadingEl.textContent = day
-          ? day.readings.map(function(r){ return r.book_kr + ' ' + r.chapter + '장'; }).join(' · ')
-          : '그 날의 통독 계획이 없다.';
-      }
+      db.doc('reading/' + k).get().then(function(snap){
+        if (!archiveReadingEl) return;
+        if (!snap.exists) { archiveReadingEl.textContent = '그 날의 통독 계획이 없다.'; return; }
+        var day = snap.data();
+        archiveReadingEl.textContent = (day.readings || [])
+          .map(function(r){ return r.book_kr + ' ' + r.chapter + '장'; }).join(' · ');
+      }).catch(function(){
+        if (archiveReadingEl) archiveReadingEl.textContent = '통독 계획을 불러오지 못했다.';
+      });
     }).catch(function(){
+      if (archiveWisdomEl) archiveWisdomEl.textContent = '그 날의 두란노 기록은 없다.';
       if (archiveReadingEl) archiveReadingEl.textContent = '통독 계획을 불러오지 못했다.';
     });
   }
