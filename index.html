@@ -219,7 +219,15 @@
     position:relative; margin:0 0 22px; padding:20px 22px 18px 26px;
     background:#f7f1de; border:1px solid var(--parchment-edge); border-left:3px solid var(--cedar);
   }
-  .gist .glabel{ font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:11px; letter-spacing:.2em; color:var(--cedar); font-weight:600; margin-bottom:8px; }
+  .gist .glabel{ font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:11px; letter-spacing:.2em; color:var(--cedar); font-weight:600; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+  .trans-toggle{ display:inline-flex; gap:4px; }
+  .trans-toggle button{
+    font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:10.5px; font-weight:600; letter-spacing:.02em;
+    background:transparent; color:var(--ink-soft); border:1px solid var(--parchment-edge);
+    padding:3px 9px; cursor:pointer; border-radius:999px;
+  }
+  .trans-toggle button.active{ background:var(--cedar); color:#f7efd8; border-color:var(--cedar); }
+  .trans-toggle button:disabled{ opacity:.4; cursor:default; }
   .gist p{ margin:0; font-size:16px; max-width:none; }
   .gist .gnote{ margin-top:10px; font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:12.5px; color:var(--ink-soft); font-style:normal; }
   .gist.qt-side{ border-left-color:var(--gold); padding:16px 20px 14px 24px; }
@@ -395,7 +403,11 @@
       </div>
 
       <div class="gist" id="qtTextBox">
-        <div class="glabel">오늘의 말씀 (개역개정)</div>
+        <div class="glabel" id="qtTransRow">오늘의 말씀
+          <span class="trans-toggle" id="transToggle" hidden>
+            <button type="button" data-t="krv" id="transKrvBtn">개역개정</button><button type="button" data-t="woorimal" id="transWoorimalBtn">우리말성경</button>
+          </span>
+        </div>
         <div id="bibleText"><p class="qt-loading">두란노에서 오늘의 본문을 불러오는 중이니, 잠시 기다리라…</p></div>
       </div>
 
@@ -722,6 +734,13 @@
   if (closingEl) closingEl.textContent = closingSet[todayDoy % closingSet.length];
 
   var currentQT = null;
+  var QT_TRANS_KEY = 'solomonQtTranslation';
+  function getPreferredTranslation(){
+    try { return localStorage.getItem(QT_TRANS_KEY) || 'krv'; } catch (e) { return 'krv'; }
+  }
+  function setPreferredTranslation(t){
+    try { localStorage.setItem(QT_TRANS_KEY, t); } catch (e) {}
+  }
 
   function renderVerses(container, sections){
     container.innerHTML = '';
@@ -744,14 +763,34 @@
     });
   }
 
+  function renderCurrentTranslation(){
+    if (!currentQT) return;
+    var t = getPreferredTranslation();
+    var hasWoorimal = currentQT.sectionsWoorimal && currentQT.sectionsWoorimal.length;
+    if (t === 'woorimal' && !hasWoorimal) t = 'krv';
+    var textEl = document.getElementById('bibleText');
+    if (textEl) renderVerses(textEl, t === 'woorimal' ? currentQT.sectionsWoorimal : currentQT.sections);
+    var krvBtn = document.getElementById('transKrvBtn');
+    var wBtn = document.getElementById('transWoorimalBtn');
+    if (krvBtn) krvBtn.classList.toggle('active', t === 'krv');
+    if (wBtn) { wBtn.classList.toggle('active', t === 'woorimal'); wBtn.disabled = !hasWoorimal; }
+    var toggleEl = document.getElementById('transToggle');
+    if (toggleEl) toggleEl.hidden = !hasWoorimal;
+  }
+  (function(){
+    var krvBtn = document.getElementById('transKrvBtn');
+    var wBtn = document.getElementById('transWoorimalBtn');
+    if (krvBtn) krvBtn.addEventListener('click', function(){ setPreferredTranslation('krv'); renderCurrentTranslation(); });
+    if (wBtn) wBtn.addEventListener('click', function(){ setPreferredTranslation('woorimal'); renderCurrentTranslation(); });
+  })();
+
   function renderTodayQT(data){
     currentQT = data;
     var chapterEl = document.getElementById('chapterNum');
     if (chapterEl) chapterEl.textContent = data.reference || '';
     var subtitleEl = document.getElementById('qtSubtitle');
     if (subtitleEl) subtitleEl.textContent = data.subtitle || '';
-    var textEl = document.getElementById('bibleText');
-    if (textEl) renderVerses(textEl, data.sections);
+    renderCurrentTranslation();
     var todayLineEl = document.getElementById('todayLine');
     if (todayLineEl && data.subtitle) todayLineEl.textContent = data.subtitle;
     var todayRefEl = document.getElementById('todayRef');

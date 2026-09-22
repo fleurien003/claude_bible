@@ -16,8 +16,8 @@ function todayKST() {
   return `${get('year')}-${get('month')}-${get('day')}`;
 }
 
-async function fetchHtml(date) {
-  const url = `https://www.duranno.com/qt/view/bible.asp?qtDate=${date}`;
+async function fetchHtml(date, translationParam) {
+  const url = `https://www.duranno.com/qt/view/bible.asp?qtDate=${date}${translationParam ? `&d=${translationParam}` : ''}`;
   const res = await fetch(url, { headers: { 'User-Agent': UA } });
   if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
   const buf = Buffer.from(await res.arrayBuffer());
@@ -30,13 +30,7 @@ function textWithLineBreaks($, el) {
   return $clone.text().replace(/[ \t]+/g, ' ').replace(/\n[ \t]+/g, '\n').trim();
 }
 
-function parse(html, date) {
-  const $ = cheerio.load(html);
-  const h1 = $('.font-size h1').first();
-  const reference = h1.find('span').first().text().replace(/\s+/g, ' ').trim();
-  const subtitle = h1.find('em').first().text().replace(/\s+/g, ' ').trim();
-  const hymn = textWithLineBreaks($, $('.song.box p').eq(1));
-
+function parseSections($) {
   const sections = [];
   let current = null;
   $('.bible').first().children().each((_, el) => {
@@ -52,6 +46,16 @@ function parse(html, date) {
       });
     }
   });
+  return sections;
+}
+
+function parse(html, date) {
+  const $ = cheerio.load(html);
+  const h1 = $('.font-size h1').first();
+  const reference = h1.find('span').first().text().replace(/\s+/g, ' ').trim();
+  const subtitle = h1.find('em').first().text().replace(/\s+/g, ' ').trim();
+  const hymn = textWithLineBreaks($, $('.song.box p').eq(1));
+  const sections = parseSections($);
 
   let helper = '';
   let prayer = '';
@@ -78,6 +82,22 @@ async function main() {
 
   if (!data.reference || data.sections.length === 0 || data.sections.every((s) => s.verses.length === 0)) {
     throw new Error(`파싱 실패: reference="${data.reference}", sections=${data.sections.length}`);
+  }
+
+  // 우리말성경(&d=w) 본문도 함께 받아 sectionsWoorimal에 넣는다. 개역개정과 같은 페이지 틀이라
+  // 실패해도(파라미터가 바뀌었거나 일시 오류) 개역개정 저장 자체는 막지 않는다.
+  if (!fixture) {
+    try {
+      const htmlW = await fetchHtml(date, 'w');
+      const sectionsWoorimal = parseSections(cheerio.load(htmlW));
+      if (sectionsWoorimal.length && sectionsWoorimal.some((s) => s.verses.length)) {
+        data.sectionsWoorimal = sectionsWoorimal;
+      } else {
+        console.error('우리말성경 파싱 결과 비어 있음 — 건너뜀');
+      }
+    } catch (e) {
+      console.error('우리말성경 수집 실패 (개역개정은 정상 저장됨):', e.message);
+    }
   }
 
   const outDir = path.join(process.cwd(), 'data', 'qt');
