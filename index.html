@@ -83,6 +83,38 @@
     margin:22px auto 0;
     font-style:italic;
   }
+
+  .memory-verse{
+    max-width:440px; margin:20px auto 0;
+    background:rgba(201,162,75,.08);
+    border:1px solid rgba(230,190,110,.35);
+    padding:16px 18px;
+  }
+  .memory-verse .mv-label{
+    display:block; font-style:normal; font-weight:700; font-size:11.5px; letter-spacing:.18em;
+    color:var(--gold-bright); opacity:.8; margin-bottom:10px;
+  }
+  .memory-verse .mv-ref{ color:#fff; font-weight:700; font-size:14.5px; margin-bottom:6px; }
+  .memory-verse .mv-text{ color:var(--gold-bright); font-style:italic; line-height:1.75; font-size:15.5px; }
+  .memory-verse .mv-edit-btn{
+    margin-top:12px; font-size:11px; letter-spacing:.05em;
+    background:none; border:1px solid rgba(230,190,110,.4); color:var(--gold-bright);
+    padding:4px 11px; cursor:pointer;
+  }
+  .memory-verse .mv-edit-btn:hover{ border-color:var(--gold-bright); color:#fff; }
+  .memory-verse .mv-form{ display:flex; flex-direction:column; gap:9px; }
+  .memory-verse .mv-form input, .memory-verse .mv-form textarea{
+    font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:13.5px;
+    padding:9px 10px; border:1px solid rgba(230,190,110,.3);
+    background:rgba(255,255,255,.07); color:#fff;
+  }
+  .memory-verse .mv-form input::placeholder, .memory-verse .mv-form textarea::placeholder{ color:rgba(255,255,255,.4); }
+  .memory-verse .mv-form textarea{ min-height:56px; resize:vertical; }
+  .memory-verse .mv-form button{
+    align-self:flex-end; font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:12.5px; font-weight:600;
+    background:var(--gold); color:#20160a; border:none; padding:8px 16px; cursor:pointer;
+  }
+  .memory-verse .mv-form button:hover{ background:var(--gold-bright); }
   .today b{ font-style:normal; font-weight:700; opacity:.75; font-size:12px; letter-spacing:.15em; display:block; margin-bottom:6px; font-family:'Nanum Square','Noto Sans KR',sans-serif; }
 
   nav.pills{
@@ -307,6 +339,17 @@
     </svg>
     <div class="eyebrow">지혜의 서신 · WISDOM LETTER</div>
     <h1 class="title">솔로몬의 편지</h1>
+
+    <div class="memory-verse" id="memoryVerse">
+      <b class="mv-label">이번주 암송 구절</b>
+      <div id="memoryVerseDisplay" hidden></div>
+      <div id="memoryVerseForm" class="mv-form" hidden>
+        <input type="text" id="mvRefInput" placeholder="구절 참조 (예: 빌립보서 4:13)">
+        <textarea id="mvTextInput" placeholder="암송할 구절 본문을 적어 두라..."></textarea>
+        <button id="mvSaveBtn" type="button">이번주 구절로 저장</button>
+      </div>
+    </div>
+
     <div class="today"><b id="todayLabel">오늘의 한 줄</b><span id="todayLine">지혜의 근본은 여호와를 경외하는 것이니라</span></div>
   </div>
 
@@ -483,6 +526,72 @@
 
   var promptEl = document.getElementById('promptLine');
   if (promptEl) promptEl.textContent = '오늘의 물음: ' + todayPrompt;
+
+  // -- 이번주 암송 구절 (일요일 시작 기준, 직접 선택) --
+  (function(){
+    var wrap = document.getElementById('memoryVerse');
+    if (!wrap) return;
+    var displayEl = document.getElementById('memoryVerseDisplay');
+    var formEl = document.getElementById('memoryVerseForm');
+    var refInput = document.getElementById('mvRefInput');
+    var textInput = document.getElementById('mvTextInput');
+    var saveBtn = document.getElementById('mvSaveBtn');
+    var MV_KEY = 'solomonMemoryVerses';
+
+    function weekStartKey(d){
+      var sunday = new Date(d);
+      sunday.setDate(d.getDate() - d.getDay());
+      return dateKey(sunday);
+    }
+    function loadVerses(){
+      try { return JSON.parse(localStorage.getItem(MV_KEY) || '{}') || {}; } catch (e) { return {}; }
+    }
+    function saveVerses(map){
+      try { localStorage.setItem(MV_KEY, JSON.stringify(map)); } catch (e) {}
+    }
+
+    var wk = weekStartKey(now);
+    var verses = loadVerses();
+
+    function showDisplay(entry){
+      formEl.hidden = true;
+      displayEl.hidden = false;
+      displayEl.innerHTML = '';
+      var refEl = document.createElement('div');
+      refEl.className = 'mv-ref';
+      refEl.textContent = entry.ref;
+      var textEl = document.createElement('div');
+      textEl.className = 'mv-text';
+      textEl.textContent = entry.text;
+      var editBtn = document.createElement('button');
+      editBtn.type = 'button';
+      editBtn.className = 'mv-edit-btn';
+      editBtn.textContent = '이번주 구절 수정';
+      editBtn.addEventListener('click', showForm);
+      displayEl.appendChild(refEl);
+      displayEl.appendChild(textEl);
+      displayEl.appendChild(editBtn);
+    }
+    function showForm(){
+      displayEl.hidden = true;
+      formEl.hidden = false;
+      var entry = verses[wk];
+      refInput.value = entry ? entry.ref : '';
+      textInput.value = entry ? entry.text : '';
+      refInput.focus();
+    }
+
+    if (verses[wk] && verses[wk].ref) showDisplay(verses[wk]); else showForm();
+
+    saveBtn.addEventListener('click', function(){
+      var ref = refInput.value.trim();
+      var text = textInput.value.trim();
+      if (!ref || !text) return;
+      verses[wk] = { ref: ref, text: text, ts: new Date().toISOString() };
+      saveVerses(verses);
+      showDisplay(verses[wk]);
+    });
+  })();
 
   // -- 요일 성격에 맞는 인사말 · 맺음말 (getDay: 0=일 ... 6=토) --
   var GREETINGS = [
