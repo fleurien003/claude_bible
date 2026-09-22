@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """매삼주오 통독(평일 3장, 주일 5장, 연 1독) 스케줄 생성기.
-역사/예언서, 시가서, 신약 세 갈래를 비율대로 섞어서(largest-remainder
-방식) 창세기부터 쭉 가면 레위기 언저리에서 지치는 문제를 피한다.
-날짜 배정은 START_DATE부터 시작하고, 평일 3장 / 일요일 5장을 그 갈래
+역사/예언서, 시가서, 신약 세 갈래를, 매일 비례 배분해 섞는 대신
+B(시가서) 전체 → C(신약) 전체 → A(역사·예언서) 전체 순서로 한 트랙을
+끝까지 다 읽은 뒤 다음 트랙으로 넘어가게 한다 — 책의 흐름이 매일 끊기지
+않도록. 날짜 배정은 START_DATE부터 시작하고, 평일 3장 / 일요일 5장을 그
 순서열에서 순서대로 뽑아 채운다. 언제든 다시 실행해서 재생성 가능
 (순수 함수, 날짜만 바뀌면 됨) — 매일 자동 실행되는 파이프라인이 아니라
 한 번 만들어서 커밋해두는 정적 스케줄이다.
@@ -39,22 +40,16 @@ def load_tracks():
     return {"A": track_a, "B": track_b, "C": track_c}
 
 
+TRACK_ORDER = ["B", "C", "A"]  # 시가서 전체 -> 신약 전체 -> 역사/예언서 전체
+
+
 def build_sequence(counts):
-    """largest-remainder 비례 배분: 각 스텝마다 목표비율 대비 가장 뒤처진
-    트랙을 골라, 같은 트랙이 몰아서 계속 나오지 않고 고르게 섞이게 한다."""
-    total = sum(counts.values())
-    taken = {k: 0 for k in counts}
+    """트랙 순차 배열: 섞지 않고 B를 다 채운 뒤 C, 그 다음 A 순서로 이어붙인다.
+    트랙 내부는 이미 책 순서대로 정렬돼 있으므로 한 책을 읽다가 다른 책으로
+    끊기는 일이 없다."""
     seq = []
-    for i in range(1, total + 1):
-        best_key, best_score = None, -1.0
-        for k, c in counts.items():
-            if taken[k] >= c:
-                continue
-            score = (c / total) * i - taken[k]
-            if score > best_score:
-                best_score, best_key = score, k
-        seq.append(best_key)
-        taken[best_key] += 1
+    for k in TRACK_ORDER:
+        seq.extend([k] * counts[k])
     return seq
 
 
