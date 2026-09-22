@@ -1,0 +1,426 @@
+<!doctype html><html lang="ko"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>오늘의 조각</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Song+Myung&family=Nanum+Myeongjo:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap');
+
+  :root{
+    --bg-void:#100e1c;
+    --bg-glow:#2c2544;
+    --gold:#c9a24b;
+    --gold-bright:#eccd85;
+    --parchment:#ecdfc2;
+    --parchment-edge:#d8c69a;
+    --ink:#2c2013;
+    --ink-soft:#6b5636;
+    --cedar:#5b3324;
+    --pomegranate:#8a3b3b;
+    --star:#f5ecd6;
+    --card:#f7f1de;
+  }
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  @media (prefers-reduced-motion: reduce){ html{ scroll-behavior:auto; } }
+
+  body{
+    margin:0; background:var(--bg-void); color:var(--ink);
+    font-family:'IBM Plex Sans KR','Noto Sans KR',sans-serif;
+    line-height:1.6; -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  }
+  .sky{
+    position:fixed; inset:0; z-index:0;
+    background: radial-gradient(ellipse 80% 50% at 50% 100%, var(--bg-glow), transparent 70%),
+      linear-gradient(180deg, var(--bg-void) 0%, #17132a 55%, var(--bg-glow) 100%);
+    pointer-events:none;
+  }
+  .wrap{ position:relative; z-index:1; max-width:640px; margin:0 auto; padding:44px 18px 70px; }
+
+  .masthead{ text-align:center; color:var(--star); margin-bottom:28px; }
+  .eyebrow{ font-size:12px; letter-spacing:.3em; font-weight:500; color:var(--gold-bright); opacity:.9; margin-bottom:8px; }
+  h1.title{
+    font-family:'Song Myung','Nanum Myeongjo',serif; font-weight:400;
+    font-size:clamp(28px,6.5vw,40px); margin:0 0 8px; color:#f7efd8;
+    text-shadow:0 0 24px rgba(230,190,110,.25);
+  }
+  .sub{ font-size:14px; color:var(--gold-bright); opacity:.85; }
+  a.back{
+    display:inline-block; margin-top:14px; font-size:12.5px; color:var(--gold-bright);
+    text-decoration:none; border-bottom:1px solid rgba(230,190,110,.4);
+  }
+
+  nav.days{
+    display:flex; gap:6px; overflow-x:auto; padding-bottom:4px; margin-bottom:22px;
+    -webkit-overflow-scrolling:touch;
+  }
+  nav.days::-webkit-scrollbar{ display:none; }
+  nav.days button{
+    flex:none; font-family:inherit; font-size:13px; font-weight:600; letter-spacing:.02em;
+    padding:9px 16px; border-radius:999px; border:1px solid rgba(230,190,110,.3);
+    background:rgba(20,17,34,.6); color:var(--gold-bright); cursor:pointer;
+  }
+  nav.days button.active{ background:var(--gold); border-color:var(--gold); color:#20160a; }
+  nav.days button.today::after{ content:'•'; margin-left:4px; }
+
+  .panel{
+    background:var(--parchment); border:1px solid var(--parchment-edge);
+    box-shadow:0 20px 50px rgba(0,0,0,.4);
+    padding:24px 20px 20px;
+  }
+  .panel h2{
+    font-family:'Song Myung','Nanum Myeongjo',serif; font-weight:400; font-size:22px;
+    margin:0 0 4px; color:var(--cedar);
+  }
+  .panel .date-line{ font-size:12.5px; color:var(--ink-soft); margin-bottom:18px; }
+
+  ul.items{ list-style:none; margin:0 0 16px; padding:0; display:flex; flex-direction:column; gap:8px; }
+  li.item{
+    display:flex; align-items:flex-start; gap:10px;
+    background:#fffdf7; border:1px solid var(--parchment-edge);
+    border-left:4px solid var(--cat-color, var(--gold));
+    padding:10px 12px; border-radius:2px;
+  }
+  li.item.checked{ opacity:.5; }
+  li.item.checked .text{ text-decoration:line-through; }
+  li.item input[type=checkbox]{
+    margin-top:2px; width:17px; height:17px; accent-color:var(--cat-color, var(--cedar)); flex:none; cursor:pointer;
+  }
+  li.item .text{ flex:1; font-size:14.5px; color:var(--ink); word-break:break-word; }
+  li.item .cat-label{
+    font-size:10.5px; font-weight:600; letter-spacing:.03em; color:var(--cat-color, var(--ink-soft));
+    display:block; margin-bottom:2px;
+  }
+  li.item button.del{
+    flex:none; border:none; background:none; color:var(--ink-soft); opacity:.5;
+    font-size:16px; line-height:1; cursor:pointer; padding:2px 4px;
+  }
+  li.item button.del:hover{ opacity:1; color:var(--pomegranate); }
+  ul.items .empty{ font-size:13.5px; color:var(--ink-soft); font-style:italic; padding:6px 2px; }
+
+  .legend{ display:flex; flex-wrap:wrap; gap:8px 14px; margin:0 0 18px; }
+  .legend .dot-row{ display:flex; align-items:center; gap:5px; font-size:11.5px; color:var(--ink-soft); }
+  .legend .dot{ width:9px; height:9px; border-radius:50%; background:var(--dot-color,#999); flex:none; }
+
+  .add-row{
+    display:flex; gap:8px; flex-wrap:wrap; align-items:center;
+    border-top:1px dashed var(--parchment-edge); padding-top:16px; margin-top:4px;
+  }
+  .add-row select, .add-row input[type=text]{
+    font-family:inherit; font-size:13.5px; padding:9px 10px;
+    border:1px solid var(--parchment-edge); background:#fffdf7; color:var(--ink);
+  }
+  .add-row select{ flex:0 0 auto; }
+  .add-row input[type=text]{ flex:1 1 160px; min-width:0; }
+  .add-row button{
+    font-family:inherit; font-size:13.5px; font-weight:600; letter-spacing:.02em;
+    background:var(--cedar); color:#f7efd8; border:none; padding:9px 16px; cursor:pointer; flex:none;
+  }
+  .add-row button:hover{ background:#4a2a1d; }
+
+  .progress{ font-size:12px; color:var(--ink-soft); margin-bottom:14px; }
+
+  footer{
+    max-width:640px; margin:30px auto 0; padding-inline:18px; text-align:center;
+    color:var(--gold-bright); opacity:.7; font-size:12px; position:relative; z-index:1;
+  }
+
+  @media (max-width:480px){ .panel{ padding:20px 16px 16px; } }
+</style>
+
+<div class="sky"></div>
+
+<div class="wrap">
+  <div class="masthead">
+    <div class="eyebrow">서기관의 판 · TODAY'S PORTION</div>
+    <h1 class="title">오늘의 조각</h1>
+    <div class="sub">하루를 조각으로 나누어, 오늘 다스릴 것만 본다</div>
+    <a class="back" href="index.html">← 솔로몬의 편지로 돌아가기</a>
+  </div>
+
+  <nav class="days" id="dayNav"></nav>
+
+  <div class="panel">
+    <h2 id="panelDay">-</h2>
+    <div class="date-line" id="panelDate"></div>
+    <div class="progress" id="progressLine"></div>
+
+    <div class="legend" id="legend"></div>
+
+    <ul class="items" id="itemList"></ul>
+
+    <div class="add-row">
+      <select id="newCat"></select>
+      <input type="text" id="newText" placeholder="새 항목 추가...">
+      <button id="addBtn" type="button">추가</button>
+    </div>
+  </div>
+</div>
+
+<footer>묵상·체크 기록은 이 브라우저에만 저장됩니다</footer>
+
+<script>
+(function(){
+  var CATEGORIES = {
+    christian:  { label:'크리스찬',        color:'#c9a24b' },
+    pureum:     { label:'퓨어솜',          color:'#3b6fd6' },
+    side:       { label:'사이드',          color:'#c0392b' },
+    blogExp:    { label:'블로그·체험단',    color:'#c0392b' },
+    blogHome:   { label:'블로그·홈피드',    color:'#c0392b' },
+    appointment:{ label:'약속',            color:'#2e8b57' },
+    health:     { label:'건강',            color:'#1f3a68' },
+    growth:     { label:'자기계발',        color:'#7986cb' },
+    house:      { label:'집안일',          color:'#7a7a7a' }
+  };
+
+  var DAY_KEYS = ['sun','mon','tue','wed','thu','fri','sat'];
+  var DAY_LABELS = { sun:'일', mon:'월', tue:'화', wed:'수', thu:'목', fri:'금', sat:'토' };
+
+  function item(cat, text){ return { cat: cat, text: text }; }
+
+  var DEFAULT_TEMPLATE = {
+    mon: [
+      item('christian','QT + 오늘의 통독 (08:30~09:00)'),
+      item('pureum','브랜드 커넥트'),
+      item('pureum','루틴 업무 (마케팅·재고·CS·영업 대응)'),
+      item('side','세무 블로그 업로드'),
+      item('side','콘텐츠 모니터링'),
+      item('blogExp','체험단 콘텐츠 업로드 (5~6개)'),
+      item('blogHome','홈피드 콘텐츠 업로드'),
+      item('christian','골방기도'),
+      item('growth','AI 학습 10분'),
+      item('house','집안일')
+    ],
+    tue: [
+      item('christian','QT + 오늘의 통독 (08:30~09:00)'),
+      item('pureum','브랜드 커넥트'),
+      item('pureum','루틴 업무'),
+      item('side','세무 블로그 업로드'),
+      item('side','콘텐츠 모니터링'),
+      item('blogExp','체험단 콘텐츠 업로드 (5~6개)'),
+      item('blogHome','홈피드 콘텐츠 업로드'),
+      item('health','운동'),
+      item('christian','골방기도'),
+      item('growth','AI 학습 10분'),
+      item('house','집안일')
+    ],
+    wed: [
+      item('christian','QT + 오늘의 통독 (08:30~09:00)'),
+      item('pureum','업데이트 콘텐츠 확인'),
+      item('pureum','숏클립 제작'),
+      item('pureum','루틴 업무'),
+      item('side','세무 블로그 업로드'),
+      item('side','콘텐츠 모니터링'),
+      item('blogExp','체험단 콘텐츠 업로드 (5~6개)'),
+      item('blogHome','홈피드 콘텐츠 업로드'),
+      item('christian','골방기도'),
+      item('growth','AI 학습 10분'),
+      item('house','집안일')
+    ],
+    thu: [
+      item('christian','QT + 오늘의 통독 (08:30~09:00)'),
+      item('pureum','업데이트 콘텐츠 확인'),
+      item('pureum','숏클립 제작'),
+      item('pureum','루틴 업무'),
+      item('side','세무 블로그 업로드 (이번 주 마지막)'),
+      item('side','콘텐츠 모니터링'),
+      item('blogExp','체험단 콘텐츠 업로드 (이번 주 마지막)'),
+      item('blogHome','홈피드 콘텐츠 업로드 (이번 주 마지막)'),
+      item('health','운동'),
+      item('christian','골방기도'),
+      item('growth','AI 학습 10분'),
+      item('house','집안일')
+    ],
+    fri: [
+      item('christian','QT + 오늘의 통독'),
+      item('pureum','경쟁사·업계 마케팅 모니터링'),
+      item('pureum','루틴 업무'),
+      item('blogExp','체험단 방문 (점심시간)'),
+      item('health','필라테스 (체험단 없는 주)'),
+      item('christian','목장예배 (19:30)')
+    ],
+    sat: [
+      item('christian','QT + 오늘의 통독'),
+      item('house','메인 청소'),
+      item('appointment','체험단 · 약속 (자유 배치)')
+    ],
+    sun: [
+      item('christian','QT + 오늘의 통독'),
+      item('christian','주일예배 (10:00~13:00)'),
+      item('christian','골방기도'),
+      item('side','다음 주 사이드 플랜'),
+      item('house','침구 정리')
+    ]
+  };
+
+  var TEMPLATE_KEY = 'solomonChecklistTemplate_v1';
+  var CHECKS_KEY = 'solomonChecklistChecks_v1';
+
+  function loadJSON(key, fallback){
+    try { var raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }
+    catch (e) { return fallback; }
+  }
+  function saveJSON(key, val){
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {}
+  }
+
+  var template = loadJSON(TEMPLATE_KEY, null);
+  if (!template) { template = DEFAULT_TEMPLATE; saveJSON(TEMPLATE_KEY, template); }
+  // ensure every day key exists even if an older saved template predates one
+  DAY_KEYS.forEach(function(k){ if (!template[k]) template[k] = DEFAULT_TEMPLATE[k] || []; });
+
+  var checks = loadJSON(CHECKS_KEY, {});
+
+  function pad(n){ return n < 10 ? '0'+n : ''+n; }
+  function dateKey(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+
+  var today = new Date();
+  var todayDayKey = DAY_KEYS[today.getDay()];
+  var selectedDay = todayDayKey;
+
+  // -- nav --
+  var navEl = document.getElementById('dayNav');
+  var ORDER = ['mon','tue','wed','thu','fri','sat','sun'];
+  ORDER.forEach(function(k){
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = DAY_LABELS[k] + '요일';
+    btn.className = k === todayDayKey ? 'today' : '';
+    btn.addEventListener('click', function(){ selectedDay = k; render(); });
+    btn.setAttribute('data-day', k);
+    navEl.appendChild(btn);
+  });
+
+  // -- category select for add-row --
+  var newCatEl = document.getElementById('newCat');
+  Object.keys(CATEGORIES).forEach(function(k){
+    var opt = document.createElement('option');
+    opt.value = k; opt.textContent = CATEGORIES[k].label;
+    newCatEl.appendChild(opt);
+  });
+
+  function offsetToDate(dayKey){
+    // find the nearest date (today or within next 6 days) matching this weekday,
+    // so checks are scoped to a specific real date, not just a weekday label
+    var targetDow = ORDER.indexOf(dayKey) === -1 ? DAY_KEYS.indexOf(dayKey) : (ORDER.indexOf(dayKey)+1)%7;
+    var d = new Date(today);
+    var diff = (targetDow - d.getDay() + 7) % 7;
+    d.setDate(d.getDate() + diff);
+    return d;
+  }
+
+  function itemId(dayKey, idx, text){ return dayKey + '_' + idx + '_' + text.length; }
+
+  function render(){
+    navEl.querySelectorAll('button').forEach(function(b){
+      b.classList.toggle('active', b.getAttribute('data-day') === selectedDay);
+    });
+
+    var d = offsetToDate(selectedDay);
+    var dk = dateKey(d);
+
+    document.getElementById('panelDay').textContent = DAY_LABELS[selectedDay] + '요일' + (selectedDay===todayDayKey ? ' · 오늘' : '');
+    document.getElementById('panelDate').textContent = (d.getMonth()+1)+'월 '+d.getDate()+'일';
+
+    var list = template[selectedDay] || [];
+    var listEl = document.getElementById('itemList');
+    listEl.innerHTML = '';
+
+    if (!list.length) {
+      var empty = document.createElement('li');
+      empty.className = 'empty';
+      empty.textContent = '등록된 항목이 없습니다. 아래에서 추가해 보세요.';
+      listEl.appendChild(empty);
+    }
+
+    var doneCount = 0;
+    list.forEach(function(it, idx){
+      var id = itemId(selectedDay, idx, it.text);
+      var checkKey = dk + '__' + id;
+      var isChecked = !!checks[checkKey];
+      if (isChecked) doneCount++;
+
+      var cat = CATEGORIES[it.cat] || { label: it.cat, color:'#999' };
+
+      var li = document.createElement('li');
+      li.className = 'item' + (isChecked ? ' checked' : '');
+      li.style.setProperty('--cat-color', cat.color);
+
+      var cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = isChecked;
+      cb.style.setProperty('--cat-color', cat.color);
+      cb.addEventListener('change', function(){
+        checks[checkKey] = cb.checked;
+        saveJSON(CHECKS_KEY, checks);
+        render();
+      });
+
+      var textWrap = document.createElement('div');
+      textWrap.style.flex = '1';
+      var label = document.createElement('span');
+      label.className = 'cat-label';
+      label.style.setProperty('--cat-color', cat.color);
+      label.textContent = cat.label;
+      var text = document.createElement('span');
+      text.className = 'text';
+      text.textContent = it.text;
+      textWrap.appendChild(label);
+      textWrap.appendChild(document.createElement('br'));
+      textWrap.appendChild(text);
+
+      var delBtn = document.createElement('button');
+      delBtn.className = 'del';
+      delBtn.type = 'button';
+      delBtn.textContent = '×';
+      delBtn.title = '이 항목 삭제 (모든 주에 적용)';
+      delBtn.addEventListener('click', function(){
+        template[selectedDay].splice(idx, 1);
+        saveJSON(TEMPLATE_KEY, template);
+        render();
+      });
+
+      li.appendChild(cb);
+      li.appendChild(textWrap);
+      li.appendChild(delBtn);
+      listEl.appendChild(li);
+    });
+
+    document.getElementById('progressLine').textContent =
+      list.length ? (doneCount + ' / ' + list.length + ' 완료') : '';
+
+    // legend: only categories actually used today
+    var legendEl = document.getElementById('legend');
+    legendEl.innerHTML = '';
+    var usedCats = [];
+    list.forEach(function(it){ if (usedCats.indexOf(it.cat) === -1) usedCats.push(it.cat); });
+    usedCats.forEach(function(ck){
+      var cat = CATEGORIES[ck]; if (!cat) return;
+      var row = document.createElement('span');
+      row.className = 'dot-row';
+      var dot = document.createElement('span');
+      dot.className = 'dot';
+      dot.style.setProperty('--dot-color', cat.color);
+      row.appendChild(dot);
+      row.appendChild(document.createTextNode(cat.label));
+      legendEl.appendChild(row);
+    });
+  }
+
+  document.getElementById('addBtn').addEventListener('click', function(){
+    var textEl = document.getElementById('newText');
+    var val = (textEl.value || '').trim();
+    if (!val) return;
+    var cat = newCatEl.value;
+    template[selectedDay] = template[selectedDay] || [];
+    template[selectedDay].push(item(cat, val));
+    saveJSON(TEMPLATE_KEY, template);
+    textEl.value = '';
+    render();
+  });
+  document.getElementById('newText').addEventListener('keydown', function(e){
+    if (e.key === 'Enter') document.getElementById('addBtn').click();
+  });
+
+  render();
+})();
+</script>
+
+</body></html>
