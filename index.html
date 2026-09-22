@@ -94,36 +94,6 @@
   }
   .retry-btn:hover{ background:var(--cedar); color:#f7efd8; }
 
-  .sermon-sub{ margin-top:22px; }
-  .sermon-sub:first-of-type{ margin-top:0; }
-  .sermon-title-input{
-    width:100%; font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:15px; color:var(--ink);
-    background:#f7f1de; border:1px solid var(--parchment-edge); padding:10px 14px; margin-bottom:20px;
-  }
-  ul.sermon-list, ul.sermon-people{ list-style:none; margin:0 0 10px; padding:0; display:flex; flex-direction:column; gap:6px; }
-  ul.sermon-list li, ul.sermon-people li{
-    display:flex; align-items:center; gap:8px;
-    background:#fffdf7; border:1px solid var(--parchment-edge); padding:8px 10px; font-size:14px; color:var(--ink);
-  }
-  ul.sermon-people li .name{ font-weight:700; color:var(--cedar); flex:0 0 auto; }
-  ul.sermon-people li .note{ flex:1; color:var(--ink-soft); }
-  ul.sermon-list li span{ flex:1; }
-  ul.sermon-list .empty, ul.sermon-people .empty{ font-size:13px; color:var(--ink-soft); font-style:italic; border:none; background:none; padding:2px 0; }
-  ul.sermon-list button.del, ul.sermon-people button.del{
-    flex:none; border:none; background:none; color:var(--ink-soft); opacity:.5; font-size:15px; cursor:pointer; padding:2px 4px;
-  }
-  ul.sermon-list button.del:hover, ul.sermon-people button.del:hover{ opacity:1; color:var(--pomegranate); }
-  .sermon-add-row{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:4px; }
-  .sermon-add-row input[type=text]{
-    font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:13.5px; padding:8px 10px;
-    border:1px solid var(--parchment-edge); background:#fffdf7; color:var(--ink); flex:1 1 120px; min-width:0;
-  }
-  .sermon-add-row button{
-    font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:13px; font-weight:500;
-    background:var(--cedar); color:#f7efd8; border:none; padding:8px 14px; cursor:pointer; flex:none;
-  }
-  .sermon-add-row button:hover{ background:#4a2a1d; }
-
   .memory-verse{
     max-width:440px; margin:20px auto 0;
     background:rgba(201,162,75,.08);
@@ -397,7 +367,8 @@
     <a href="#s0">인사말</a>
     <a href="#bible">오늘의 말씀</a>
     <a href="#reading">오늘의 통독</a>
-    <a href="#sermon">이번주 나눔</a>
+    <a href="https://claude.ai/artifact/H8U93xe446wNWSyHqyfaUk" target="_blank" rel="noopener noreferrer">목장 나눔 노트 ↗</a>
+    <a href="#prayerRequests">기도제목</a>
     <a href="#portion">오늘의 조각</a>
     <a href="#s3">맺음말</a>
   </nav>
@@ -495,57 +466,6 @@
 
     <div class="divider"><div class="line"></div><svg viewBox="0 0 24 24" fill="none"><path d="M12 2 L15 9 L22 12 L15 15 L12 22 L9 15 L2 12 L9 9 Z" stroke="var(--gold)" stroke-width="1.2"/></svg><div class="line"></div></div>
 
-    <section id="sermon">
-      <div class="kicker">이번주 목장 나눔</div>
-      <h2>목장 나눔</h2>
-      <p>설교와 나눔을 이 자리에 적어 두면, 한 주 내내 다시 꺼내 볼 수 있다.</p>
-
-      <div class="journal">
-        <input type="text" id="sermonTitle" class="sermon-title-input" placeholder="이번주 제목 (예: 2026. 09. 25.)">
-
-        <div class="sermon-sub">
-          <div class="prompt">설교 말씀</div>
-          <textarea id="sermonText" placeholder="이번주 설교의 핵심을 적어 두라..."></textarea>
-        </div>
-
-        <div class="sermon-sub">
-          <div class="prompt">느낀 점</div>
-          <textarea id="sermonReflection" placeholder="말씀을 들으며 느낀 것을 적어 보라..."></textarea>
-        </div>
-
-        <div class="sermon-sub">
-          <div class="prompt">감사제목</div>
-          <ul id="thanksList" class="sermon-list"></ul>
-          <div class="sermon-add-row">
-            <input type="text" id="thanksInput" placeholder="감사한 일을 적고 추가">
-            <button id="thanksAddBtn" type="button">추가</button>
-          </div>
-        </div>
-
-        <div class="sermon-sub">
-          <div class="prompt">나의 기도제목</div>
-          <textarea id="myPrayer" placeholder="이번주 기도제목을 적어 보라..."></textarea>
-        </div>
-
-        <div class="sermon-sub">
-          <div class="prompt">목장 식구 기도제목</div>
-          <ul id="peopleList" class="sermon-people"></ul>
-          <div class="sermon-add-row">
-            <input type="text" id="personNameInput" placeholder="이름">
-            <input type="text" id="personPrayerInput" placeholder="기도제목">
-            <button id="personAddBtn" type="button">추가</button>
-          </div>
-        </div>
-
-        <div class="journal-row">
-          <button id="saveSermon" type="button">이번주 나눔 저장하기</button>
-          <span class="status" id="sermonStatus"></span>
-        </div>
-      </div>
-    </section>
-
-    <div class="divider"><div class="line"></div><svg viewBox="0 0 24 24" fill="none"><path d="M12 2 L15 9 L22 12 L15 15 L12 22 L9 15 L2 12 L9 9 Z" stroke="var(--gold)" stroke-width="1.2"/></svg><div class="line"></div></div>
-
     <section id="portion">
       <div class="kicker">오늘 다스릴 조각</div>
       <h2>오늘의 조각</h2>
@@ -559,6 +479,15 @@
       <div class="kicker">맺음말</div>
       <p id="closingText">네게 평강이 있을지어다.</p>
       <p class="signoff">— 솔로몬</p>
+    </section>
+
+    <div class="divider"><div class="line"></div><svg viewBox="0 0 24 24" fill="none"><path d="M12 2 L15 9 L22 12 L15 15 L12 22 L9 15 L2 12 L9 9 Z" stroke="var(--gold)" stroke-width="1.2"/></svg><div class="line"></div></div>
+
+    <section id="prayerRequests">
+      <div class="kicker">지난 목장의 기도제목</div>
+      <h2>함께 기도할 제목</h2>
+      <div class="gnote" id="prayerWeekLabel" style="margin:0 0 16px"></div>
+      <ul class="fields" id="prayerFieldsList"></ul>
     </section>
   </div>
 </div>
@@ -645,140 +574,37 @@
     return dateKey(sunday);
   }
 
-  // -- 목장 나눔 (이 페이지 안에서 직접 기록하고, 이 브라우저에만 저장한다) --
+  // -- 지난 목장의 기도제목 (읽기 전용). 목장 나눔 자체는 위 "목장 나눔 노트 ↗" 링크에서 그대로
+  //    작성하고, 여기에는 가장 최근에 기록된 내용의 스냅샷만 보여준다. 매주 토요일 09:00 KST에
+  //    자동화가 이 LAST_CELL_GROUP 객체를 최신 내용으로 교체하고 다시 커밋·배포한다. --
+  var LAST_CELL_GROUP = {
+    weekLabel: '2026. 09. 18. 목장 나눔',
+    savedAt: 1789740627733,
+    people: [
+      { name: '은아', prayer: '하나님과 동행하는 삶 살기를 소망합니다. 하나님 앞으로 나아갈 때 장애물을 치워주시고 장애물을 이겨낼 수 있는 힘을 주세요. 아무것도 하나님의 자리를 대신할 순 없습니다. 시스템 구축 잘해서 삶의 정돈을 이루기를 소망합니다. 앞으로 1년 안에 공동체 근처로 이사 올 수 있도록 기도해 주세요.' },
+      { name: '수환', prayer: '추석을 앞두고 어머니와 더 시간을 잘 보낼 수 있기를 기도해 주세요.' },
+      { name: '승학', prayer: '수요예배, 새벽기도 나가기로 결단했습니다. 기도해 주세요. 심전도 체크(통증 등 상태 기록)를 하고 있습니다. 10월 12일에 진료 결과가 나옵니다. 건강을 위해 기도해 주세요.' },
+      { name: '목자님', prayer: '다음주에도 회주 자매님도 만나는데 계속 목장나오실 수 있도록 기도해 주세요.' },
+      { name: '목녀님', prayer: 'ai를 잘 배울 수 있도록 기도해 주세요. 시간과 체력을 잘 아끼고 남은 4개월 잘 보낼 수 있도록 기도해 주세요.' }
+    ]
+  };
   (function(){
-    var SERMON_KEY = 'solomonSermonNotes';
-    function loadNotes(){
-      try { return JSON.parse(localStorage.getItem(SERMON_KEY) || '{}') || {}; } catch (e) { return {}; }
-    }
-    function saveNotes(map){
-      try { localStorage.setItem(SERMON_KEY, JSON.stringify(map)); } catch (e) {}
-    }
-
-    var wk = weekStartKey(now);
-    var notes = loadNotes();
-
-    // 9/18 목장 나눔에서 은아님이 직접 쓴 내용만 첫 주 예시로 미리 채워 둔다 (다른 식구들 이름·기도제목은
-    // 공개 저장소 소스에 넣지 않는다 — 필요하면 직접 아래에서 입력해 브라우저에만 저장하면 된다).
-    var SEED_WEEK = '2026-09-20';
-    var SEED = {
-      title: '2026. 09. 18.',
-      sermon: '"염려에 무너지지 않는 법" (마태복음 6:25~34)\n내일 일을 위하여 염려하지 말라. 걱정은 내일을 대비하는 것이 아니라 오늘을 갉아먹는다. 갈멜산의 엘리야도 이세벨의 말 한마디에 무너졌으나, 하나님은 그를 책망 대신 먼저 먹이고 재우신 후 세미한 소리로 찾아오셨다. 염려를 다 주께 맡기라, 이는 그가 너희를 돌보심이라(베드로전서 5:7).',
-      reflection: '내일 일을 오늘 걱정했던 나, 하나님을 신뢰하지 못했음. 나의 작업대에 하나님을 초대하려했던 지난 날 회개.',
-      thanks: ['엄마와의 데이트', '클로드 감사'],
-      myPrayer: '하나님과 동행하는 삶 살기를 소망합니다. 하나님 앞으로 나아갈 때 장애물을 치워주시고 장애물을 이겨낼 수 있는 힘을 주세요. 아무것도 하나님의 자리를 대신할 순 없습니다.\n시스템 구축 잘해서 삶의 정돈을 이루기를 소망합니다.\n앞으로 1년 안에 공동체 근처로 이사 올 수 있도록 기도해 주세요.',
-      people: []
-    };
-
-    if (!notes[wk] && wk === SEED_WEEK) {
-      notes[wk] = SEED;
-      saveNotes(notes);
-    }
-
-    var data = notes[wk] || { title: '', sermon: '', reflection: '', thanks: [], myPrayer: '', people: [] };
-
-    var titleEl = document.getElementById('sermonTitle');
-    var sermonEl = document.getElementById('sermonText');
-    var reflectionEl = document.getElementById('sermonReflection');
-    var thanksListEl = document.getElementById('thanksList');
-    var thanksInputEl = document.getElementById('thanksInput');
-    var myPrayerEl = document.getElementById('myPrayer');
-    var peopleListEl = document.getElementById('peopleList');
-    var nameInputEl = document.getElementById('personNameInput');
-    var prayerInputEl = document.getElementById('personPrayerInput');
-    var sermonStatusEl = document.getElementById('sermonStatus');
-
-    if (titleEl) titleEl.value = data.title || '';
-    if (sermonEl) sermonEl.value = data.sermon || '';
-    if (reflectionEl) reflectionEl.value = data.reflection || '';
-    if (myPrayerEl) myPrayerEl.value = data.myPrayer || '';
-
-    function renderThanks(){
-      if (!thanksListEl) return;
-      thanksListEl.innerHTML = '';
-      var list = data.thanks || [];
-      if (!list.length) {
-        var empty = document.createElement('li');
-        empty.className = 'empty';
-        empty.textContent = '아직 없다.';
-        thanksListEl.appendChild(empty);
-        return;
-      }
-      list.forEach(function(t, idx){
-        var li = document.createElement('li');
-        var span = document.createElement('span');
-        span.textContent = t;
-        var del = document.createElement('button');
-        del.type = 'button'; del.className = 'del'; del.textContent = '×';
-        del.addEventListener('click', function(){ data.thanks.splice(idx, 1); renderThanks(); });
-        li.appendChild(span);
-        li.appendChild(del);
-        thanksListEl.appendChild(li);
-      });
-    }
-    function renderPeople(){
-      if (!peopleListEl) return;
-      peopleListEl.innerHTML = '';
-      var list = data.people || [];
-      if (!list.length) {
-        var empty = document.createElement('li');
-        empty.className = 'empty';
-        empty.textContent = '아직 없다.';
-        peopleListEl.appendChild(empty);
-        return;
-      }
-      list.forEach(function(p, idx){
-        var li = document.createElement('li');
-        var name = document.createElement('span');
-        name.className = 'name'; name.textContent = p.name;
-        var prayer = document.createElement('span');
-        prayer.className = 'note'; prayer.textContent = p.prayer;
-        var del = document.createElement('button');
-        del.type = 'button'; del.className = 'del'; del.textContent = '×';
-        del.addEventListener('click', function(){ data.people.splice(idx, 1); renderPeople(); });
-        li.appendChild(name);
-        li.appendChild(prayer);
-        li.appendChild(del);
-        peopleListEl.appendChild(li);
-      });
-    }
-    renderThanks();
-    renderPeople();
-
-    var thanksAddBtn = document.getElementById('thanksAddBtn');
-    if (thanksAddBtn) thanksAddBtn.addEventListener('click', function(){
-      var v = (thanksInputEl.value || '').trim();
-      if (!v) return;
-      data.thanks = data.thanks || [];
-      data.thanks.push(v);
-      thanksInputEl.value = '';
-      renderThanks();
-    });
-    var personAddBtn = document.getElementById('personAddBtn');
-    if (personAddBtn) personAddBtn.addEventListener('click', function(){
-      var n = (nameInputEl.value || '').trim();
-      var p = (prayerInputEl.value || '').trim();
-      if (!n || !p) return;
-      data.people = data.people || [];
-      data.people.push({ name: n, prayer: p });
-      nameInputEl.value = '';
-      prayerInputEl.value = '';
-      renderPeople();
-    });
-
-    var saveSermonBtn = document.getElementById('saveSermon');
-    if (saveSermonBtn) saveSermonBtn.addEventListener('click', function(){
-      data.title = titleEl ? titleEl.value : '';
-      data.sermon = sermonEl ? sermonEl.value : '';
-      data.reflection = reflectionEl ? reflectionEl.value : '';
-      data.myPrayer = myPrayerEl ? myPrayerEl.value : '';
-      data.ts = new Date().toISOString();
-      notes[wk] = data;
-      saveNotes(notes);
-      if (sermonStatusEl) {
-        var d5 = new Date();
-        sermonStatusEl.textContent = '저장되었습니다 · ' + pad(d5.getHours()) + ':' + pad(d5.getMinutes());
-      }
+    var labelEl = document.getElementById('prayerWeekLabel');
+    var listEl = document.getElementById('prayerFieldsList');
+    if (labelEl) labelEl.textContent = LAST_CELL_GROUP.weekLabel + ' · 매주 토요일 아침 갱신';
+    if (!listEl) return;
+    listEl.innerHTML = '';
+    (LAST_CELL_GROUP.people || []).forEach(function(p){
+      var li = document.createElement('li');
+      var name = document.createElement('span');
+      name.className = 'name';
+      name.textContent = p.name;
+      var note = document.createElement('span');
+      note.className = 'note';
+      note.textContent = p.prayer;
+      li.appendChild(name);
+      li.appendChild(note);
+      listEl.appendChild(li);
     });
   })();
 
