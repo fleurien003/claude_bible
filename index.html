@@ -83,6 +83,16 @@
     margin:22px auto 0;
     font-style:italic;
   }
+  .today-ref{
+    display:block; margin-top:6px; font-size:11.5px; font-style:normal;
+    letter-spacing:.08em; opacity:.6; font-family:'Nanum Square','Noto Sans KR',sans-serif;
+  }
+  .retry-btn{
+    font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:12.5px; font-weight:500;
+    background:transparent; color:var(--cedar); border:1px solid var(--cedar);
+    padding:7px 14px; cursor:pointer; margin-top:6px;
+  }
+  .retry-btn:hover{ background:var(--cedar); color:#f7efd8; }
 
   .memory-verse{
     max-width:440px; margin:20px auto 0;
@@ -350,13 +360,14 @@
       </div>
     </div>
 
-    <div class="today"><b id="todayLabel">오늘의 한 줄</b><span id="todayLine">지혜의 근본은 여호와를 경외하는 것이니라</span></div>
+    <div class="today"><b id="todayLabel">오늘의 한 줄</b><span id="todayLine">지혜의 근본은 여호와를 경외하는 것이니라</span><span class="today-ref" id="todayRef">잠언 1:7</span></div>
   </div>
 
   <nav class="pills">
     <a href="#s0">인사말</a>
     <a href="#bible">오늘의 말씀</a>
     <a href="#reading">오늘의 통독</a>
+    <a href="#sermon">이번주 나눔</a>
     <a href="#portion">오늘의 조각</a>
     <a href="#s3">맺음말</a>
   </nav>
@@ -454,6 +465,14 @@
 
     <div class="divider"><div class="line"></div><svg viewBox="0 0 24 24" fill="none"><path d="M12 2 L15 9 L22 12 L15 15 L12 22 L9 15 L2 12 L9 9 Z" stroke="var(--gold)" stroke-width="1.2"/></svg><div class="line"></div></div>
 
+    <section id="sermon">
+      <div class="kicker">이번주 목자의 소리</div>
+      <h2>이번주 목장 나눔</h2>
+      <div id="sermonBody"><p class="qt-loading">이번주 나눔을 불러오는 중…</p></div>
+    </section>
+
+    <div class="divider"><div class="line"></div><svg viewBox="0 0 24 24" fill="none"><path d="M12 2 L15 9 L22 12 L15 15 L12 22 L9 15 L2 12 L9 9 Z" stroke="var(--gold)" stroke-width="1.2"/></svg><div class="line"></div></div>
+
     <section id="portion">
       <div class="kicker">오늘 다스릴 조각</div>
       <h2>오늘의 조각</h2>
@@ -518,7 +537,42 @@
   ];
 
   var FALLBACK_WISDOM = "지혜의 근본은 여호와를 경외하는 것이니라";
-  var REPO_RAW = 'https://raw.githubusercontent.com/fleurien003/claude_bible/main';
+
+  // 아티팩트 화면 안에서는 임의 외부 도메인 fetch가 막힐 수 있어, jsDelivr(허용 도메인)를
+  // 1순위로 쓰고 raw.githubusercontent.com을 백업으로 쓴다. 둘 다 실패하면 재시도 버튼을 보여준다.
+  var DATA_MIRRORS = [
+    'https://cdn.jsdelivr.net/gh/fleurien003/claude_bible@main',
+    'https://raw.githubusercontent.com/fleurien003/claude_bible/main'
+  ];
+  function fetchJSON(path, opts){
+    opts = opts || {};
+    function tryMirror(i){
+      if (i >= DATA_MIRRORS.length) return Promise.reject(new Error('all mirrors failed'));
+      var controller = ('AbortController' in window) ? new AbortController() : null;
+      var timer = controller ? setTimeout(function(){ controller.abort(); }, 8000) : null;
+      var fetchOpts = { cache: opts.cache || 'default' };
+      if (controller) fetchOpts.signal = controller.signal;
+      return fetch(DATA_MIRRORS[i] + path, fetchOpts)
+        .then(function(res){ if (timer) clearTimeout(timer); if (!res.ok) throw new Error('bad status'); return res.json(); })
+        .catch(function(){ if (timer) clearTimeout(timer); return tryMirror(i + 1); });
+    }
+    return tryMirror(0);
+  }
+
+  // -- 이번주 목장 나눔 (목장 나눔 노트에서 매주 손으로 옮겨 적는다) --
+  var WEEKLY_SERMON = {
+    weekKey: '2026-09-20',
+    date: '2026. 09. 18.',
+    title: '염려에 무너지지 않는 법',
+    ref: '마태복음 6:25~34',
+    paragraphs: [
+      '이번 주 목자는 "염려에 무너지지 않는 법"을 전하였다. 이스라엘이 홍해를 앞에 두고 절벽 사이, 애굽 군대를 뒤에 두었을 때 바로는 이를 "광야에 갇혔다" 해석했으나(출애굽기 14:3), 믿음이란 같은 상황을 사람의 눈이 아니라 하나님의 눈으로 다시 읽는 것이다. 예수께서 이르시되 "내일 일을 위하여 염려하지 말라 내일 일은 내일이 염려할 것이요 한 날의 괴로움은 그 날로 족하니라" 하셨으니(마태복음 6:34), 오늘의 걱정에 내일의 무게까지 미리 얹지 말라.',
+      '갈멜산에서 불로 응답받은 엘리야도 이세벨의 말 한마디에 무너져 로뎀나무 아래 엎드려 죽기를 구했다(열왕기상 19:2~4). 하나님은 그런 그를 책망하지 않으시고 먼저 먹이고 재우신 후, 세미한 소리로 찾아오셨다(열왕기상 19:5~12). 네 염려도 다 주께 맡기라. "이는 그가 너희를 돌보심이라" 하였느니라(베드로전서 5:7).'
+    ],
+    reflection: '내일 일을 오늘 걱정했던 나, 하나님을 신뢰하지 못했음을 회개하다.',
+    verseRef: '마태복음 6:34',
+    verseText: '그러므로 내일 일을 위하여 염려하지 말라 내일 일은 내일이 염려할 것이요 한 날의 괴로움은 그 날로 족하니라.'
+  };
 
   var now = new Date();
   var todayKey = dateKey(now);
@@ -527,7 +581,59 @@
   var promptEl = document.getElementById('promptLine');
   if (promptEl) promptEl.textContent = '오늘의 물음: ' + todayPrompt;
 
-  // -- 이번주 암송 구절 (일요일 시작 기준, 직접 선택) --
+  (function(){
+    var bodyEl = document.getElementById('sermonBody');
+    if (!bodyEl || !WEEKLY_SERMON) return;
+    bodyEl.innerHTML = '';
+
+    var head = document.createElement('div');
+    head.className = 'reading';
+    var chap = document.createElement('div');
+    chap.className = 'chapter';
+    var small = document.createElement('small');
+    small.textContent = WEEKLY_SERMON.date;
+    chap.appendChild(small);
+    chap.appendChild(document.createTextNode(WEEKLY_SERMON.title));
+    var refP = document.createElement('p');
+    refP.textContent = WEEKLY_SERMON.ref;
+    head.appendChild(chap);
+    head.appendChild(refP);
+    bodyEl.appendChild(head);
+
+    var gist = document.createElement('div');
+    gist.className = 'gist';
+    var label = document.createElement('div');
+    label.className = 'glabel';
+    label.textContent = '나눔';
+    gist.appendChild(label);
+    WEEKLY_SERMON.paragraphs.forEach(function(t){
+      var p = document.createElement('p');
+      p.textContent = t;
+      gist.appendChild(p);
+    });
+    bodyEl.appendChild(gist);
+
+    if (WEEKLY_SERMON.reflection) {
+      var refl = document.createElement('div');
+      refl.className = 'gist qt-side';
+      var rl = document.createElement('div');
+      rl.className = 'glabel';
+      rl.textContent = '돌아보며 남긴 말';
+      var rp = document.createElement('p');
+      rp.textContent = WEEKLY_SERMON.reflection;
+      refl.appendChild(rl);
+      refl.appendChild(rp);
+      bodyEl.appendChild(refl);
+    }
+
+    var vb = document.createElement('p');
+    vb.className = 'verse';
+    vb.textContent = WEEKLY_SERMON.verseText + ' — ' + WEEKLY_SERMON.verseRef;
+    bodyEl.appendChild(vb);
+  })();
+
+  // -- 이번주 암송 구절 (일요일 시작 기준). 이번주 목장 나눔 말씀에서 한 구절을 먼저 골라 두고,
+  //    언제든 위 편집 버튼으로 바꿀 수 있게 한다. --
   (function(){
     var wrap = document.getElementById('memoryVerse');
     if (!wrap) return;
@@ -552,6 +658,11 @@
 
     var wk = weekStartKey(now);
     var verses = loadVerses();
+
+    if (!verses[wk] && WEEKLY_SERMON.weekKey === wk) {
+      verses[wk] = { ref: WEEKLY_SERMON.verseRef, text: WEEKLY_SERMON.verseText, ts: new Date().toISOString(), auto: true };
+      saveVerses(verses);
+    }
 
     function showDisplay(entry){
       formEl.hidden = true;
@@ -594,24 +705,17 @@
   })();
 
   // -- 요일 성격에 맞는 인사말 · 맺음말 (getDay: 0=일 ... 6=토) --
-  var GREETINGS = [
-    '내 딸아, 오늘은 주의 날이니 예배 앞에 먼저 말씀 앞에 서라.',
-    '내 딸아, 오늘은 출근하는 날이라 발이 바쁠 것이니, 나서기 전에 먼저 마음을 하나님께 두라.',
-    '내 딸아, 오늘은 출근하는 날이라 발이 바쁠 것이니, 나서기 전에 먼저 마음을 하나님께 두라.',
-    '내 딸아, 오늘은 출근하는 날이라 발이 바쁠 것이니, 나서기 전에 먼저 마음을 하나님께 두라.',
-    '내 딸아, 오늘은 출근하는 날이라 발이 바쁠 것이니, 나서기 전에 먼저 마음을 하나님께 두라.',
-    '내 딸아, 오늘은 집에서 일하는 날이라 마음이 더 쉽게 흩어지리니, 책상에 앉기 전에 먼저 하나님 앞에 앉으라.',
-    '내 딸아, 오늘은 쉬는 날이니 몸도 마음도 늦추라. 다만 쉼 가운데서도 하나님을 잊지 말라.'
-  ];
-  var CLOSINGS = [
-    '내 딸아, 오늘 예배로 세운 하루를 마음에 새기고 한 주를 시작하라. 네게 평강이 있을지어다.',
-    '내 딸아, 오늘 하루를 내려놓고 잠자리에 들라. 잘한 것은 감사로, 놓친 것은 내일의 몫으로 돌리라. 네게 평강이 있을지어다.',
-    '내 딸아, 오늘 하루를 내려놓고 잠자리에 들라. 잘한 것은 감사로, 놓친 것은 내일의 몫으로 돌리라. 네게 평강이 있을지어다.',
-    '내 딸아, 오늘 하루를 내려놓고 잠자리에 들라. 잘한 것은 감사로, 놓친 것은 내일의 몫으로 돌리라. 네게 평강이 있을지어다.',
-    '내 딸아, 오늘 하루를 내려놓고 잠자리에 들라. 잘한 것은 감사로, 놓친 것은 내일의 몫으로 돌리라. 네게 평강이 있을지어다.',
-    '내 딸아, 오늘 하루를 내려놓고 잠자리에 들라. 잘한 것은 감사로, 놓친 것은 내일의 몫으로 돌리라. 네게 평강이 있을지어다.',
-    '내 딸아, 오늘의 쉼이 헛되지 아니하였느니라. 네게 평강이 있을지어다.'
-  ];
+  var GREETING_SUN = '내 딸아, 오늘은 주의 날이라. 다윗은 "내가 여호와의 집에 영원히 살리로다" 노래하였으니(시편 23:6), 너도 오늘 예배로 이 한 주의 첫 돌을 놓으라. 자리에 몸만 앉히지 말고 마음을 함께 앉히라. 오늘 드리는 예배가 얕으면 이 주간이 얕아지고, 오늘이 깊으면 이 주간이 깊어지리라.';
+  var GREETING_WORK = '내 딸아, 오늘은 발이 바쁜 날이라. 예수께서 이르시되 "너희는 먼저 그의 나라와 그의 의를 구하라 그리하면 이 모든 것을 너희에게 더하시리라" 하셨으니(마태복음 6:33), 신발을 신기 전에 먼저 무릎을 꿇으라. 오늘 만날 사람과 처리할 일들이 네 마음을 흔들려 할 때마다 이 순서를 기억하라. 먼저 그 나라, 그 다음이 네 하루니라.';
+  var GREETING_HOME = '내 딸아, 오늘은 집에서 일하는 날이라 마음이 쉬이 흩어지리라. 책상 앞에 앉기 전에 먼저 골방에 들어가 문을 닫고 은밀한 중에 계신 아버지께 기도하라(마태복음 6:6). 네 집이 곧 일터가 되었으니 그 일터의 첫 자리를 하나님께 내어드리라. 흩어지는 마음을 다잡는 힘은 결심이 아니라, 말씀 앞에 먼저 앉는 습관에서 온다.';
+  var GREETING_REST = '내 딸아, 오늘은 쉬는 날이니 몸과 마음을 늦추라. 하나님도 엿새 동안 지으신 모든 일을 일곱째 날에 그치고 안식하셨느니라(창세기 2:2). 쉼은 게으름이 아니라 순종이니, 오늘 너를 쫓던 일들을 내려놓고 하나님 안에서 쉬는 법을 배우라. "수고하고 무거운 짐 진 자들아 다 내게로 오라 내가 너희를 쉬게 하리라" 하셨느니라(마태복음 11:28).';
+  var GREETINGS = [ GREETING_SUN, GREETING_WORK, GREETING_WORK, GREETING_WORK, GREETING_WORK, GREETING_HOME, GREETING_REST ];
+
+  var CLOSING_SUN = '내 딸아, 오늘 받은 말씀 한 구절을 기억하고 자리에 누우라. "오늘날 우리에게 일용할 양식을 주시옵고" 기도하신 주님처럼(마태복음 6:11), 이 한 주도 하루치의 은혜만 구하며 걸으라. 예배로 세운 오늘이 내일의 힘이 되리니 평안히 자라. 네게 평강이 있을지어다.';
+  var CLOSING_WORK = '내 딸아, 오늘 다 하지 못한 일이 있어도 근심으로 가져가지 말라. "내일 일을 위하여 염려하지 말라 내일 일은 내일이 염려할 것이요 한 날의 괴로움은 그 날로 족하니라" 하셨느니라(마태복음 6:34). 오늘의 수고는 오늘로 마치고, 감사로 하루를 덮으라. 네게 평강이 있을지어다.';
+  var CLOSING_HOME = '내 딸아, 오늘 하루 홀로 애쓴 수고를 아시는 이가 계시니 근심하지 말라. "내가 네게 명령한 것이 아니냐 강하고 담대하라 두려워하지 말며 놀라지 말라 네가 어디로 가든지 네 하나님 여호와가 너와 함께 하느니라" 하셨느니라(여호수아 1:9). 이 말씀을 안고 노트북을 닫으라. 네게 평강이 있을지어다.';
+  var CLOSING_REST = '내 딸아, 오늘의 쉼이 헛되지 아니하였느니라. 채워진 몸과 마음으로 새 주간을 맞이할 준비가 되었으니 감사함으로 하루를 마치라. "이는 여호와께서 정하신 날이라 이 날에 우리가 즐거워하고 기뻐하리로다" 하였느니라(시편 118:24). 네게 평강이 있을지어다.';
+  var CLOSINGS = [ CLOSING_SUN, CLOSING_WORK, CLOSING_WORK, CLOSING_WORK, CLOSING_WORK, CLOSING_HOME, CLOSING_REST ];
   var greetingEl = document.getElementById('greetingText');
   if (greetingEl) greetingEl.textContent = GREETINGS[now.getDay()];
   var closingEl = document.getElementById('closingText');
@@ -650,6 +754,8 @@
     if (textEl) renderVerses(textEl, data.sections);
     var todayLineEl = document.getElementById('todayLine');
     if (todayLineEl && data.subtitle) todayLineEl.textContent = data.subtitle;
+    var todayRefEl = document.getElementById('todayRef');
+    if (todayRefEl) todayRefEl.textContent = data.reference || '';
 
     var helperBox = document.getElementById('qtHelperBox');
     var helperEl = document.getElementById('qtHelper');
@@ -669,15 +775,33 @@
     var chapterEl = document.getElementById('chapterNum');
     if (chapterEl) chapterEl.textContent = '오늘의 본문';
     var textEl = document.getElementById('bibleText');
-    if (textEl) textEl.innerHTML = '<p class="qt-error">아직 오늘의 본문을 불러오지 못했다. 자동 수집이 몇 시간 늦어질 때가 있으니, 네 손의 성경이나 두란노 생명의삶에서 오늘 본문을 직접 펴 보라.</p>';
+    if (textEl) {
+      textEl.innerHTML = '';
+      var p = document.createElement('p');
+      p.className = 'qt-error';
+      p.textContent = '아직 오늘의 본문을 불러오지 못했다. 네트워크가 늦었거나 자동 수집이 지연되었을 수 있으니, 아래에서 다시 시도하거나 네 손의 성경을 직접 펴 보라.';
+      var retryBtn = document.createElement('button');
+      retryBtn.type = 'button';
+      retryBtn.className = 'retry-btn';
+      retryBtn.textContent = '다시 불러오기';
+      retryBtn.addEventListener('click', loadTodayQT);
+      textEl.appendChild(p);
+      textEl.appendChild(retryBtn);
+    }
     var todayLineEl = document.getElementById('todayLine');
     if (todayLineEl) todayLineEl.textContent = FALLBACK_WISDOM;
+    var todayRefEl = document.getElementById('todayRef');
+    if (todayRefEl) todayRefEl.textContent = '잠언 1:7';
   }
 
-  fetch(REPO_RAW + '/data/qt/' + todayKey + '.json', { cache: 'no-store' })
-    .then(function(res){ if (!res.ok) throw new Error('no data'); return res.json(); })
-    .then(renderTodayQT)
-    .catch(renderTodayQTError);
+  function loadTodayQT(){
+    var textEl = document.getElementById('bibleText');
+    if (textEl) textEl.innerHTML = '<p class="qt-loading">두란노에서 오늘의 본문을 불러오는 중이니, 잠시 기다리라…</p>';
+    fetchJSON('/data/qt/' + todayKey + '.json', { cache: 'no-store' })
+      .then(renderTodayQT)
+      .catch(renderTodayQTError);
+  }
+  loadTodayQT();
 
   // -- 매삼주오 통독 --
   function pad3(n){ n = String(n); while (n.length < 3) n = '0'+n; return n; }
@@ -707,8 +831,7 @@
     }
   }
 
-  var READING_PLAN_PROMISE = fetch(REPO_RAW + '/data/reading-plan.json', { cache: 'force-cache' })
-    .then(function(res){ if (!res.ok) throw new Error('no plan'); return res.json(); });
+  var READING_PLAN_PROMISE = fetchJSON('/data/reading-plan.json', { cache: 'force-cache' });
 
   function findPlanDay(plan, key){
     for (var i=0;i<plan.length;i++){ if (plan[i].date === key) return plan[i]; }
@@ -718,8 +841,8 @@
   function fetchChapterPair(r){
     var fname = pad(r.idx) + '-' + pad3(r.chapter) + '.json';
     return Promise.all([
-      fetch(REPO_RAW + '/data/bible/ko/' + fname).then(function(res){ return res.ok ? res.json() : null; }),
-      fetch(REPO_RAW + '/data/bible/en/' + fname).then(function(res){ return res.ok ? res.json() : null; })
+      fetchJSON('/data/bible/ko/' + fname).catch(function(){ return null; }),
+      fetchJSON('/data/bible/en/' + fname).catch(function(){ return null; })
     ]);
   }
 
@@ -765,6 +888,7 @@
   function loadReadingPlan(){
     var listEl = document.getElementById('readingList');
     if (!listEl) return;
+    listEl.innerHTML = '<p class="qt-loading">통독 계획을 불러오는 중이니, 잠시 기다리라…</p>';
     READING_PLAN_PROMISE.then(function(plan){
       var day = findPlanDay(plan, todayKey);
       if (!day) {
@@ -774,7 +898,20 @@
       listEl.innerHTML = '';
       day.readings.forEach(function(r){ listEl.appendChild(buildReadingBlock(r)); });
     }).catch(function(){
-      listEl.innerHTML = '<p class="qt-error">통독 계획을 아직 불러오지 못했다.</p>';
+      listEl.innerHTML = '';
+      var p = document.createElement('p');
+      p.className = 'qt-error';
+      p.textContent = '통독 계획을 아직 불러오지 못했다.';
+      var retryBtn = document.createElement('button');
+      retryBtn.type = 'button';
+      retryBtn.className = 'retry-btn';
+      retryBtn.textContent = '다시 불러오기';
+      retryBtn.addEventListener('click', function(){
+        READING_PLAN_PROMISE = fetchJSON('/data/reading-plan.json', { cache: 'no-store' });
+        loadReadingPlan();
+      });
+      listEl.appendChild(p);
+      listEl.appendChild(retryBtn);
     });
   }
   loadReadingPlan();
@@ -985,8 +1122,7 @@
     }
     if (archiveResultEl) archiveResultEl.classList.add('show');
 
-    fetch(REPO_RAW + '/data/qt/' + k + '.json', { cache: 'no-store' })
-      .then(function(res){ if (!res.ok) throw new Error('no data'); return res.json(); })
+    fetchJSON('/data/qt/' + k + '.json', { cache: 'no-store' })
       .then(function(data){
         if (archiveWisdomEl) archiveWisdomEl.textContent = data.reference + (data.subtitle ? ' · ' + data.subtitle : '');
         if (archiveGistEl) {
