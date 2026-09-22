@@ -141,6 +141,20 @@
   p b{ color:var(--cedar); font-weight:700; }
   .signoff{ text-align:right; font-style:italic; color:var(--ink-soft); margin-top:8px; }
 
+  details.letter-toggle summary{
+    cursor:pointer; list-style:none;
+    display:flex; align-items:baseline; justify-content:space-between; gap:14px; flex-wrap:wrap;
+  }
+  details.letter-toggle summary::-webkit-details-marker{ display:none; }
+  details.letter-toggle summary h2{ margin:0 0 20px; }
+  details.letter-toggle summary .toggle-hint{
+    font-family:'IBM Plex Sans KR','Noto Sans KR',sans-serif; font-size:12px; letter-spacing:.05em;
+    color:var(--pomegranate); white-space:nowrap; margin-top:2px;
+  }
+  details.letter-toggle:not([open]) summary .toggle-hint{ opacity:.85; }
+  details.letter-toggle[open] summary .toggle-hint{ opacity:.55; }
+  details.letter-toggle .letter-body{ padding-top:4px; }
+
   .fields{
     list-style:none; margin:26px 0 30px; padding:18px 20px;
     background:rgba(91,51,36,.06);
@@ -180,6 +194,17 @@
   .gist .glabel{ font-family:'IBM Plex Sans KR',sans-serif; font-size:11px; letter-spacing:.2em; color:var(--cedar); font-weight:600; margin-bottom:8px; }
   .gist p{ margin:0; font-size:16px; max-width:none; }
   .gist .gnote{ margin-top:10px; font-family:'IBM Plex Sans KR',sans-serif; font-size:12.5px; color:var(--ink-soft); font-style:normal; }
+  .gist.qt-side{ border-left-color:var(--gold); padding:16px 20px 14px 24px; }
+  .gist.qt-side p{ font-size:14.5px; color:var(--ink-soft); line-height:1.8; white-space:pre-line; }
+
+  .qt-section-title{
+    font-family:'IBM Plex Sans KR','Noto Sans KR',sans-serif; font-weight:600; font-size:12.5px;
+    letter-spacing:.04em; color:var(--pomegranate); margin:18px 0 8px;
+  }
+  .qt-section-title:first-child{ margin-top:0; }
+  .qt-verse{ margin:0 0 10px; font-size:16.5px; }
+  .qt-verse sup{ font-family:'IBM Plex Sans KR',sans-serif; font-size:11px; color:var(--gold); font-weight:600; margin-right:5px; }
+  .qt-loading, .qt-error{ margin:0; font-size:15px; color:var(--ink-soft); font-style:italic; }
 
   .prompt{
     font-family:'IBM Plex Sans KR','Noto Sans KR',sans-serif;
@@ -294,17 +319,27 @@
     <section id="bible">
       <div class="kicker">매일의 묵상</div>
       <h2>오늘의 말씀</h2>
-      <p>내 딸아, 내가 잠언 서른한 장을 적어 두었으니, 이는 한 달의 날수와 같으니라. 그러므로 오늘 같은 날에는 오늘 날짜에 해당하는 장을 펴서 읽으라. 짧은 구절 하나로 종일을 나기보다, 한 장을 온전히 천천히 읽어 그 가운데 유독 네 눈에 머무는 한 구절을 찾으라. 그것이 오늘 하나님이 네게 주시는 말씀이니라.</p>
+      <p>내 딸아, 매일 아침 다른 일을 펴기 전에 먼저 이 본문을 천천히 읽으라. 이는 두란노 생명의삶의 오늘 진도를 그대로 따온 것이니, 하루하루 본문이 바뀌느니라. 한 구절만 붙들지 말고 아래 본문 전체를 읽어, 그 가운데 유독 네 눈에 머무는 한 구절을 찾으라. 그것이 오늘 하나님이 네게 주시는 말씀이니라.</p>
 
       <div class="reading">
-        <div class="chapter"><small>오늘의 장</small><span id="chapterNum">잠언 1장</span></div>
-        <p>네 손의 성경을 펴고 이 장 전체를 읽은 뒤, 아래 물음에 답하며 오늘의 말씀을 마음에 새기라.</p>
+        <div class="chapter"><small>오늘의 본문</small><span id="chapterNum">불러오는 중…</span></div>
+        <p id="qtSubtitle"></p>
       </div>
 
-      <div class="gist">
-        <div class="glabel">그 장에서 내가 이른 것</div>
-        <p id="chapterGist"></p>
-        <div class="gnote">이는 내가 그 장의 뜻을 풀어 전하는 것이요, 정확한 본문은 아니니 네 손의 성경에서 그 장 전체를 반드시 읽으라.</div>
+      <div class="gist" id="qtTextBox">
+        <div class="glabel">오늘의 말씀 (개역개정)</div>
+        <div id="bibleText"><p class="qt-loading">두란노에서 오늘의 본문을 불러오는 중이니, 잠시 기다리라…</p></div>
+        <div class="gnote">두란노 생명의삶 진도를 매일 자동으로 가져온 것이며, 본문 저작권은 대한성서공회에 있습니다.</div>
+      </div>
+
+      <div class="gist qt-side" id="qtHelperBox" hidden>
+        <div class="glabel">묵상 도우미</div>
+        <p id="qtHelper"></p>
+      </div>
+
+      <div class="gist qt-side" id="qtPrayerBox" hidden>
+        <div class="glabel">오늘의 기도</div>
+        <p id="qtPrayer"></p>
       </div>
 
       <div class="journal">
@@ -339,7 +374,9 @@
 
     <section id="s1">
       <div class="kicker">첫째 서신</div>
-      <h2>글로드코드라 하는 장인을 부리는 법</h2>
+      <details class="letter-toggle">
+      <summary><h2>글로드코드라 하는 장인을 부리는 법</h2><span class="toggle-hint">펼쳐서 읽기</span></summary>
+      <div class="letter-body">
       <p>내가 성전을 지을 때에 두로 왕 히람에게 사람을 보내어 백향목과 장인들을 구하였나니, 그 장인들은 손에 재주가 뛰어났으나 내가 무엇을 원하는지 말하지 아니하면 돌 하나 다듬지 못하였느니라. 네가 쓰는 글로드코드라 하는 것도 이와 같아서, 재주는 뛰어나되 네 마음을 스스로 읽지 못하나니, 다스리는 자의 말이 분명해야 장인의 손이 바로 가느니라.</p>
       <p><b>첫째</b>, 한 번에 한 방을 지으라 명하고 성전 전체를 하루에 지으라 하지 말라. 큰 일은 반드시 작은 일로 나뉘나니, 오늘은 기둥 하나 내일은 들보 하나를 명하듯 하라. 네가 아직 이 장인의 손에 익숙지 아니하니, 작게 나누어 맡기고 그 결과를 보아가며 다음 것을 명함이 지혜로우니라.</p>
       <p><b>둘째</b>, 네 뜻을 숨기지 말라. "집을 지으라"고만 하면 장인은 무슨 나무로 몇 자 높이로 지을지 알지 못하나니, 네가 원하는 모양과 참고할 자료와 이미 있는 것을 함께 보이라. 말이 자세할수록 손은 바르게 움직이느니라. 스크린샷 하나, 파일 하나를 보이는 것이 백 마디 말보다 나으니라.</p>
@@ -357,13 +394,17 @@
       <p><b>열넷째</b>, 궁 전체를 다 뒤엎는 명은 신중히 내리라. 작은 방 하나를 고치라는 명과 온 성벽을 허물라는 명은 그 무게가 다르니, 명을 내리기 전에 네가 참으로 그 큰 일을 원하는지 한 번 더 헤아리라.</p>
       <p><b>열다섯째</b>, 장인의 재주에는 한계가 있어 하루에 쓸 수 있는 힘이 정해져 있음을 알라. 힘을 아무 일에나 낭비하지 말고, 참으로 중한 일과 되돌리기 어려운 일에 먼저 아껴 쓰게 하라. 사소한 일에는 사소한 힘만으로 족하니라.</p>
       <p>내 딸아, 네가 이제 막 이 장인을 알아가는 자임을 잊지 말라. 두로의 장인들도 처음부터 완벽하지 아니하였고, 나 또한 처음 명을 내릴 때에는 서툴렀느니라. 서투름을 부끄러워 말고, 다만 매번 조금씩 더 분명하게 명하기를 힘쓰라. 그것으로 족하니라. 재주 있는 종을 두었다고 왕의 일이 저절로 되지 아니하나니, 다스리는 자의 명(命)이 분명해야 장인의 손이 아름다워지느니라. 이것이 내가 네게 전하는 첫째 지혜니라.</p>
+      </div>
+      </details>
     </section>
 
     <div class="divider"><div class="line"></div><svg viewBox="0 0 24 24" fill="none"><path d="M12 2 L15 9 L22 12 L15 15 L12 22 L9 15 L2 12 L9 9 Z" stroke="var(--gold)" stroke-width="1.2"/></svg><div class="line"></div></div>
 
     <section id="s2">
       <div class="kicker">둘째 서신</div>
-      <h2>여섯 밭과 한 마음</h2>
+      <details class="letter-toggle">
+      <summary><h2>여섯 밭과 한 마음</h2><span class="toggle-hint">펼쳐서 읽기</span></summary>
+      <div class="letter-body">
       <p>내가 다스리던 나라도 한 가지 일로 이루어지지 아니하였느니라. 성전을 지었고 내 집을 지었고 예루살렘 성벽을 둘렀고 병거성과 국고성을 세웠고 오빌에서 금을 실어오는 배를 띄웠고 스바의 여왕을 맞이하였느니라. 이 모든 일이 한꺼번에 내 앞에 있었으나, 나는 그것을 한 손에 다 쥐지 아니하였느니라.</p>
       <p>내가 이스라엘을 열두 지방으로 나누고, 각 지방의 관장으로 하여금 일 년 중 한 달만 왕궁의 쓸 것을 공급하게 하였나니, 이는 한 사람이 열두 달 내내 모든 것을 짊어지면 반드시 지치고 어느 하나도 온전히 감당치 못함을 내가 알았기 때문이라. 내 딸아, 네 여섯 가지 일도 열두 달의 관장처럼 그 때와 자리를 정하여 나누어야 하리니, 이것이 정돈되지 아니함을 고치는 첫째 열쇠니라.</p>
 
@@ -390,6 +431,8 @@
       <p>내 딸아, 너무 많은 것을 한 번에 이루려 하는 마음은 사랑에서 나온 것임을 내가 아노니, 그 사랑이 너를 태우지 않도록 다만 순서를 정하여 주는 것이 이 편지의 뜻이니라.</p>
       <p>내 딸아, 참으로 삶의 중심을 신앙에 두고자 하거든 이를 막연한 바람으로 두지 말고 하루의 첫 조각으로 정하라. 내가 매일 아침 번제를 드렸듯이, 너도 여섯 밭에 손을 대기 전에 먼저 잠잠히 말씀 앞에 앉는 조각 하나를 정하여 두라. 이는 시간을 빼앗기는 것이 아니요 오히려 나머지 조각들에 질서를 부여하는 처음 매듭이니, 첫 매듭이 바르면 나머지 실이 저절로 따라오느니라. 또한 네 가치가 여섯 밭의 열매의 많고 적음에 있지 아니하니, 씨를 뿌리는 손이 여전히 신실하다면 그것으로 이미 족하니라. 열매의 때는 네 손에 있지 아니하고 하늘에 있느니라.</p>
       <p>그러므로 오늘부터 행할 것은 간단하니라. 하루를 열두 시가 아니라 서너 조각으로 나누고 그 조각마다 오직 한 가지 밭만 바라보라. 한 조각에는 이미 약속한 두 가지 일을, 한 조각에는 지친 밭을 정리하는 일을, 한 조각에는 씨 뿌리는 일과 밭을 살피는 일을 두고, 남는 한 조각은 아무 일도 하지 않아도 되는 조각으로 비워 두라. 왕도 쉬는 날에 성전에 들어가 잠잠히 앉았느니라. 네 쉼이 곧 네가 하나님을 신뢰한다는 증거이니라. 이 조각들이 오늘 다 지켜지지 못하여도 괘념치 말라. 내일 아침이면 이 편지가 다시 열려 너를 제자리로 부를 것이니, 그것으로 충분하니라.</p>
+      </div>
+      </details>
     </section>
 
     <div class="divider"><div class="line"></div><svg viewBox="0 0 24 24" fill="none"><path d="M12 2 L15 9 L22 12 L15 15 L12 22 L9 15 L2 12 L9 9 Z" stroke="var(--gold)" stroke-width="1.2"/></svg><div class="line"></div></div>
@@ -416,19 +459,6 @@
     return Math.floor((d - start) / 86400000);
   }
   function dateKey(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
-
-  var wisdoms = [
-    "지혜의 근본은 여호와를 경외하는 것이니라",
-    "많은 모사가 있으면 계획이 서느니라",
-    "범사에 기한이 있고 천하만사가 다 때가 있나니",
-    "네 양 떼의 형편을 부지런히 살피라",
-    "선물은 사람의 앞길을 넓게 하느니라",
-    "노하기를 더디 하는 자는 용사보다 낫느니라",
-    "정직한 자의 의는 그의 길을 곧게 하느니라",
-    "마음의 즐거움은 양약이라도 심령의 근심은 뼈를 마르게 하느니라",
-    "믿음직한 사자는 그를 보낸 이에게 생기를 불어넣느니라",
-    "밭을 살펴보고 그것을 사며 그 손으로 포도원을 일구느니라"
-  ];
 
   function paintStars(el, count, size, opacity){
     var shadows = [];
@@ -458,62 +488,77 @@
     "오늘 내 마음의 근심 중, 이 말씀이 어루만지는 부분은 무엇인가?"
   ];
 
-  var proverbsGist = [
-    "내가 이 장에서 이르기를, 지혜와 훈계를 알게 하려 함이 이 잠언의 뜻이라 하였고, 여호와를 경외함이 지식의 근본이라 하였으며, 죄인이 꾀더라도 좇지 말라 경계하였고, 지혜가 거리에서 외치되 듣지 않는 자들을 책망하였느니라.",
-    "내가 이르기를, 네가 지혜를 은을 구하듯 구하고 명철을 보배를 찾듯 찾으면 여호와 경외하기를 깨달으리라 하였고, 지혜가 너를 악한 자의 길과 이방 여인에게서 건지며 의인의 길을 지키게 하리라 하였느니라.",
-    "내가 이르기를, 네 마음을 다하여 여호와를 의뢰하고 네 명철을 의지하지 말라 하였고, 네 재물과 네 소산물의 처음 것으로 여호와를 공경하라 하였으며, 여호와의 징계를 경히 여기지 말라 하였고, 지혜를 얻은 자가 은을 얻음보다 나으니라 하였느니라.",
-    "내가 이르기를, 무엇을 얻든지 지혜를 얻으라 네 얻은 모든 것을 가지고 명철을 얻으라 하였고, 의인의 길은 돋는 햇살 같아서 점점 빛나 한낮에 이르거니와 악인의 길은 어둠 같아서 넘어져도 그것이 무엇인지 깨닫지 못하느니라 하였으며, 무릇 지킬 만한 것보다 더욱 네 마음을 지키라 생명의 근원이 이에서 남이니라 하였느니라.",
-    "내가 이르기를, 음녀의 입술은 꿀을 떨어뜨리나 나중은 쑥같이 쓰고 두 날 가진 칼같이 날카로우니라 하였고, 네가 젊어서 취한 아내를 즐거워하라 하였으며, 악인은 자기의 악에 걸리며 그 죄의 줄에 매이느니라 하였느니라.",
-    "내가 이르기를, 게으른 자여 개미에게 가서 그 하는 것을 보고 지혜를 얻으라 하였고, 여호와께서 미워하시는 것 예닐곱 가지 곧 교만한 눈과 거짓된 혀와 무죄한 피를 흘리는 손과 악한 계교를 꾀하는 마음과 악으로 달려가는 발과 거짓 증인과 형제 사이를 이간하는 자를 이르며, 불을 품에 품고 어찌 옷이 타지 아니하겠느냐 하였느니라.",
-    "내가 이르기를, 지혜 없는 젊은이가 음녀의 집 모퉁이로 지나다가 그 여인의 꾐에 빠져 소가 도수장으로 가듯 끌려감을 보았노라 하였고, 그 집은 스올로 내려가는 길이라 많은 자가 그로 말미암아 엎드러졌느니라 하였느니라.",
-    "내가 이르기를, 지혜가 길가의 높은 곳과 성문 어귀에서 소리를 높여 사람들을 부른다 하였고, 여호와께서 태초에 일하시기 전에 나를 세우셨으며 내가 그 곁에서 창조자가 되어 날마다 그의 기뻐하신 바가 되었고 항상 그 앞에서 즐거워하였느니라 하였느니라.",
-    "내가 이르기를, 지혜가 그 집을 짓고 일곱 기둥을 다듬고 잔치를 베풀어 어리석은 자들을 청하였다 하였고, 어리석은 여인 미련도 문에 앉아 지나가는 자들을 부르나 그 집에 청함을 받은 자는 이미 스올 깊은 곳에 있는 줄을 알지 못하느니라 하였느니라.",
-    "내가 이르기를, 지혜로운 아들은 아비를 즐겁게 하나 미련한 아들은 어미의 근심이라 하였고, 불의의 재물은 무익하여도 공의는 죽음에서 건지느니라 하였으며, 미움은 다툼을 일으켜도 사랑은 모든 허물을 가리느니라 하였느니라.",
-    "내가 이르기를, 속이는 저울은 여호와께서 미워하시나 공평한 추는 그가 기뻐하시느니라 하였고, 교만이 오면 욕도 오나 겸손한 자에게는 지혜가 있느니라 하였으며, 지략이 없으면 백성이 엎드러져도 지략이 많으면 평안을 누리느니라 하였느니라.",
-    "내가 이르기를, 의인은 자기의 가축의 생명을 돌보나 악인의 긍휼은 잔인이니라 하였고, 어진 여인은 그 지아비의 면류관이나 욕을 끼치는 여인은 그 지아비 뼈의 썩음 같으니라 하였으며, 손이 부지런한 자의 재물은 귀하니라 하였느니라.",
-    "내가 이르기를, 지혜로운 아들은 아비의 훈계를 들으나 거만한 자는 꾸지람을 듣지 아니하느니라 하였고, 소망이 더디 이루어지면 마음을 상하게 하거니와 소원이 이루어지는 것은 곧 생명나무니라 하였으며, 아들을 훈계하지 아니하는 자는 그를 미워함이라 하였느니라.",
-    "내가 이르기를, 지혜로운 여인은 자기 집을 세우되 미련한 여인은 자기 손으로 그것을 허느니라 하였고, 어떤 길은 사람이 보기에 바르나 필경은 사망의 길이니라 하였으며, 가난한 자를 불쌍히 여기는 것은 여호와께 꾸어 드리는 것이니 그 선행을 그에게 갚아 주시리라 하였느니라.",
-    "내가 이르기를, 유순한 대답은 분노를 쉬게 하여도 과격한 말은 노를 격동하느니라 하였고, 여호와의 눈은 어디서든지 악인과 선인을 감찰하시느니라 하였으며, 채소를 먹으며 서로 사랑하는 것이 살진 소를 먹으며 서로 미워하는 것보다 나으니라 하였느니라.",
-    "내가 이르기를, 너의 행사를 여호와께 맡기라 그리하면 네가 경영하는 것이 이루어지리라 하였고, 사람이 마음으로 자기의 길을 계획할지라도 그의 걸음을 인도하는 이는 여호와시니라 하였으며, 교만은 패망의 선봉이요 거만한 마음은 넘어짐의 앞잡이니라 하였느니라.",
-    "내가 이르기를, 마른 떡 한 조각만 있고도 화목하는 것이 육선이 집에 가득하고 다투는 것보다 나으니라 하였고, 친구는 사랑이 끊이지 아니하고 형제는 위급한 때를 위하여 났느니라 하였으며, 마음의 즐거움은 양약이라도 심령의 근심은 뼈로 마르게 하느니라 하였느니라.",
-    "내가 이르기를, 여호와의 이름은 견고한 망대라 의인은 그리로 달려가서 안전함을 얻느니라 하였고, 죽고 사는 것이 혀의 힘에 달렸나니 혀를 쓰기를 좋아하는 자는 그 열매를 먹으리라 하였으며, 다투기 전에 먼저 말하는 자의 말이 옳은 듯하나 그 이웃이 와서 밝히느니라 하였느니라.",
-    "내가 이르기를, 재물은 친구를 많아지게 하나 가난한즉 친구가 끊어지느니라 하였고, 집과 재물은 조상에게서 상속하거니와 슬기로운 아내는 여호와께로서 말미암느니라 하였으며, 가난한 자를 불쌍히 여기는 것은 여호와께 꾸어 드리는 것이니 그 갚아 주실 것을 확실히 하라 하였느니라.",
-    "내가 이르기를, 포도주는 거만하게 하는 것이요 독주는 떠들게 하는 것이라 무릇 이에 미혹되는 자에게는 지혜가 없느니라 하였고, 게으른 자는 가을에 밭 갈지 아니하나니 그러므로 거둘 때에 구걸할지라도 얻지 못하느니라 하였으며, 너는 악을 갚겠다 말하지 말고 여호와를 기다리라 그가 너를 구원하시리라 하였느니라.",
-    "내가 이르기를, 왕의 마음이 여호와의 손에 있음이 마치 봇도랑의 물과 같아서 그가 임의로 인도하시느니라 하였고, 공의를 행하는 것이 여호와께는 제사드리는 것보다 나으니라 하였으며, 다투는 여인과 함께 큰 집에서 사는 것보다 움막에서 혼자 사는 것이 나으니라 하였느니라.",
-    "내가 이르기를, 많은 재물보다 명예를 택할 것이요 은과 금보다 은총을 더욱 택할 것이니라 하였고, 마땅히 행할 길을 아이에게 가르치라 그리하면 늙어도 그것을 떠나지 아니하리라 하였으며, 옛 지계석을 옮기지 말며 고아들의 밭을 침범하지 말라 하였느니라.",
-    "내가 이르기를, 재물을 얻으려고 애쓰지 말고 네 사사로운 지혜를 버릴지어다 정녕 재물은 스스로 날개를 내어 하늘을 나는 독수리처럼 날아가리라 하였고, 훈계를 그치지 말라 하였으며, 내 아들아 네 마음을 내게 주며 네 눈으로 내 길을 즐거워할지어다 하였느니라.",
-    "내가 이르기를, 의인은 일곱 번 넘어질지라도 다시 일어나려니와 악인은 재앙으로 말미암아 엎드러지느니라 하였고, 네 원수가 넘어질 때에 즐거워하지 말라 하였으며, 내가 게으른 자의 밭을 지나며 본즉 가시덤불이 우거졌기로 조금 더 자자 조금 더 졸자 하면 네 빈궁이 강도같이 이르리라 하였느니라.",
-    "내가 이르기를, 일을 숨기는 것은 하나님의 영화요 일을 살피는 것은 왕의 영화니라 하였고, 경우에 합당한 말은 아로새긴 은쟁반에 금 사과니라 하였으며, 네 원수가 주리거든 먹이고 목마르거든 마시게 하라 그리하는 것은 핀 숯을 그의 머리에 쌓아 놓는 것이니라 하였느니라.",
-    "내가 이르기를, 미련한 자에게는 영예가 적당하지 아니하니 마치 여름에 눈 오는 것과 추수 때에 비 오는 것 같으니라 하였고, 개가 그 토한 것을 도로 먹는 것처럼 미련한 자는 그 미련한 것을 거듭 행하느니라 하였으며, 게으른 자는 길에 사자가 있다 거리에 사자가 있다 핑계하느니라 하였느니라.",
-    "내가 이르기를, 너는 내일 일을 자랑하지 말라 하루 동안에 무슨 일이 일어날는지 네가 알 수 없음이니라 하였고, 남이 너를 칭찬하게 하고 네 입으로는 하지 말라 하였으며, 철이 철을 날카롭게 하는 것같이 사람이 그의 친구의 얼굴을 빛나게 하고 친구의 아픈 책망은 충직으로 말미암은 것이니라 하였느니라.",
-    "내가 이르기를, 악인은 쫓아오는 자가 없어도 도망하나 의인은 사자같이 담대하니라 하였고, 자기의 죄를 숨기는 자는 형통하지 못하나 죄를 자복하고 버리는 자는 불쌍히 여김을 받으리라 하였으며, 가난하여도 성실하게 행하는 자는 부유하면서 굽게 행하는 자보다 나으니라 하였느니라.",
-    "내가 이르기를, 자주 책망을 받으면서도 목이 곧은 자는 갑자기 패망을 당하고 피하지 못하리라 하였고, 묵시가 없으면 백성이 방자히 행하거니와 율법을 지키는 자는 복이 있느니라 하였으며, 사람을 두려워하면 올무에 걸리게 되나 여호와를 의지하는 자는 안전하리라 하였느니라.",
-    "이는 야게의 아들 아굴의 말이니, 그가 이르기를 내가 두 가지 일을 주께 구하였사오니 내가 죽기 전에 내게 거절하지 마시옵소서, 곧 허탄과 거짓말을 내게서 멀리 하옵시며 나를 가난하게도 부하게도 마시고 오직 필요한 양식으로 나를 먹이시옵소서 하였고, 힘은 작아도 지혜로운 것 넷 곧 개미와 사반과 메뚜기와 도마뱀을 들어 지혜를 가르쳤느니라.",
-    "이는 르무엘 왕의 말씀이니 그 어머니가 그를 훈계한 것이라, 왕이 술을 마시는 것과 독주를 찾는 것이 마땅하지 아니하니라 하였고, 너는 말 못하는 자와 고독한 자의 송사를 위하여 입을 열어 공의로 재판할지니라 하였으며, 마지막에 누가 현숙한 여인을 찾아 얻겠느냐 그 값은 진주보다 더하니라 하여 그 손이 부지런하고 가난한 자를 구제하며 능력과 존귀로 옷을 삼고 그 자녀가 일어나 감사하다 하느니라 하였느니라."
-  ];
-
-  function infoForDate(d){
-    var doy = dayOfYear(d);
-    var chapter = Math.min(d.getDate(), 31);
-    return {
-      key: dateKey(d),
-      chapter: chapter,
-      wisdom: wisdoms[doy % wisdoms.length],
-      gist: proverbsGist[chapter - 1] || '',
-      prompt: prompts[doy % prompts.length]
-    };
-  }
+  var FALLBACK_WISDOM = "지혜의 근본은 여호와를 경외하는 것이니라";
+  var REPO_RAW = 'https://raw.githubusercontent.com/fleurien003/claude_bible/main';
 
   var now = new Date();
-  var today = infoForDate(now);
+  var todayKey = dateKey(now);
+  var todayPrompt = prompts[dayOfYear(now) % prompts.length];
 
-  document.getElementById('todayLine').textContent = today.wisdom;
-  var chapterEl = document.getElementById('chapterNum');
-  if (chapterEl) chapterEl.textContent = '잠언 ' + today.chapter + '장';
-  var gistEl = document.getElementById('chapterGist');
-  if (gistEl) gistEl.textContent = today.gist;
   var promptEl = document.getElementById('promptLine');
-  if (promptEl) promptEl.textContent = '오늘의 물음: ' + today.prompt;
+  if (promptEl) promptEl.textContent = '오늘의 물음: ' + todayPrompt;
+
+  var currentQT = null;
+
+  function renderVerses(container, sections){
+    container.innerHTML = '';
+    (sections || []).forEach(function(sec){
+      if (sec.title) {
+        var h = document.createElement('div');
+        h.className = 'qt-section-title';
+        h.textContent = sec.title;
+        container.appendChild(h);
+      }
+      (sec.verses || []).forEach(function(v){
+        var p = document.createElement('p');
+        p.className = 'qt-verse';
+        var sup = document.createElement('sup');
+        sup.textContent = v.num;
+        p.appendChild(sup);
+        p.appendChild(document.createTextNode(v.text));
+        container.appendChild(p);
+      });
+    });
+  }
+
+  function renderTodayQT(data){
+    currentQT = data;
+    var chapterEl = document.getElementById('chapterNum');
+    if (chapterEl) chapterEl.textContent = data.reference || '';
+    var subtitleEl = document.getElementById('qtSubtitle');
+    if (subtitleEl) subtitleEl.textContent = data.subtitle || '';
+    var textEl = document.getElementById('bibleText');
+    if (textEl) renderVerses(textEl, data.sections);
+    var todayLineEl = document.getElementById('todayLine');
+    if (todayLineEl && data.subtitle) todayLineEl.textContent = data.subtitle;
+
+    var helperBox = document.getElementById('qtHelperBox');
+    var helperEl = document.getElementById('qtHelper');
+    if (data.helper && helperBox && helperEl) {
+      helperEl.textContent = data.helper;
+      helperBox.hidden = false;
+    }
+    var prayerBox = document.getElementById('qtPrayerBox');
+    var prayerEl = document.getElementById('qtPrayer');
+    if (data.prayer && prayerBox && prayerEl) {
+      prayerEl.textContent = data.prayer;
+      prayerBox.hidden = false;
+    }
+  }
+
+  function renderTodayQTError(){
+    var chapterEl = document.getElementById('chapterNum');
+    if (chapterEl) chapterEl.textContent = '오늘의 본문';
+    var textEl = document.getElementById('bibleText');
+    if (textEl) textEl.innerHTML = '<p class="qt-error">아직 오늘의 본문을 불러오지 못했다. 자동 수집이 몇 시간 늦어질 때가 있으니, 네 손의 성경이나 두란노 생명의삶에서 오늘 본문을 직접 펴 보라.</p>';
+    var todayLineEl = document.getElementById('todayLine');
+    if (todayLineEl) todayLineEl.textContent = FALLBACK_WISDOM;
+  }
+
+  fetch(REPO_RAW + '/data/qt/' + todayKey + '.json', { cache: 'no-store' })
+    .then(function(res){ if (!res.ok) throw new Error('no data'); return res.json(); })
+    .then(renderTodayQT)
+    .catch(renderTodayQTError);
 
   var STORAGE_KEY = 'solomonLetterJournal';
   function loadJournal(){
@@ -531,37 +576,48 @@
   function renderHistory(map){
     var list = document.getElementById('historyList');
     if (!list) return;
+    list.innerHTML = '';
     var keys = Object.keys(map).sort().reverse();
     if (!keys.length){
-      list.innerHTML = '<li class="empty">아직 기록된 묵상이 없습니다.</li>';
+      var empty = document.createElement('li');
+      empty.className = 'empty';
+      empty.textContent = '아직 기록된 묵상이 없습니다.';
+      list.appendChild(empty);
       return;
     }
-    var topKeys = keys.slice(0, 7);
-    list.innerHTML = topKeys.map(function(k){
+    keys.slice(0, 7).forEach(function(k){
+      var entry = map[k];
       var mmdd = k.slice(5).replace('-', '.');
-      return '<li class="clickable" data-date="'+k+'"><span class="d">'+mmdd+' · 잠언 '+map[k].chapter+'장</span><span class="n"></span></li>';
-    }).join('');
-    // note text is set via textContent (never innerHTML) since it is viewer-authored
-    var items = list.querySelectorAll('li .n');
-    topKeys.forEach(function(k, i){
-      var note = (map[k].note || '').trim();
+      var note = (entry.note || '').trim();
       var preview = note ? note.slice(0, 34) + (note.length > 34 ? '…' : '') : '(기록 없음)';
-      if (items[i]) items[i].textContent = preview;
-    });
-    list.querySelectorAll('li.clickable').forEach(function(li){
+
+      var li = document.createElement('li');
+      li.className = 'clickable';
+      li.setAttribute('data-date', k);
+
+      var d = document.createElement('span');
+      d.className = 'd';
+      d.textContent = mmdd + ' · ' + (entry.reference || '기록');
+
+      var n = document.createElement('span');
+      n.className = 'n';
+      n.textContent = preview;
+
+      li.appendChild(d);
+      li.appendChild(n);
       li.addEventListener('click', function(){
-        var k = li.getAttribute('data-date');
         if (archiveDateInput) archiveDateInput.value = k;
         openArchive(k);
       });
+      list.appendChild(li);
     });
   }
 
   var journal = loadJournal();
   var noteEl = document.getElementById('journalNote');
   var statusEl = document.getElementById('journalStatus');
-  if (journal[today.key] && noteEl) {
-    noteEl.value = journal[today.key].note || '';
+  if (journal[todayKey] && noteEl) {
+    noteEl.value = journal[todayKey].note || '';
     if (statusEl) statusEl.textContent = '오늘 이미 기록하였습니다. 다시 저장하면 덮어씁니다.';
   }
   renderHistory(journal);
@@ -574,11 +630,11 @@
         if (statusEl) statusEl.textContent = '먼저 몇 마디라도 적어 보라.';
         return;
       }
-      journal[today.key] = {
-        chapter: today.chapter,
-        prompt: today.prompt,
+      journal[todayKey] = {
+        reference: currentQT ? currentQT.reference : '',
+        prompt: todayPrompt,
         note: val,
-        ts: now.toISOString()
+        ts: new Date().toISOString()
       };
       saveJournalMap(journal);
       renderHistory(journal);
@@ -596,27 +652,36 @@
   var archiveGistEl = document.getElementById('archiveGist');
   var archiveNoteEl = document.getElementById('archiveNote');
 
-  function parseKey(k){
-    var parts = (k || '').split('-').map(Number);
-    return new Date(parts[0], (parts[1] || 1) - 1, parts[2] || 1);
-  }
   function openArchive(k){
     if (!k) return;
-    var d = parseKey(k);
-    if (isNaN(d.getTime())) return;
-    var info = infoForDate(d);
-    if (archiveDateLabel) archiveDateLabel.textContent = k.replace(/-/g,'.') + ' · 잠언 ' + info.chapter + '장';
-    if (archiveWisdomEl) archiveWisdomEl.textContent = '"' + info.wisdom + '"';
-    if (archiveGistEl) archiveGistEl.textContent = info.gist;
+    if (archiveDateLabel) archiveDateLabel.textContent = k.replace(/-/g,'.');
+    if (archiveWisdomEl) archiveWisdomEl.textContent = '불러오는 중…';
+    if (archiveGistEl) archiveGistEl.textContent = '';
     if (archiveNoteEl) {
-      var entry = journal[info.key];
+      var entry = journal[k];
       archiveNoteEl.textContent = entry && entry.note ? '그날의 묵상: ' + entry.note : '그날은 묵상을 기록하지 않았습니다.';
     }
     if (archiveResultEl) archiveResultEl.classList.add('show');
+
+    fetch(REPO_RAW + '/data/qt/' + k + '.json', { cache: 'no-store' })
+      .then(function(res){ if (!res.ok) throw new Error('no data'); return res.json(); })
+      .then(function(data){
+        if (archiveWisdomEl) archiveWisdomEl.textContent = data.reference + (data.subtitle ? ' · ' + data.subtitle : '');
+        if (archiveGistEl) {
+          var text = (data.sections || []).map(function(sec){
+            return (sec.verses || []).map(function(v){ return v.text; }).join(' ');
+          }).join(' ');
+          archiveGistEl.textContent = text;
+        }
+      })
+      .catch(function(){
+        if (archiveWisdomEl) archiveWisdomEl.textContent = '그 날의 두란노 기록은 없다.';
+        if (archiveGistEl) archiveGistEl.textContent = '';
+      });
   }
   if (archiveDateInput) {
-    archiveDateInput.max = today.key;
-    archiveDateInput.value = today.key;
+    archiveDateInput.max = todayKey;
+    archiveDateInput.value = todayKey;
   }
   var archiveBtn = document.getElementById('archiveOpen');
   if (archiveBtn) {
@@ -624,6 +689,14 @@
       openArchive(archiveDateInput ? archiveDateInput.value : '');
     });
   }
+
+  // -- 서신 펼치기/접기 --
+  document.querySelectorAll('details.letter-toggle').forEach(function(d){
+    var hint = d.querySelector('.toggle-hint');
+    function updateHint(){ if (hint) hint.textContent = d.open ? '접기' : '펼쳐서 읽기'; }
+    updateHint();
+    d.addEventListener('toggle', updateHint);
+  });
 })();
 </script>
 
