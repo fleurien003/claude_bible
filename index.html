@@ -223,16 +223,14 @@
   }
 
   .reading{
-    display:flex; align-items:center; gap:16px; flex-wrap:wrap;
     background:rgba(91,51,36,.06); border:1px solid var(--parchment-edge);
     padding:18px 20px; margin:22px 0 26px;
   }
   .reading .chapter{
     font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:26px; color:var(--cedar);
-    flex:none;
   }
-  .reading .chapter small{ display:block; font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:11px; letter-spacing:.2em; color:var(--pomegranate); font-weight:600; }
-  .reading p{ margin:0; font-size:15.5px; max-width:none; flex:1 1 240px; }
+  .reading .chapter small{ display:block; font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:11px; letter-spacing:.2em; color:var(--pomegranate); font-weight:600; margin-bottom:4px; }
+  .reading p{ margin:8px 0 0; font-size:15.5px; max-width:none; }
 
   .gist{
     position:relative; margin:0 0 22px; padding:20px 22px 18px 26px;
@@ -394,8 +392,8 @@
     <a href="#s0">인사말</a>
     <a href="#bible">오늘의 말씀</a>
     <a href="#reading">오늘의 통독</a>
-    <a href="https://claude.ai/artifact/H8U93xe446wNWSyHqyfaUk" target="_blank" rel="noopener noreferrer">목장 나눔 노트 ↗</a>
-    <a href="#prayerRequests">기도제목</a>
+    <a href="group.html">목장 나눔 노트 ↗</a>
+    <a href="#prayer">오늘의 기도</a>
     <a href="#portion">오늘의 조각</a>
     <a href="#s3">맺음말</a>
   </nav>
@@ -406,7 +404,7 @@
 
     <section id="s0">
       <div class="kicker">여는 말</div>
-      <p id="greetingText">내 딸아, 나 솔로몬이 네게 편지하노라.</p>
+      <div class="gist"><p id="greetingText">내 딸아, 나 솔로몬이 네게 편지하노라.</p></div>
     </section>
 
     <div class="divider"><div class="line"></div><svg viewBox="0 0 24 24" fill="none"><path d="M12 2 L15 9 L22 12 L15 15 L12 22 L9 15 L2 12 L9 9 Z" stroke="var(--gold)" stroke-width="1.2"/></svg><div class="line"></div></div>
@@ -414,7 +412,6 @@
     <section id="bible">
       <div class="kicker">매일의 묵상</div>
       <h2>오늘의 말씀</h2>
-      <p>전체를 읽고, 유독 네 눈에 머무는 한 구절을 찾으라.</p>
 
       <div class="reading">
         <div class="chapter"><small>오늘의 본문</small><span id="chapterNum">불러오는 중…</span></div>
@@ -435,47 +432,7 @@
         <p id="qtHelper"></p>
       </div>
 
-      <div class="gist qt-side" id="qtPrayerBox" hidden>
-        <div class="glabel">오늘의 기도</div>
-        <p id="qtPrayer"></p>
-      </div>
-
-      <div class="journal">
-        <div class="prompt" id="promptLine">오늘의 물음: 오늘 읽은 장에서 가장 마음에 머문 구절은 무엇인가?</div>
-        <textarea id="journalNote" placeholder="이 장을 읽으며 마음에 남은 것을 적어 보라..."></textarea>
-        <div class="journal-row">
-          <button id="saveJournal" type="button">오늘 QT 기록하기</button>
-          <span class="status" id="journalStatus"></span>
-        </div>
-        <div class="history">
-          <div class="label">지난 묵상</div>
-          <ul id="historyList"></ul>
-        </div>
-
-        <div class="archive">
-          <div class="label">이전 편지 열어보기</div>
-          <div class="archive-row">
-            <input type="date" id="archiveDate">
-            <button id="archiveOpen" type="button">그 날 편지 보기</button>
-          </div>
-          <div class="archive-result" id="archiveResult">
-            <div class="ad" id="archiveDateLabel"></div>
-            <div class="ar-section">
-              <div class="ar-label">오늘의 말씀</div>
-              <p id="archiveWisdom"></p>
-              <p id="archiveGist"></p>
-            </div>
-            <div class="ar-section">
-              <div class="ar-label">오늘의 통독</div>
-              <p id="archiveReading"></p>
-            </div>
-            <div class="ar-section">
-              <div class="ar-label">그 날의 기록</div>
-              <div class="an" id="archiveNote"></div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <p class="portion-link"><a href="qt.html">오늘 QT 기록하기 · 지난 묵상 보기 →</a></p>
     </section>
 
     <div class="divider"><div class="line"></div><svg viewBox="0 0 24 24" fill="none"><path d="M12 2 L15 9 L22 12 L15 15 L12 22 L9 15 L2 12 L9 9 Z" stroke="var(--gold)" stroke-width="1.2"/></svg><div class="line"></div></div>
@@ -498,19 +455,18 @@
 
     <div class="divider"><div class="line"></div><svg viewBox="0 0 24 24" fill="none"><path d="M12 2 L15 9 L22 12 L15 15 L12 22 L9 15 L2 12 L9 9 Z" stroke="var(--gold)" stroke-width="1.2"/></svg><div class="line"></div></div>
 
-    <section id="s3">
-      <div class="kicker">맺음말</div>
-      <p id="closingText">네게 평강이 있을지어다.</p>
-      <p class="signoff">— 솔로몬</p>
+    <section id="prayer">
+      <div class="kicker">매일의 기도</div>
+      <h2>오늘의 기도</h2>
+      <p class="portion-link"><a href="prayer.html">오늘의 기도 보기 · 함께 기도할 제목 →</a></p>
     </section>
 
     <div class="divider"><div class="line"></div><svg viewBox="0 0 24 24" fill="none"><path d="M12 2 L15 9 L22 12 L15 15 L12 22 L9 15 L2 12 L9 9 Z" stroke="var(--gold)" stroke-width="1.2"/></svg><div class="line"></div></div>
 
-    <section id="prayerRequests">
-      <div class="kicker">지난 목장의 기도제목</div>
-      <h2>함께 기도할 제목</h2>
-      <div class="gnote" id="prayerWeekLabel" style="margin:0 0 16px"></div>
-      <ul class="fields" id="prayerFieldsList"></ul>
+    <section id="s3">
+      <div class="kicker">맺음말</div>
+      <div class="gist"><p id="closingText">네게 평강이 있을지어다.</p></div>
+      <p class="signoff">— 솔로몬</p>
     </section>
   </div>
 </div>
@@ -528,10 +484,6 @@
     return Math.floor((d - start) / 86400000);
   }
   function dateKey(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
-  function parseDateKey(k){
-    var parts = (k || '').split('-').map(Number);
-    return new Date(parts[0], (parts[1]||1)-1, parts[2]||1);
-  }
 
   function paintStars(el, count, size){
     var shadows = [];
@@ -622,20 +574,7 @@
     setInterval(applySkyPhase, 60 * 1000);
   })();
 
-  // -- 오늘의 말씀 · 성경 공부 기록 --
-  var prompts = [
-    "오늘 읽은 장에서 가장 마음에 머문 구절은 무엇인가?",
-    "이 말씀이 오늘 다스릴 여섯 밭 중 어느 밭에 적용되는가?",
-    "이 장의 말씀 중 순종하기 가장 어려운 한 가지는 무엇인가?",
-    "오늘 이 말씀을 통해 하나님은 내게 무엇을 말씀하고 계신가?",
-    "이 말씀대로 오늘 하루 한 가지를 바꾼다면 무엇을 바꾸겠는가?",
-    "이 장에서 경계하는 것과 내 삶의 반복되는 습관이 닮아 있는가?",
-    "오늘 이 말씀을 누구와 나누고 싶은가?",
-    "이 말씀을 읽고 감사한 것은 무엇인가?",
-    "이 장의 말씀이 내가 받은 사랑을 비추는 데 어떻게 도움이 되는가?",
-    "오늘 내 마음의 근심 중, 이 말씀이 어루만지는 부분은 무엇인가?"
-  ];
-
+  // -- 오늘의 말씀 --
   var FALLBACK_WISDOM = "지혜의 근본은 여호와를 경외하는 것이니라";
 
   // 아티팩트 화면 안에서는 raw.githubusercontent.com 같은 임의 외부 도메인으로의 fetch()가
@@ -648,59 +587,12 @@
 
   var now = new Date();
   var todayKey = dateKey(now);
-  var todayPrompt = prompts[dayOfYear(now) % prompts.length];
-
-  var promptEl = document.getElementById('promptLine');
-  if (promptEl) promptEl.textContent = '오늘의 물음: ' + todayPrompt;
 
   function weekStartKey(d){
     var sunday = new Date(d);
     sunday.setDate(d.getDate() - d.getDay());
     return dateKey(sunday);
   }
-
-  // -- 지난 목장의 기도제목 (읽기 전용). 목장 나눔 자체는 위 "목장 나눔 노트 ↗" 링크에서 그대로
-  //    작성하고, 여기에는 db 문서 prayer/current의 스냅샷만 보여준다. 매주 토요일 09:00 KST에
-  //    자동화가 그 문서를 최신 내용으로 갱신한다(이 페이지를 다시 배포할 필요가 없다). --
-  (function(){
-    var labelEl = document.getElementById('prayerWeekLabel');
-    var listEl = document.getElementById('prayerFieldsList');
-    if (!labelEl || !listEl) return;
-    listEl.innerHTML = '<li class="empty">불러오는 중…</li>';
-
-    function renderPrayer(data){
-      labelEl.textContent = (data.weekLabel || '지난 목장') + ' · 매주 토요일 아침 갱신';
-      listEl.innerHTML = '';
-      (data.people || []).forEach(function(p){
-        var li = document.createElement('li');
-        var name = document.createElement('span');
-        name.className = 'name';
-        name.textContent = p.name;
-        var note = document.createElement('span');
-        note.className = 'note';
-        note.textContent = p.prayer;
-        li.appendChild(name);
-        li.appendChild(note);
-        listEl.appendChild(li);
-      });
-    }
-    function showPrayerError(){
-      labelEl.textContent = '';
-      listEl.innerHTML = '';
-      var li = document.createElement('li');
-      li.className = 'empty';
-      li.textContent = '아직 기도제목을 불러오지 못했다. 페이지를 새로고침해 보라.';
-      listEl.appendChild(li);
-    }
-
-    DB_PROMISE.then(function(db){
-      if (!db) { showPrayerError(); return; }
-      db.doc('prayer/current').get().then(function(snap){
-        if (!snap.exists) { showPrayerError(); return; }
-        renderPrayer(snap.data());
-      }).catch(showPrayerError);
-    }).catch(showPrayerError);
-  })();
 
   // -- 이번주 암송 구절 (일요일 시작 기준). 이번 주는 위 목장 나눔과 맞닿는 구절을 먼저 골라 두고,
   //    언제든 아래 편집 버튼으로 바꿀 수 있게 한다. --
@@ -890,19 +782,11 @@
     var todayRefEl = document.getElementById('todayRef');
     if (todayRefEl) todayRefEl.textContent = data.reference || '';
 
-    if (data.question && promptEl) promptEl.textContent = '오늘의 물음: ' + data.question;
-
     var helperBox = document.getElementById('qtHelperBox');
     var helperEl = document.getElementById('qtHelper');
     if (data.helper && helperBox && helperEl) {
       helperEl.textContent = data.helper;
       helperBox.hidden = false;
-    }
-    var prayerBox = document.getElementById('qtPrayerBox');
-    var prayerEl = document.getElementById('qtPrayer');
-    if (data.prayer && prayerBox && prayerEl) {
-      prayerEl.textContent = data.prayer;
-      prayerBox.hidden = false;
     }
   }
 
@@ -962,102 +846,6 @@
   }
   loadReadingSummary();
 
-  var STORAGE_KEY = 'solomonLetterJournal';
-  function loadJournal(){
-    try {
-      var raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : {};
-    } catch (e) { return {}; }
-  }
-  function saveJournalMap(map){
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(map)); } catch (e) {}
-  }
-
-  var archiveDateInput = document.getElementById('archiveDate');
-
-  function renderHistory(map){
-    var list = document.getElementById('historyList');
-    if (!list) return;
-    list.innerHTML = '';
-    var keys = Object.keys(map).sort().reverse();
-    if (!keys.length){
-      var empty = document.createElement('li');
-      empty.className = 'empty';
-      empty.textContent = '아직 기록된 묵상이 없습니다.';
-      list.appendChild(empty);
-      return;
-    }
-    keys.slice(0, 7).forEach(function(k){
-      var entry = map[k];
-      var mmdd = k.slice(5).replace('-', '.');
-      var note = (entry.note || '').trim();
-      var preview = note ? note.slice(0, 34) + (note.length > 34 ? '…' : '') : '(기록 없음)';
-
-      var li = document.createElement('li');
-      li.className = 'clickable';
-      li.setAttribute('data-date', k);
-
-      var d = document.createElement('span');
-      d.className = 'd';
-      d.textContent = mmdd + ' · ' + (entry.reference || '기록');
-
-      var n = document.createElement('span');
-      n.className = 'n';
-      n.textContent = preview;
-
-      li.appendChild(d);
-      li.appendChild(n);
-      li.addEventListener('click', function(){
-        if (archiveDateInput) archiveDateInput.value = k;
-        openArchive(k);
-      });
-      list.appendChild(li);
-    });
-  }
-
-  var journal = loadJournal();
-  var noteEl = document.getElementById('journalNote');
-  var statusEl = document.getElementById('journalStatus');
-  if (journal[todayKey] && noteEl) {
-    noteEl.value = journal[todayKey].note || '';
-    if (statusEl) statusEl.textContent = '오늘 이미 기록하였습니다. 다시 저장하면 덮어씁니다.';
-  }
-  renderHistory(journal);
-
-  var saveBtn = document.getElementById('saveJournal');
-  if (saveBtn) {
-    saveBtn.addEventListener('click', function(){
-      var val = noteEl ? noteEl.value : '';
-      if (!val || !val.trim()) {
-        if (statusEl) statusEl.textContent = '먼저 몇 마디라도 적어 보라.';
-        return;
-      }
-      journal[todayKey] = {
-        reference: currentQT ? currentQT.reference : '',
-        prompt: todayPrompt,
-        note: val,
-        ts: new Date().toISOString()
-      };
-      saveJournalMap(journal);
-      renderHistory(journal);
-      if (statusEl) {
-        var d2 = new Date();
-        statusEl.textContent = '저장되었습니다 · ' + pad(d2.getHours()) + ':' + pad(d2.getMinutes());
-      }
-    });
-  }
-
-  // -- 오늘의 통독 묵상 기록은 reading.html에서 쓰지만, 저장소(solomonReadingJournal)는 공유하므로
-  //    여기서는 "이전 편지 열어보기"에 보여주기 위해 읽기만 한다. --
-  var READING_STORAGE_KEY = 'solomonReadingJournal';
-  function loadReadingJournal(){
-    try {
-      var raw = localStorage.getItem(READING_STORAGE_KEY);
-      return raw ? JSON.parse(raw) : {};
-    } catch (e) { return {}; }
-  }
-  var readingJournal = loadReadingJournal();
-
   // -- 오늘의 조각 (체크리스트 축약 보기, checklist.html과 저장소 공유) --
   var PORTION_CATEGORIES = {
     christian:{color:'#c9a24b'}, pureum:{color:'#3b6fd6'}, side:{color:'#c0392b'},
@@ -1116,81 +904,6 @@
     listEl.appendChild(ul);
   }
   loadPortionToday();
-
-  // -- 이전 편지 열어보기 --
-  var WEEKDAY_TYPE = ['주일', '출근일', '출근일', '출근일', '출근일', '재택일', '쉬는 날'];
-  var archiveResultEl = document.getElementById('archiveResult');
-  var archiveDateLabel = document.getElementById('archiveDateLabel');
-  var archiveWisdomEl = document.getElementById('archiveWisdom');
-  var archiveGistEl = document.getElementById('archiveGist');
-  var archiveReadingEl = document.getElementById('archiveReading');
-  var archiveNoteEl = document.getElementById('archiveNote');
-
-  function openArchive(k){
-    if (!k) return;
-    var d = parseDateKey(k);
-    var weekdayLabel = isNaN(d.getTime()) ? '' : (' · ' + WEEKDAY_TYPE[d.getDay()]);
-    if (archiveDateLabel) archiveDateLabel.textContent = k.replace(/-/g,'.') + weekdayLabel;
-    if (archiveWisdomEl) archiveWisdomEl.textContent = '불러오는 중…';
-    if (archiveGistEl) archiveGistEl.textContent = '';
-    if (archiveReadingEl) archiveReadingEl.textContent = '불러오는 중…';
-    if (archiveNoteEl) {
-      var qtEntry = journal[k];
-      var rEntry = readingJournal[k];
-      var lines = [];
-      lines.push(qtEntry && qtEntry.note ? 'QT 묵상: ' + qtEntry.note : 'QT 묵상: 기록 없음');
-      lines.push(rEntry && rEntry.note ? '통독 묵상: ' + rEntry.note : '통독 묵상: 기록 없음');
-      archiveNoteEl.textContent = lines.join('\n\n');
-    }
-    if (archiveResultEl) archiveResultEl.classList.add('show');
-
-    DB_PROMISE.then(function(db){
-      if (!db) {
-        if (archiveWisdomEl) archiveWisdomEl.textContent = '그 날의 두란노 기록은 없다.';
-        if (archiveReadingEl) archiveReadingEl.textContent = '통독 계획을 불러오지 못했다.';
-        return;
-      }
-      db.doc('qt/' + k).get().then(function(snap){
-        if (!snap.exists) {
-          if (archiveWisdomEl) archiveWisdomEl.textContent = '그 날의 두란노 기록은 없다.';
-          return;
-        }
-        var data = snap.data();
-        if (archiveWisdomEl) archiveWisdomEl.textContent = data.reference + (data.subtitle ? ' · ' + data.subtitle : '');
-        if (archiveGistEl) {
-          var text = (data.sections || []).map(function(sec){
-            return (sec.verses || []).map(function(v){ return v.text; }).join(' ');
-          }).join(' ');
-          archiveGistEl.textContent = text;
-        }
-      }).catch(function(){
-        if (archiveWisdomEl) archiveWisdomEl.textContent = '그 날의 두란노 기록은 없다.';
-        if (archiveGistEl) archiveGistEl.textContent = '';
-      });
-
-      db.doc('reading/' + k).get().then(function(snap){
-        if (!archiveReadingEl) return;
-        if (!snap.exists) { archiveReadingEl.textContent = '그 날의 통독 계획이 없다.'; return; }
-        var day = snap.data();
-        archiveReadingEl.textContent = (day.readings || [])
-          .map(function(r){ return r.book_kr + ' ' + r.chapter + '장'; }).join(' · ');
-      }).catch(function(){
-        if (archiveReadingEl) archiveReadingEl.textContent = '통독 계획을 불러오지 못했다.';
-      });
-    }).catch(function(){
-      if (archiveWisdomEl) archiveWisdomEl.textContent = '그 날의 두란노 기록은 없다.';
-      if (archiveReadingEl) archiveReadingEl.textContent = '통독 계획을 불러오지 못했다.';
-    });
-  }
-  if (archiveDateInput) {
-    archiveDateInput.value = todayKey;
-  }
-  var archiveBtn = document.getElementById('archiveOpen');
-  if (archiveBtn) {
-    archiveBtn.addEventListener('click', function(){
-      openArchive(archiveDateInput ? archiveDateInput.value : '');
-    });
-  }
 
 })();
 </script>
