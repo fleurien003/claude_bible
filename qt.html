@@ -166,10 +166,10 @@
       </div>
 
       <div class="archive">
-        <div class="label">이전 편지 열어보기</div>
+        <div class="label">이전 묵상 살펴보기</div>
         <div class="archive-row">
           <input type="date" id="archiveDate">
-          <button id="archiveOpen" type="button">그 날 편지 보기</button>
+          <button id="archiveOpen" type="button">그 날 묵상 보기</button>
         </div>
         <div class="archive-result" id="archiveResult">
           <div class="ad" id="archiveDateLabel"></div>
@@ -177,10 +177,6 @@
             <div class="ar-label">오늘의 말씀</div>
             <p id="archiveWisdom"></p>
             <p id="archiveGist"></p>
-          </div>
-          <div class="ar-section">
-            <div class="ar-label">오늘의 통독</div>
-            <p id="archiveReading"></p>
           </div>
           <div class="ar-section">
             <div class="ar-label">그 날의 기록</div>
@@ -213,25 +209,26 @@
     var NIGHT = {
       bgVoid:'#100e1c', skyMid:'#17132a', bgGlow:'#2c2544', star:'#f5ecd6',
       mhAccent:'#eccd85', mhTitle:'#f7efd8', mhTitleGlow:'rgba(230,190,110,.25)',
-      mhLine:'rgba(230,190,110,.3)', mhNavBg:'rgba(20,17,34,.6)'
+      mhLine:'rgba(230,190,110,.3)', mhNavBg:'rgba(20,17,34,.6)', textScheme:'light'
     };
     var DAY = {
       bgVoid:'#5aa8d8', skyMid:'#a9d8ef', bgGlow:'#eef8ff', star:'#33465a',
       mhAccent:'#a9701f', mhTitle:'#233140', mhTitleGlow:'rgba(255,255,255,.5)',
-      mhLine:'rgba(169,112,31,.3)', mhNavBg:'rgba(255,255,255,.6)'
+      mhLine:'rgba(169,112,31,.3)', mhNavBg:'rgba(255,255,255,.6)', textScheme:'dark'
     };
     var SUNSET = {
       bgVoid:'#2e2a52', skyMid:'#9c4a72', bgGlow:'#ff9c5c', star:'#fff0dd',
       mhAccent:'#ffb473', mhTitle:'#fff4e2', mhTitleGlow:'rgba(255,140,80,.4)',
-      mhLine:'rgba(255,178,120,.35)', mhNavBg:'rgba(40,22,30,.55)'
+      mhLine:'rgba(255,178,120,.35)', mhNavBg:'rgba(40,22,30,.55)', textScheme:'light'
     };
     // 월~목 08~18시 "위장 모드" — 회사에서 볼 때 티나지 않도록 낮 하늘을 새하얗게
     var WHITE = {
       bgVoid:'#ffffff', skyMid:'#ffffff', bgGlow:'#ffffff', star:'#2b2b2b',
       mhAccent:'#6b6b6b', mhTitle:'#1c1c1c', mhTitleGlow:'rgba(0,0,0,0)',
-      mhLine:'rgba(0,0,0,.12)', mhNavBg:'rgba(0,0,0,.04)'
+      mhLine:'rgba(0,0,0,.12)', mhNavBg:'rgba(0,0,0,.04)', textScheme:'dark'
     };
-    var KEYS = Object.keys(NIGHT);
+    var KEYS = ['bgVoid','skyMid','bgGlow','star','mhAccent','mhTitle','mhTitleGlow','mhLine','mhNavBg'];
+    var TEXT_KEYS = { star:1, mhAccent:1, mhTitle:1, mhTitleGlow:1 };
     var VAR_NAME = {
       bgVoid:'--bg-void', skyMid:'--sky-mid', bgGlow:'--bg-glow', star:'--star',
       mhAccent:'--mh-accent', mhTitle:'--mh-title', mhTitleGlow:'--mh-title-glow',
@@ -248,8 +245,9 @@
       while (i < anchors.length - 2 && h >= anchors[i + 1][0]) i++;
       var t = (h - anchors[i][0]) / (anchors[i + 1][0] - anchors[i][0]);
       var a = anchors[i][1], b = anchors[i + 1][1];
+      var textT = a.textScheme !== b.textScheme ? (t < 0.5 ? 0 : 1) : t;
       var root = document.documentElement.style;
-      KEYS.forEach(function(k){ root.setProperty(VAR_NAME[k], lerpColor(a[k], b[k], t)); });
+      KEYS.forEach(function(k){ root.setProperty(VAR_NAME[k], lerpColor(a[k], b[k], TEXT_KEYS[k] ? textT : t)); });
       var officeWhite = isOfficeDay && h >= 8 && h < 18;
       root.setProperty('--parchment', officeWhite ? '#ffffff' : '#ecdfc2');
       root.setProperty('--parchment-edge', officeWhite ? '#eeeeee' : '#d8c69a');
@@ -264,10 +262,6 @@
     return Math.floor((d - start) / 86400000);
   }
   function dateKey(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
-  function parseDateKey(k){
-    var parts = (k || '').split('-').map(Number);
-    return new Date(parts[0], (parts[1]||1)-1, parts[2]||1);
-  }
 
   var prompts = [
     "오늘 읽은 장에서 가장 마음에 머문 구절은 무엇인가?",
@@ -322,15 +316,6 @@
   function saveJournalMap(map){
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(map)); } catch (e) {}
   }
-
-  var READING_STORAGE_KEY = 'solomonReadingJournal';
-  function loadReadingJournal(){
-    try {
-      var raw = localStorage.getItem(READING_STORAGE_KEY);
-      return raw ? JSON.parse(raw) : {};
-    } catch (e) { return {}; }
-  }
-  var readingJournal = loadReadingJournal();
 
   var archiveDateInput = document.getElementById('archiveDate');
 
@@ -406,36 +391,26 @@
     });
   }
 
-  var WEEKDAY_TYPE = ['주일', '출근일', '출근일', '출근일', '출근일', '재택일', '쉬는 날'];
   var archiveResultEl = document.getElementById('archiveResult');
   var archiveDateLabel = document.getElementById('archiveDateLabel');
   var archiveWisdomEl = document.getElementById('archiveWisdom');
   var archiveGistEl = document.getElementById('archiveGist');
-  var archiveReadingEl = document.getElementById('archiveReading');
   var archiveNoteEl = document.getElementById('archiveNote');
 
   function openArchive(k){
     if (!k) return;
-    var d = parseDateKey(k);
-    var weekdayLabel = isNaN(d.getTime()) ? '' : (' · ' + WEEKDAY_TYPE[d.getDay()]);
-    if (archiveDateLabel) archiveDateLabel.textContent = k.replace(/-/g,'.') + weekdayLabel;
+    if (archiveDateLabel) archiveDateLabel.textContent = k.replace(/-/g,'.');
     if (archiveWisdomEl) archiveWisdomEl.textContent = '불러오는 중…';
     if (archiveGistEl) archiveGistEl.textContent = '';
-    if (archiveReadingEl) archiveReadingEl.textContent = '불러오는 중…';
     if (archiveNoteEl) {
       var qtEntry = journal[k];
-      var rEntry = readingJournal[k];
-      var lines = [];
-      lines.push(qtEntry && qtEntry.note ? 'QT 묵상: ' + qtEntry.note : 'QT 묵상: 기록 없음');
-      lines.push(rEntry && rEntry.note ? '통독 묵상: ' + rEntry.note : '통독 묵상: 기록 없음');
-      archiveNoteEl.textContent = lines.join('\n\n');
+      archiveNoteEl.textContent = qtEntry && qtEntry.note ? qtEntry.note : 'QT 묵상: 기록 없음';
     }
     if (archiveResultEl) archiveResultEl.classList.add('show');
 
     DB_PROMISE.then(function(db){
       if (!db) {
         if (archiveWisdomEl) archiveWisdomEl.textContent = '그 날의 두란노 기록은 없다.';
-        if (archiveReadingEl) archiveReadingEl.textContent = '통독 계획을 불러오지 못했다.';
         return;
       }
       db.doc('qt/' + k).get().then(function(snap){
@@ -455,19 +430,8 @@
         if (archiveWisdomEl) archiveWisdomEl.textContent = '그 날의 두란노 기록은 없다.';
         if (archiveGistEl) archiveGistEl.textContent = '';
       });
-
-      db.doc('reading/' + k).get().then(function(snap){
-        if (!archiveReadingEl) return;
-        if (!snap.exists) { archiveReadingEl.textContent = '그 날의 통독 계획이 없다.'; return; }
-        var day = snap.data();
-        archiveReadingEl.textContent = (day.readings || [])
-          .map(function(r){ return r.book_kr + ' ' + r.chapter + '장'; }).join(' · ');
-      }).catch(function(){
-        if (archiveReadingEl) archiveReadingEl.textContent = '통독 계획을 불러오지 못했다.';
-      });
     }).catch(function(){
       if (archiveWisdomEl) archiveWisdomEl.textContent = '그 날의 두란노 기록은 없다.';
-      if (archiveReadingEl) archiveReadingEl.textContent = '통독 계획을 불러오지 못했다.';
     });
   }
   if (archiveDateInput) {

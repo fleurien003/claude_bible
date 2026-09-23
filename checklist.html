@@ -125,6 +125,7 @@
     background:var(--cedar); color:#f7efd8; border:none; padding:9px 16px; cursor:pointer; flex:none;
   }
   .add-row button:hover{ background:#4a2a1d; }
+  .calendar-note{ font-size:11.5px; color:var(--ink-soft); font-style:italic; margin:10px 0 0; }
 
   .progress{ font-size:12px; color:var(--ink-soft); margin-bottom:14px; }
 
@@ -160,9 +161,15 @@
 
     <div class="add-row">
       <select id="newCat"></select>
+      <select id="newRepeat">
+        <option value="weekly" selected>매주 이 요일 반복</option>
+        <option value="daily">매일 반복</option>
+        <option value="once">이번만 (반복 안 함)</option>
+      </select>
       <input type="text" id="newText" placeholder="새 항목 추가...">
       <button id="addBtn" type="button">추가</button>
     </div>
+    <p class="calendar-note">📌 다음 업데이트 예정: 구글 캘린더에 같은 카테고리 이름으로 오늘 일정이 있으면 자동으로 조각에 추가 (계정 재연동 필요)</p>
   </div>
 </div>
 
@@ -187,25 +194,26 @@
     var NIGHT = {
       bgVoid:'#100e1c', skyMid:'#17132a', bgGlow:'#2c2544', star:'#f5ecd6',
       mhAccent:'#eccd85', mhTitle:'#f7efd8', mhTitleGlow:'rgba(230,190,110,.25)',
-      mhLine:'rgba(230,190,110,.3)', mhNavBg:'rgba(20,17,34,.6)'
+      mhLine:'rgba(230,190,110,.3)', mhNavBg:'rgba(20,17,34,.6)', textScheme:'light'
     };
     var DAY = {
       bgVoid:'#5aa8d8', skyMid:'#a9d8ef', bgGlow:'#eef8ff', star:'#33465a',
       mhAccent:'#a9701f', mhTitle:'#233140', mhTitleGlow:'rgba(255,255,255,.5)',
-      mhLine:'rgba(169,112,31,.3)', mhNavBg:'rgba(255,255,255,.6)'
+      mhLine:'rgba(169,112,31,.3)', mhNavBg:'rgba(255,255,255,.6)', textScheme:'dark'
     };
     var SUNSET = {
       bgVoid:'#2e2a52', skyMid:'#9c4a72', bgGlow:'#ff9c5c', star:'#fff0dd',
       mhAccent:'#ffb473', mhTitle:'#fff4e2', mhTitleGlow:'rgba(255,140,80,.4)',
-      mhLine:'rgba(255,178,120,.35)', mhNavBg:'rgba(40,22,30,.55)'
+      mhLine:'rgba(255,178,120,.35)', mhNavBg:'rgba(40,22,30,.55)', textScheme:'light'
     };
     // 월~목 08~18시 "위장 모드" — 회사에서 볼 때 티나지 않도록 낮 하늘을 새하얗게
     var WHITE = {
       bgVoid:'#ffffff', skyMid:'#ffffff', bgGlow:'#ffffff', star:'#2b2b2b',
       mhAccent:'#6b6b6b', mhTitle:'#1c1c1c', mhTitleGlow:'rgba(0,0,0,0)',
-      mhLine:'rgba(0,0,0,.12)', mhNavBg:'rgba(0,0,0,.04)'
+      mhLine:'rgba(0,0,0,.12)', mhNavBg:'rgba(0,0,0,.04)', textScheme:'dark'
     };
-    var KEYS = Object.keys(NIGHT);
+    var KEYS = ['bgVoid','skyMid','bgGlow','star','mhAccent','mhTitle','mhTitleGlow','mhLine','mhNavBg'];
+    var TEXT_KEYS = { star:1, mhAccent:1, mhTitle:1, mhTitleGlow:1 };
     var VAR_NAME = {
       bgVoid:'--bg-void', skyMid:'--sky-mid', bgGlow:'--bg-glow', star:'--star',
       mhAccent:'--mh-accent', mhTitle:'--mh-title', mhTitleGlow:'--mh-title-glow',
@@ -222,8 +230,9 @@
       while (i < anchors.length - 2 && h >= anchors[i + 1][0]) i++;
       var t = (h - anchors[i][0]) / (anchors[i + 1][0] - anchors[i][0]);
       var a = anchors[i][1], b = anchors[i + 1][1];
+      var textT = a.textScheme !== b.textScheme ? (t < 0.5 ? 0 : 1) : t;
       var root = document.documentElement.style;
-      KEYS.forEach(function(k){ root.setProperty(VAR_NAME[k], lerpColor(a[k], b[k], t)); });
+      KEYS.forEach(function(k){ root.setProperty(VAR_NAME[k], lerpColor(a[k], b[k], TEXT_KEYS[k] ? textT : t)); });
       var officeWhite = isOfficeDay && h >= 8 && h < 18;
       root.setProperty('--parchment', officeWhite ? '#ffffff' : '#ecdfc2');
       root.setProperty('--parchment-edge', officeWhite ? '#eeeeee' : '#d8c69a');
@@ -327,6 +336,8 @@
 
   var TEMPLATE_KEY = 'solomonChecklistTemplate_v1';
   var CHECKS_KEY = 'solomonChecklistChecks_v1';
+  var REMOVED_KEY = 'solomonChecklistRemoved_v1'; // 특정 날짜에서만 항목을 숨김 (반복 템플릿 자체는 건드리지 않음)
+  var EXTRA_KEY = 'solomonChecklistExtra_v1'; // "이번만" 반복으로 추가한, 특정 날짜에만 존재하는 항목
 
   function loadJSON(key, fallback){
     try { var raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }
@@ -342,6 +353,8 @@
   DAY_KEYS.forEach(function(k){ if (!template[k]) template[k] = DEFAULT_TEMPLATE[k] || []; });
 
   var checks = loadJSON(CHECKS_KEY, {});
+  var removed = loadJSON(REMOVED_KEY, {});
+  var extra = loadJSON(EXTRA_KEY, {});
 
   function pad(n){ return n < 10 ? '0'+n : ''+n; }
   function dateKey(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
@@ -394,11 +407,18 @@
     document.getElementById('panelDay').textContent = DAY_LABELS[selectedDay] + '요일' + (selectedDay===todayDayKey ? ' · 오늘' : '');
     document.getElementById('panelDate').textContent = (d.getMonth()+1)+'월 '+d.getDate()+'일';
 
-    var list = template[selectedDay] || [];
+    var baseList = template[selectedDay] || [];
+    var extraList = extra[dk] || [];
+    var combined = baseList.map(function(it, idx){
+      return { it: it, id: itemId(selectedDay, idx, it.text) };
+    }).concat(extraList.map(function(it, idx){
+      return { it: it, id: 'extra_' + dk + '_' + idx };
+    })).filter(function(entry){ return !removed[dk + '__' + entry.id]; });
+
     var listEl = document.getElementById('itemList');
     listEl.innerHTML = '';
 
-    if (!list.length) {
+    if (!combined.length) {
       var empty = document.createElement('li');
       empty.className = 'empty';
       empty.textContent = '등록된 항목이 없습니다. 아래에서 추가해 보세요.';
@@ -406,8 +426,8 @@
     }
 
     var doneCount = 0;
-    list.forEach(function(it, idx){
-      var id = itemId(selectedDay, idx, it.text);
+    combined.forEach(function(entry){
+      var it = entry.it, id = entry.id;
       var checkKey = dk + '__' + id;
       var isChecked = !!checks[checkKey];
       if (isChecked) doneCount++;
@@ -445,10 +465,10 @@
       delBtn.className = 'del';
       delBtn.type = 'button';
       delBtn.textContent = '×';
-      delBtn.title = '이 항목 삭제 (모든 주에 적용)';
+      delBtn.title = '이 항목 삭제 (이 날짜에만 적용)';
       delBtn.addEventListener('click', function(){
-        template[selectedDay].splice(idx, 1);
-        saveJSON(TEMPLATE_KEY, template);
+        removed[checkKey] = true;
+        saveJSON(REMOVED_KEY, removed);
         render();
       });
 
@@ -459,13 +479,13 @@
     });
 
     document.getElementById('progressLine').textContent =
-      list.length ? (doneCount + ' / ' + list.length + ' 완료') : '';
+      combined.length ? (doneCount + ' / ' + combined.length + ' 완료') : '';
 
     // legend: only categories actually used today
     var legendEl = document.getElementById('legend');
     legendEl.innerHTML = '';
     var usedCats = [];
-    list.forEach(function(it){ if (usedCats.indexOf(it.cat) === -1) usedCats.push(it.cat); });
+    combined.forEach(function(entry){ if (usedCats.indexOf(entry.it.cat) === -1) usedCats.push(entry.it.cat); });
     usedCats.forEach(function(ck){
       var cat = CATEGORIES[ck]; if (!cat) return;
       var row = document.createElement('span');
@@ -484,9 +504,24 @@
     var val = (textEl.value || '').trim();
     if (!val) return;
     var cat = newCatEl.value;
-    template[selectedDay] = template[selectedDay] || [];
-    template[selectedDay].push(item(cat, val));
-    saveJSON(TEMPLATE_KEY, template);
+    var repeat = document.getElementById('newRepeat').value;
+
+    if (repeat === 'daily') {
+      DAY_KEYS.forEach(function(dk2){
+        template[dk2] = template[dk2] || [];
+        template[dk2].push(item(cat, val));
+      });
+      saveJSON(TEMPLATE_KEY, template);
+    } else if (repeat === 'once') {
+      var dk = dateKey(offsetToDate(selectedDay));
+      extra[dk] = extra[dk] || [];
+      extra[dk].push(item(cat, val));
+      saveJSON(EXTRA_KEY, extra);
+    } else {
+      template[selectedDay] = template[selectedDay] || [];
+      template[selectedDay].push(item(cat, val));
+      saveJSON(TEMPLATE_KEY, template);
+    }
     textEl.value = '';
     render();
   });

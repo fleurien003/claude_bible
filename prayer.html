@@ -84,6 +84,23 @@
 
   .meditate{ margin-top:30px; padding-top:24px; border-top:1px dashed var(--parchment-edge); }
 
+  .journal textarea{
+    width:100%; min-height:90px; resize:vertical;
+    font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:16px; line-height:1.75; color:var(--ink);
+    background:#f7f1de; border:1px solid var(--parchment-edge);
+    padding:14px 16px; margin-bottom:12px;
+  }
+  .journal textarea:focus{ outline:2px solid var(--gold); outline-offset:1px; }
+  .journal-row{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  .journal button{
+    font-family:'Nanum Square','Noto Sans KR',sans-serif;
+    font-size:13.5px; letter-spacing:.05em; font-weight:500;
+    background:var(--cedar); color:#f7efd8; border:none;
+    padding:10px 20px; cursor:pointer;
+  }
+  .journal button:hover{ background:#4a2a1d; }
+  .journal .status{ font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:12.5px; color:var(--ink-soft); }
+
   footer{
     max-width:720px; margin:30px auto 0; padding-inline:18px; text-align:center;
     color:var(--mh-accent); opacity:.7; font-size:12px; position:relative; z-index:1;
@@ -98,15 +115,27 @@
 <div class="wrap">
   <div class="masthead">
     <div class="eyebrow">매일의 기도</div>
-    <h1 class="title">오늘의 기도</h1>
+    <h1 class="title">오늘의 QT 기도</h1>
     <div class="sub" id="dateLabel"></div>
     <a class="back" href="index.html">← 솔로몬의 편지로 돌아가기</a>
   </div>
 
   <div class="scroll">
-    <div class="kicker">오늘의 기도</div>
-    <h2 id="prayerRefTitle">오늘의 기도</h2>
+    <div class="kicker">오늘의 QT 기도</div>
+    <h2>오늘의 QT 기도</h2>
     <div id="prayerText"><p class="qt-loading">불러오는 중…</p></div>
+
+    <div class="meditate">
+      <div class="kicker">나의 기도</div>
+      <h2>오늘의 기도</h2>
+      <div class="journal">
+        <textarea id="myPrayerNote" placeholder="오늘 드리고 싶은 기도를 적어 보라..."></textarea>
+        <div class="journal-row">
+          <button id="saveMyPrayer" type="button">오늘의 기도 기록하기</button>
+          <span class="status" id="myPrayerStatus"></span>
+        </div>
+      </div>
+    </div>
 
     <div class="meditate">
       <div class="kicker">지난 목장의 기도제목</div>
@@ -138,25 +167,26 @@
     var NIGHT = {
       bgVoid:'#100e1c', skyMid:'#17132a', bgGlow:'#2c2544', star:'#f5ecd6',
       mhAccent:'#eccd85', mhTitle:'#f7efd8', mhTitleGlow:'rgba(230,190,110,.25)',
-      mhLine:'rgba(230,190,110,.3)', mhNavBg:'rgba(20,17,34,.6)'
+      mhLine:'rgba(230,190,110,.3)', mhNavBg:'rgba(20,17,34,.6)', textScheme:'light'
     };
     var DAY = {
       bgVoid:'#5aa8d8', skyMid:'#a9d8ef', bgGlow:'#eef8ff', star:'#33465a',
       mhAccent:'#a9701f', mhTitle:'#233140', mhTitleGlow:'rgba(255,255,255,.5)',
-      mhLine:'rgba(169,112,31,.3)', mhNavBg:'rgba(255,255,255,.6)'
+      mhLine:'rgba(169,112,31,.3)', mhNavBg:'rgba(255,255,255,.6)', textScheme:'dark'
     };
     var SUNSET = {
       bgVoid:'#2e2a52', skyMid:'#9c4a72', bgGlow:'#ff9c5c', star:'#fff0dd',
       mhAccent:'#ffb473', mhTitle:'#fff4e2', mhTitleGlow:'rgba(255,140,80,.4)',
-      mhLine:'rgba(255,178,120,.35)', mhNavBg:'rgba(40,22,30,.55)'
+      mhLine:'rgba(255,178,120,.35)', mhNavBg:'rgba(40,22,30,.55)', textScheme:'light'
     };
     // 월~목 08~18시 "위장 모드" — 회사에서 볼 때 티나지 않도록 낮 하늘을 새하얗게
     var WHITE = {
       bgVoid:'#ffffff', skyMid:'#ffffff', bgGlow:'#ffffff', star:'#2b2b2b',
       mhAccent:'#6b6b6b', mhTitle:'#1c1c1c', mhTitleGlow:'rgba(0,0,0,0)',
-      mhLine:'rgba(0,0,0,.12)', mhNavBg:'rgba(0,0,0,.04)'
+      mhLine:'rgba(0,0,0,.12)', mhNavBg:'rgba(0,0,0,.04)', textScheme:'dark'
     };
-    var KEYS = Object.keys(NIGHT);
+    var KEYS = ['bgVoid','skyMid','bgGlow','star','mhAccent','mhTitle','mhTitleGlow','mhLine','mhNavBg'];
+    var TEXT_KEYS = { star:1, mhAccent:1, mhTitle:1, mhTitleGlow:1 };
     var VAR_NAME = {
       bgVoid:'--bg-void', skyMid:'--sky-mid', bgGlow:'--bg-glow', star:'--star',
       mhAccent:'--mh-accent', mhTitle:'--mh-title', mhTitleGlow:'--mh-title-glow',
@@ -173,8 +203,9 @@
       while (i < anchors.length - 2 && h >= anchors[i + 1][0]) i++;
       var t = (h - anchors[i][0]) / (anchors[i + 1][0] - anchors[i][0]);
       var a = anchors[i][1], b = anchors[i + 1][1];
+      var textT = a.textScheme !== b.textScheme ? (t < 0.5 ? 0 : 1) : t;
       var root = document.documentElement.style;
-      KEYS.forEach(function(k){ root.setProperty(VAR_NAME[k], lerpColor(a[k], b[k], t)); });
+      KEYS.forEach(function(k){ root.setProperty(VAR_NAME[k], lerpColor(a[k], b[k], TEXT_KEYS[k] ? textT : t)); });
       var officeWhite = isOfficeDay && h >= 8 && h < 18;
       root.setProperty('--parchment', officeWhite ? '#ffffff' : '#ecdfc2');
       root.setProperty('--parchment-edge', officeWhite ? '#eeeeee' : '#d8c69a');
@@ -196,16 +227,14 @@
     ? window.claude.use('db')
     : Promise.resolve(null);
 
-  // -- 오늘의 기도 (두란노 QT의 기도문) --
+  // -- 오늘의 QT 기도 (두란노 QT의 기도문) --
   function loadTodayPrayer(){
-    var titleEl = document.getElementById('prayerRefTitle');
     var textEl = document.getElementById('prayerText');
     DB_PROMISE.then(function(db){
       if (!db) { showFallback(); return; }
       db.doc('qt/' + todayKey).get().then(function(snap){
         if (!snap.exists) { showFallback(); return; }
         var data = snap.data();
-        if (titleEl && data.reference) titleEl.textContent = data.reference + '을 따라 드리는 기도';
         if (data.prayer) {
           textEl.innerHTML = '';
           var p = document.createElement('p');
@@ -222,6 +251,41 @@
     }
   }
   loadTodayPrayer();
+
+  // -- 오늘의 기도 (나의 기도, 이 브라우저에만 저장) --
+  var MY_PRAYER_KEY = 'solomonPrayerJournal';
+  function loadMyPrayer(){
+    try { var raw = localStorage.getItem(MY_PRAYER_KEY); return raw ? JSON.parse(raw) : {}; }
+    catch (e) { return {}; }
+  }
+  function saveMyPrayerMap(map){
+    try { localStorage.setItem(MY_PRAYER_KEY, JSON.stringify(map)); } catch (e) {}
+  }
+  (function(){
+    var myPrayer = loadMyPrayer();
+    var noteEl = document.getElementById('myPrayerNote');
+    var statusEl = document.getElementById('myPrayerStatus');
+    if (myPrayer[todayKey] && noteEl) {
+      noteEl.value = myPrayer[todayKey].note || '';
+      if (statusEl) statusEl.textContent = '오늘 이미 기록하였습니다. 다시 저장하면 덮어씁니다.';
+    }
+    var saveBtn = document.getElementById('saveMyPrayer');
+    if (saveBtn) {
+      saveBtn.addEventListener('click', function(){
+        var val = noteEl ? noteEl.value : '';
+        if (!val || !val.trim()) {
+          if (statusEl) statusEl.textContent = '먼저 몇 마디라도 적어 보라.';
+          return;
+        }
+        myPrayer[todayKey] = { note: val, ts: new Date().toISOString() };
+        saveMyPrayerMap(myPrayer);
+        if (statusEl) {
+          var d = new Date();
+          statusEl.textContent = '저장되었습니다 · ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+        }
+      });
+    }
+  })();
 
   // -- 지난 목장의 기도제목 (읽기 전용). 목장 나눔 자체는 group.html에서 작성하고,
   //    여기에는 db 문서 prayer/current의 스냅샷만 보여준다. 매주 토요일 09:00 KST에

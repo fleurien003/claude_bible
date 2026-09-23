@@ -390,8 +390,8 @@
 
   <nav class="pills">
     <a href="#s0">인사말</a>
-    <a href="#bible">오늘의 말씀</a>
-    <a href="#reading">오늘의 통독</a>
+    <a href="#bible">오늘의 QT</a>
+    <a href="#reading">오늘의 말씀</a>
     <a href="group.html">목장 나눔 노트 ↗</a>
     <a href="#prayer">오늘의 기도</a>
     <a href="#portion">오늘의 조각</a>
@@ -411,7 +411,7 @@
 
     <section id="bible">
       <div class="kicker">매일의 묵상</div>
-      <h2>오늘의 말씀</h2>
+      <h2>오늘의 QT</h2>
 
       <div class="reading">
         <div class="chapter"><small>오늘의 본문</small><span id="chapterNum">불러오는 중…</span></div>
@@ -419,7 +419,7 @@
       </div>
 
       <div class="gist" id="qtTextBox">
-        <div class="glabel" id="qtTransRow">오늘의 말씀
+        <div class="glabel" id="qtTransRow">오늘의 QT
           <span class="trans-toggle" id="transToggle" hidden>
             <button type="button" data-t="krv" id="transKrvBtn">개역개정</button><button type="button" data-t="woorimal" id="transWoorimalBtn">우리말성경</button>
           </span>
@@ -439,7 +439,7 @@
 
     <section id="reading">
       <div class="kicker">매삼주오 통독</div>
-      <h2>오늘의 통독</h2>
+      <h2>오늘의 말씀</h2>
       <p id="readingSummary" class="qt-loading">불러오는 중…</p>
       <p class="portion-link"><a href="reading.html">오늘의 본문 전체 보기 · 묵상 질문 →</a></p>
     </section>
@@ -458,6 +458,10 @@
     <section id="prayer">
       <div class="kicker">매일의 기도</div>
       <h2>오늘의 기도</h2>
+      <div class="gist qt-side" id="myPrayerBox" hidden>
+        <div class="glabel">이번 주 나의 기도제목</div>
+        <p id="myPrayerText"></p>
+      </div>
       <p class="portion-link"><a href="prayer.html">오늘의 기도 보기 · 함께 기도할 제목 →</a></p>
     </section>
 
@@ -518,28 +522,29 @@
       bgVoid:'#100e1c', skyMid:'#17132a', bgGlow:'#2c2544', star:'#f5ecd6',
       mhAccent:'#eccd85', mhTitle:'#f7efd8', mhTitleGlow:'rgba(230,190,110,.25)',
       mhLine:'rgba(230,190,110,.3)', mhPanelBg:'rgba(201,162,75,.08)', mhNavBg:'rgba(20,17,34,.6)',
-      starOpacity:1
+      starOpacity:1, textScheme:'light'
     };
     var DAY = {
       bgVoid:'#5aa8d8', skyMid:'#a9d8ef', bgGlow:'#eef8ff', star:'#33465a',
       mhAccent:'#a9701f', mhTitle:'#233140', mhTitleGlow:'rgba(255,255,255,.5)',
       mhLine:'rgba(169,112,31,.3)', mhPanelBg:'rgba(255,255,255,.55)', mhNavBg:'rgba(255,255,255,.6)',
-      starOpacity:0
+      starOpacity:0, textScheme:'dark'
     };
     var SUNSET = {
       bgVoid:'#2e2a52', skyMid:'#9c4a72', bgGlow:'#ff9c5c', star:'#fff0dd',
       mhAccent:'#ffb473', mhTitle:'#fff4e2', mhTitleGlow:'rgba(255,140,80,.4)',
       mhLine:'rgba(255,178,120,.35)', mhPanelBg:'rgba(255,140,80,.14)', mhNavBg:'rgba(40,22,30,.55)',
-      starOpacity:.3
+      starOpacity:.3, textScheme:'light'
     };
     // 월~목 08~18시 "위장 모드" — 회사에서 볼 때 티나지 않도록 낮 하늘을 새하얗게
     var WHITE = {
       bgVoid:'#ffffff', skyMid:'#ffffff', bgGlow:'#ffffff', star:'#2b2b2b',
       mhAccent:'#6b6b6b', mhTitle:'#1c1c1c', mhTitleGlow:'rgba(0,0,0,0)',
       mhLine:'rgba(0,0,0,.12)', mhPanelBg:'rgba(0,0,0,.035)', mhNavBg:'rgba(0,0,0,.04)',
-      starOpacity:0
+      starOpacity:0, textScheme:'dark'
     };
-    var KEYS = Object.keys(NIGHT);
+    var KEYS = ['bgVoid','skyMid','bgGlow','star','mhAccent','mhTitle','mhTitleGlow','mhLine','mhPanelBg','mhNavBg','starOpacity'];
+    var TEXT_KEYS = { star:1, mhAccent:1, mhTitle:1, mhTitleGlow:1 };
     var VAR_NAME = {
       bgVoid:'--bg-void', skyMid:'--sky-mid', bgGlow:'--bg-glow', star:'--star',
       mhAccent:'--mh-accent', mhTitle:'--mh-title', mhTitleGlow:'--mh-title-glow',
@@ -557,12 +562,16 @@
       while (i < anchors.length - 2 && h >= anchors[i + 1][0]) i++;
       var t = (h - anchors[i][0]) / (anchors[i + 1][0] - anchors[i][0]);
       var a = anchors[i][1], b = anchors[i + 1][1];
+      // 텍스트 색상 계열(밝은 글자 ↔ 어두운 글자)이 뒤바뀌는 구간(예: 낮→노을)에서는
+      // 배경만큼 천천히 섞지 않고 중간 지점 근처에서 빠르게 전환해, 대비가 낮아 잘 안 보이는
+      // "탁한 회색" 구간을 최소화한다.
+      var textT = a.textScheme !== b.textScheme ? (t < 0.5 ? 0 : 1) : t;
       var root = document.documentElement.style;
       KEYS.forEach(function(k){
         if (k === 'starOpacity'){
           root.setProperty('--star-opacity', String(a.starOpacity + (b.starOpacity - a.starOpacity) * t));
         } else {
-          root.setProperty(VAR_NAME[k], lerpColor(a[k], b[k], t));
+          root.setProperty(VAR_NAME[k], lerpColor(a[k], b[k], TEXT_KEYS[k] ? textT : t));
         }
       });
       // 편지지(양피지)도 월~목 08~18시엔 배경과 같은 흰색으로 — 구분이 안 되어도 무방
@@ -845,6 +854,24 @@
     }).catch(function(){ summaryEl.textContent = '통독 정보를 불러오지 못했다.'; });
   }
   loadReadingSummary();
+
+  // -- 이번 주 나의 기도제목 (지난 목장 나눔에서 은아가 낸 기도제목). 한 주 내내 이어가야 하는
+  //    기도이므로 prayer.html 전체 목록으로 가지 않아도 홈에서 바로 보이게 한다. --
+  (function(){
+    var boxEl = document.getElementById('myPrayerBox');
+    var textEl = document.getElementById('myPrayerText');
+    if (!boxEl || !textEl) return;
+    DB_PROMISE.then(function(db){
+      if (!db) return;
+      db.doc('prayer/current').get().then(function(snap){
+        if (!snap.exists) return;
+        var mine = (snap.data().people || []).filter(function(p){ return p.name === '은아'; })[0];
+        if (!mine) return;
+        textEl.textContent = mine.prayer;
+        boxEl.hidden = false;
+      }).catch(function(){});
+    }).catch(function(){});
+  })();
 
   // -- 오늘의 조각 (체크리스트 축약 보기, checklist.html과 저장소 공유) --
   var PORTION_CATEGORIES = {
