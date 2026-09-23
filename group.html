@@ -1019,7 +1019,12 @@
   let liveSnapshot = null;
 
   function slugify(title){
-    return (title || 'untitled').trim().replace(/\s+/g,'').replace(/[\/\\'"]/g,'-').slice(0,150) || 'untitled';
+    // 저장 문서 id는 영문/숫자/._-~:@+ 만 허용되고, "."이나 ".."만 남는 것도 안 된다. 날짜
+    // ("2026. 09. 25.")처럼 늘 이 글자들로만 이뤄질 걸 가정했던 원본 로직이, 한글이나 다른
+    // 기호를 제목으로 적으면 빈 문자열이나 "."만 남아 저장이 조용히 실패하는 문제가 있었다 —
+    // 허용되지 않는 글자는 지우고, 글자/숫자가 하나도 안 남으면 타임스탬프로 대체한다.
+    const stripped = (title || '').trim().replace(/\s+/g,'').replace(/[^A-Za-z0-9_\-.~:@+]/g, '').slice(0, 150);
+    return (stripped && /[A-Za-z0-9]/.test(stripped)) ? stripped : ('untitled-' + Date.now());
   }
 
   function collectCurrentData(){
@@ -1065,6 +1070,7 @@
       if(!db){ if(status) status.textContent = '⚠️ 저장 안 됨 (권한 없음)'; return; }
       const id = currentDocId || slugify(data.title);
       await db.collection('weeks').doc(id).set(data);
+      currentDocId = id; // 이번 편집 세션 동안은 같은 문서에 계속 덮어쓴다 (제목을 나중에 고쳐도 문서가 갈라지지 않도록)
       cachedWeeks = null;
       if(status) status.textContent = `자동 저장됨 · ${timeLabel()}`;
     }catch(e){
