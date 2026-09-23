@@ -6,6 +6,7 @@
   :root{
     --bg-void:#100e1c;
     --bg-glow:#2c2544;
+    --sky-mid:#17132a;
     --gold:#c9a24b;
     --gold-bright:#eccd85;
     --parchment:#ecdfc2;
@@ -15,6 +16,14 @@
     --cedar:#5b3324;
     --pomegranate:#8a3b3b;
     --star:#f5ecd6;
+    /* 시간대에 따라 JS가 덮어쓰는 마스트헤드 전용 변수 — 스크롤(양피지) 영역의 --gold* 와는 분리 */
+    --mh-accent:#eccd85;
+    --mh-title:#f7efd8;
+    --mh-title-glow:rgba(230,190,110,.25);
+    --mh-line:rgba(230,190,110,.3);
+    --mh-panel-bg:rgba(201,162,75,.08);
+    --mh-nav-bg:rgba(20,17,34,.6);
+    --star-opacity:1;
   }
 
   *{ box-sizing:border-box; }
@@ -37,14 +46,17 @@
     z-index:0;
     background:
       radial-gradient(ellipse 80% 50% at 50% 100%, var(--bg-glow), transparent 70%),
-      linear-gradient(180deg, var(--bg-void) 0%, #17132a 55%, var(--bg-glow) 100%);
+      linear-gradient(180deg, var(--bg-void) 0%, var(--sky-mid) 55%, var(--bg-glow) 100%);
+    transition:background 2s ease;
     pointer-events:none;
   }
   .stars, .stars-lg{
     position:absolute; inset:0; width:1px; height:1px; border-radius:50%;
     background:transparent;
+    opacity:calc(.6 * var(--star-opacity));
+    transition:opacity 2s ease;
   }
-  .stars-lg{ animation:twinkle 5s ease-in-out infinite; }
+  .stars-lg{ opacity:calc(.9 * var(--star-opacity)); animation:twinkle 5s ease-in-out infinite; }
   @media (prefers-reduced-motion: reduce){ .stars-lg{ animation:none; } }
   @keyframes twinkle{ 0%,100%{ opacity:.55; } 50%{ opacity:1; } }
 
@@ -56,12 +68,13 @@
     padding-block:56px 80px;
   }
 
-  .masthead{ text-align:center; color:var(--star); margin-bottom:34px; }
+  .masthead{ text-align:center; color:var(--star); margin-bottom:34px; transition:color 2s ease; }
   .seal{ width:74px; height:74px; margin:0 auto 18px; display:block; }
   .eyebrow{
     font-family:'Nanum Square','Noto Sans KR',sans-serif;
     font-size:12.5px; letter-spacing:.32em; font-weight:500;
-    color:var(--gold-bright); opacity:.9; margin-bottom:10px;
+    color:var(--mh-accent); opacity:.9; margin-bottom:10px;
+    transition:color 2s ease;
   }
   h1.title{
     font-family:'Song Myung','Nanum Myeongjo',serif;
@@ -70,18 +83,20 @@
     letter-spacing:.03em;
     margin:0 0 14px;
     text-wrap:balance;
-    color:#f7efd8;
-    text-shadow:0 0 28px rgba(230,190,110,.25);
+    color:var(--mh-title);
+    text-shadow:0 0 28px var(--mh-title-glow);
+    transition:color 2s ease, text-shadow 2s ease;
   }
   .today{
     font-size:15.5px;
-    color:var(--gold-bright);
-    border-top:1px solid rgba(230,190,110,.25);
-    border-bottom:1px solid rgba(230,190,110,.25);
+    color:var(--mh-accent);
+    border-top:1px solid var(--mh-line);
+    border-bottom:1px solid var(--mh-line);
     padding:10px 6px;
     max-width:480px;
     margin:22px auto 0;
     font-style:italic;
+    transition:color 2s ease, border-color 2s ease;
   }
   .today-ref{
     display:block; margin-top:6px; font-size:11.5px; font-style:normal;
@@ -96,27 +111,28 @@
 
   .memory-verse{
     max-width:440px; margin:20px auto 0;
-    background:rgba(201,162,75,.08);
-    border:1px solid rgba(230,190,110,.35);
+    background:var(--mh-panel-bg);
+    border:1px solid var(--mh-line);
     padding:16px 18px;
+    transition:background 2s ease, border-color 2s ease;
   }
   .memory-verse .mv-label{
     display:block; font-style:normal; font-weight:700; font-size:11.5px; letter-spacing:.18em;
-    color:var(--gold-bright); opacity:.8; margin-bottom:10px;
+    color:var(--mh-accent); opacity:.8; margin-bottom:10px;
   }
-  .memory-verse .mv-ref{ color:#fff; font-weight:700; font-size:14.5px; margin-bottom:6px; }
-  .memory-verse .mv-text{ color:var(--gold-bright); font-style:italic; line-height:1.75; font-size:15.5px; }
+  .memory-verse .mv-ref{ color:var(--mh-title); font-weight:700; font-size:14.5px; margin-bottom:6px; }
+  .memory-verse .mv-text{ color:var(--mh-accent); font-style:italic; line-height:1.75; font-size:15.5px; }
   .memory-verse .mv-edit-btn{
     margin-top:12px; font-size:11px; letter-spacing:.05em;
-    background:none; border:1px solid rgba(230,190,110,.4); color:var(--gold-bright);
+    background:none; border:1px solid var(--mh-line); color:var(--mh-accent);
     padding:4px 11px; cursor:pointer;
   }
-  .memory-verse .mv-edit-btn:hover{ border-color:var(--gold-bright); color:#fff; }
+  .memory-verse .mv-edit-btn:hover{ border-color:var(--mh-accent); color:var(--mh-title); }
   .memory-verse .mv-form{ display:flex; flex-direction:column; gap:9px; }
   .memory-verse .mv-form input, .memory-verse .mv-form textarea{
     font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:13.5px;
-    padding:9px 10px; border:1px solid rgba(230,190,110,.3);
-    background:rgba(255,255,255,.07); color:#fff;
+    padding:9px 10px; border:1px solid var(--mh-line);
+    background:rgba(255,255,255,.07); color:var(--mh-title);
   }
   .memory-verse .mv-form input::placeholder, .memory-verse .mv-form textarea::placeholder{ color:rgba(255,255,255,.4); }
   .memory-verse .mv-form textarea{ min-height:56px; resize:vertical; }
@@ -134,14 +150,15 @@
     font-family:'Nanum Square','Noto Sans KR',sans-serif;
   }
   nav.pills a{
-    font-size:12.5px; color:var(--gold-bright); text-decoration:none;
+    font-size:12.5px; color:var(--mh-accent); text-decoration:none;
     padding:7px 14px; border-radius:999px;
-    background:rgba(20,17,34,.6);
-    border:1px solid rgba(230,190,110,.3);
+    background:var(--mh-nav-bg);
+    border:1px solid var(--mh-line);
     backdrop-filter:blur(6px);
     white-space:nowrap;
+    transition:color 2s ease, background 2s ease, border-color 2s ease;
   }
-  nav.pills a:hover{ border-color:var(--gold-bright); color:#fff; }
+  nav.pills a:hover{ border-color:var(--mh-accent); color:var(--mh-title); }
 
   .scroll{
     position:relative;
@@ -514,19 +531,80 @@
     return new Date(parts[0], (parts[1]||1)-1, parts[2]||1);
   }
 
-  function paintStars(el, count, size, opacity){
+  function paintStars(el, count, size){
     var shadows = [];
     for (var i=0;i<count;i++){
       var x = Math.random()*100, y = Math.random()*100;
       shadows.push((x).toFixed(2)+'vw '+(y).toFixed(2)+'vh 0 '+size+'px var(--star)');
     }
     el.style.boxShadow = shadows.join(',');
-    el.style.opacity = opacity;
   }
   var small = document.getElementById('starsSmall');
   var big = document.getElementById('starsBig');
-  if (small) paintStars(small, 140, 0, .6);
-  if (big) paintStars(big, 45, 1, .9);
+  if (small) paintStars(small, 140, 0);
+  if (big) paintStars(big, 45, 1);
+
+  // -- 하늘 배경: 시간대에 맞춰 밤/낮/노을을 보간 --
+  // .scroll(양피지 편지 본문)에서 쓰는 --gold/--gold-bright/--star 와는 분리된
+  // 마스트헤드 전용 변수(--mh-*)만 시간에 따라 바꾼다.
+  (function(){
+    function hex(c){ return [parseInt(c.slice(1,3),16), parseInt(c.slice(3,5),16), parseInt(c.slice(5,7),16), 1]; }
+    function rgba(c){
+      var m = c.match(/rgba?\(([^)]+)\)/);
+      var p = m[1].split(',').map(function(v){ return parseFloat(v); });
+      return [p[0], p[1], p[2], p.length > 3 ? p[3] : 1];
+    }
+    function parseColor(c){ return c[0] === '#' ? hex(c) : rgba(c); }
+    function lerpColor(a, b, t){
+      var ca = parseColor(a), cb = parseColor(b);
+      var r = ca.map(function(v, i){ return v + (cb[i] - v) * t; });
+      return 'rgba(' + Math.round(r[0]) + ',' + Math.round(r[1]) + ',' + Math.round(r[2]) + ',' + (Math.round(r[3] * 1000) / 1000) + ')';
+    }
+    var NIGHT = {
+      bgVoid:'#100e1c', skyMid:'#17132a', bgGlow:'#2c2544', star:'#f5ecd6',
+      mhAccent:'#eccd85', mhTitle:'#f7efd8', mhTitleGlow:'rgba(230,190,110,.25)',
+      mhLine:'rgba(230,190,110,.3)', mhPanelBg:'rgba(201,162,75,.08)', mhNavBg:'rgba(20,17,34,.6)',
+      starOpacity:1
+    };
+    var DAY = {
+      bgVoid:'#5aa8d8', skyMid:'#a9d8ef', bgGlow:'#eef8ff', star:'#33465a',
+      mhAccent:'#a9701f', mhTitle:'#233140', mhTitleGlow:'rgba(255,255,255,.5)',
+      mhLine:'rgba(169,112,31,.3)', mhPanelBg:'rgba(255,255,255,.55)', mhNavBg:'rgba(255,255,255,.6)',
+      starOpacity:0
+    };
+    var SUNSET = {
+      bgVoid:'#2e2a52', skyMid:'#9c4a72', bgGlow:'#ff9c5c', star:'#fff0dd',
+      mhAccent:'#ffb473', mhTitle:'#fff4e2', mhTitleGlow:'rgba(255,140,80,.4)',
+      mhLine:'rgba(255,178,120,.35)', mhPanelBg:'rgba(255,140,80,.14)', mhNavBg:'rgba(40,22,30,.55)',
+      starOpacity:.3
+    };
+    var ANCHORS = [[0,NIGHT],[7,NIGHT],[8,DAY],[18,DAY],[19,SUNSET],[21,NIGHT],[24,NIGHT]];
+    var KEYS = Object.keys(NIGHT);
+    var VAR_NAME = {
+      bgVoid:'--bg-void', skyMid:'--sky-mid', bgGlow:'--bg-glow', star:'--star',
+      mhAccent:'--mh-accent', mhTitle:'--mh-title', mhTitleGlow:'--mh-title-glow',
+      mhLine:'--mh-line', mhPanelBg:'--mh-panel-bg', mhNavBg:'--mh-nav-bg'
+    };
+
+    function applySkyPhase(){
+      var d = new Date();
+      var h = d.getHours() + d.getMinutes() / 60;
+      var i = 0;
+      while (i < ANCHORS.length - 2 && h >= ANCHORS[i + 1][0]) i++;
+      var t = (h - ANCHORS[i][0]) / (ANCHORS[i + 1][0] - ANCHORS[i][0]);
+      var a = ANCHORS[i][1], b = ANCHORS[i + 1][1];
+      var root = document.documentElement.style;
+      KEYS.forEach(function(k){
+        if (k === 'starOpacity'){
+          root.setProperty('--star-opacity', String(a.starOpacity + (b.starOpacity - a.starOpacity) * t));
+        } else {
+          root.setProperty(VAR_NAME[k], lerpColor(a[k], b[k], t));
+        }
+      });
+    }
+    applySkyPhase();
+    setInterval(applySkyPhase, 60 * 1000);
+  })();
 
   // -- 오늘의 말씀 · 성경 공부 기록 --
   var prompts = [

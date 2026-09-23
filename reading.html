@@ -6,6 +6,7 @@
   :root{
     --bg-void:#100e1c;
     --bg-glow:#2c2544;
+    --sky-mid:#17132a;
     --gold:#c9a24b;
     --gold-bright:#eccd85;
     --parchment:#ecdfc2;
@@ -15,6 +16,11 @@
     --cedar:#5b3324;
     --pomegranate:#8a3b3b;
     --star:#f5ecd6;
+    --mh-accent:#eccd85;
+    --mh-title:#f7efd8;
+    --mh-title-glow:rgba(230,190,110,.25);
+    --mh-line:rgba(230,190,110,.3);
+    --mh-nav-bg:rgba(20,17,34,.6);
   }
   *{ box-sizing:border-box; }
   html{ scroll-behavior:smooth; }
@@ -28,22 +34,25 @@
   .sky{
     position:fixed; inset:0; z-index:0;
     background: radial-gradient(ellipse 80% 50% at 50% 100%, var(--bg-glow), transparent 70%),
-      linear-gradient(180deg, var(--bg-void) 0%, #17132a 55%, var(--bg-glow) 100%);
+      linear-gradient(180deg, var(--bg-void) 0%, var(--sky-mid) 55%, var(--bg-glow) 100%);
+    transition:background 2s ease;
     pointer-events:none;
   }
   .wrap{ position:relative; z-index:1; max-width:720px; margin:0 auto; padding:44px 18px 70px; }
 
-  .masthead{ text-align:center; color:var(--star); margin-bottom:28px; }
-  .eyebrow{ font-size:12px; letter-spacing:.3em; font-weight:500; color:var(--gold-bright); opacity:.9; margin-bottom:8px; }
+  .masthead{ text-align:center; color:var(--star); margin-bottom:28px; transition:color 2s ease; }
+  .eyebrow{ font-size:12px; letter-spacing:.3em; font-weight:500; color:var(--mh-accent); opacity:.9; margin-bottom:8px; transition:color 2s ease; }
   h1.title{
     font-family:'Song Myung','Nanum Myeongjo',serif; font-weight:400;
-    font-size:clamp(28px,6.5vw,40px); margin:0 0 8px; color:#f7efd8;
-    text-shadow:0 0 24px rgba(230,190,110,.25);
+    font-size:clamp(28px,6.5vw,40px); margin:0 0 8px; color:var(--mh-title);
+    text-shadow:0 0 24px var(--mh-title-glow);
+    transition:color 2s ease, text-shadow 2s ease;
   }
-  .sub{ font-size:14px; color:var(--gold-bright); opacity:.85; }
+  .sub{ font-size:14px; color:var(--mh-accent); opacity:.85; transition:color 2s ease; }
   a.back{
-    display:inline-block; margin-top:14px; font-size:12.5px; color:var(--gold-bright);
-    text-decoration:none; border-bottom:1px solid rgba(230,190,110,.4);
+    display:inline-block; margin-top:14px; font-size:12.5px; color:var(--mh-accent);
+    text-decoration:none; border-bottom:1px solid var(--mh-line);
+    transition:color 2s ease, border-color 2s ease;
   }
 
   .scroll{
@@ -95,7 +104,8 @@
 
   footer{
     max-width:720px; margin:30px auto 0; padding-inline:18px; text-align:center;
-    color:var(--gold-bright); opacity:.7; font-size:12px; position:relative; z-index:1;
+    color:var(--mh-accent); opacity:.7; font-size:12px; position:relative; z-index:1;
+    transition:color 2s ease;
   }
 
   @media (max-width:480px){ .scroll{ padding-inline:20px; } }
@@ -134,6 +144,56 @@
 
 <script>
 (function(){
+  // -- 하늘 배경: 시간대에 맞춰 밤/낮/노을을 보간 (index.html과 동일 로직) --
+  (function(){
+    function hex(c){ return [parseInt(c.slice(1,3),16), parseInt(c.slice(3,5),16), parseInt(c.slice(5,7),16), 1]; }
+    function rgba(c){
+      var m = c.match(/rgba?\(([^)]+)\)/);
+      var p = m[1].split(',').map(function(v){ return parseFloat(v); });
+      return [p[0], p[1], p[2], p.length > 3 ? p[3] : 1];
+    }
+    function parseColor(c){ return c[0] === '#' ? hex(c) : rgba(c); }
+    function lerpColor(a, b, t){
+      var ca = parseColor(a), cb = parseColor(b);
+      var r = ca.map(function(v, i){ return v + (cb[i] - v) * t; });
+      return 'rgba(' + Math.round(r[0]) + ',' + Math.round(r[1]) + ',' + Math.round(r[2]) + ',' + (Math.round(r[3] * 1000) / 1000) + ')';
+    }
+    var NIGHT = {
+      bgVoid:'#100e1c', skyMid:'#17132a', bgGlow:'#2c2544', star:'#f5ecd6',
+      mhAccent:'#eccd85', mhTitle:'#f7efd8', mhTitleGlow:'rgba(230,190,110,.25)',
+      mhLine:'rgba(230,190,110,.3)', mhNavBg:'rgba(20,17,34,.6)'
+    };
+    var DAY = {
+      bgVoid:'#5aa8d8', skyMid:'#a9d8ef', bgGlow:'#eef8ff', star:'#33465a',
+      mhAccent:'#a9701f', mhTitle:'#233140', mhTitleGlow:'rgba(255,255,255,.5)',
+      mhLine:'rgba(169,112,31,.3)', mhNavBg:'rgba(255,255,255,.6)'
+    };
+    var SUNSET = {
+      bgVoid:'#2e2a52', skyMid:'#9c4a72', bgGlow:'#ff9c5c', star:'#fff0dd',
+      mhAccent:'#ffb473', mhTitle:'#fff4e2', mhTitleGlow:'rgba(255,140,80,.4)',
+      mhLine:'rgba(255,178,120,.35)', mhNavBg:'rgba(40,22,30,.55)'
+    };
+    var ANCHORS = [[0,NIGHT],[7,NIGHT],[8,DAY],[18,DAY],[19,SUNSET],[21,NIGHT],[24,NIGHT]];
+    var KEYS = Object.keys(NIGHT);
+    var VAR_NAME = {
+      bgVoid:'--bg-void', skyMid:'--sky-mid', bgGlow:'--bg-glow', star:'--star',
+      mhAccent:'--mh-accent', mhTitle:'--mh-title', mhTitleGlow:'--mh-title-glow',
+      mhLine:'--mh-line', mhNavBg:'--mh-nav-bg'
+    };
+    function applySkyPhase(){
+      var d = new Date();
+      var h = d.getHours() + d.getMinutes() / 60;
+      var i = 0;
+      while (i < ANCHORS.length - 2 && h >= ANCHORS[i + 1][0]) i++;
+      var t = (h - ANCHORS[i][0]) / (ANCHORS[i + 1][0] - ANCHORS[i][0]);
+      var a = ANCHORS[i][1], b = ANCHORS[i + 1][1];
+      var root = document.documentElement.style;
+      KEYS.forEach(function(k){ root.setProperty(VAR_NAME[k], lerpColor(a[k], b[k], t)); });
+    }
+    applySkyPhase();
+    setInterval(applySkyPhase, 60 * 1000);
+  })();
+
   function pad(n){ return n < 10 ? '0'+n : ''+n; }
   function dateKey(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
 
