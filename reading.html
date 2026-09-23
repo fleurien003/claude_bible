@@ -59,6 +59,7 @@
     position:relative; background:var(--parchment); color:var(--ink);
     padding:36px clamp(20px,6vw,48px) 32px;
     box-shadow:0 20px 50px rgba(0,0,0,.4);
+    transition:background-color 1.5s ease;
   }
 
   .kicker{ font-size:12px; letter-spacing:.28em; font-weight:600; color:var(--pomegranate); margin-bottom:8px; }
@@ -173,7 +174,12 @@
       mhAccent:'#ffb473', mhTitle:'#fff4e2', mhTitleGlow:'rgba(255,140,80,.4)',
       mhLine:'rgba(255,178,120,.35)', mhNavBg:'rgba(40,22,30,.55)'
     };
-    var ANCHORS = [[0,NIGHT],[7,NIGHT],[8,DAY],[18,DAY],[19,SUNSET],[21,NIGHT],[24,NIGHT]];
+    // 월~목 08~18시 "위장 모드" — 회사에서 볼 때 티나지 않도록 낮 하늘을 새하얗게
+    var WHITE = {
+      bgVoid:'#ffffff', skyMid:'#ffffff', bgGlow:'#ffffff', star:'#2b2b2b',
+      mhAccent:'#6b6b6b', mhTitle:'#1c1c1c', mhTitleGlow:'rgba(0,0,0,0)',
+      mhLine:'rgba(0,0,0,.12)', mhNavBg:'rgba(0,0,0,.04)'
+    };
     var KEYS = Object.keys(NIGHT);
     var VAR_NAME = {
       bgVoid:'--bg-void', skyMid:'--sky-mid', bgGlow:'--bg-glow', star:'--star',
@@ -183,12 +189,19 @@
     function applySkyPhase(){
       var d = new Date();
       var h = d.getHours() + d.getMinutes() / 60;
+      var wd = d.getDay();
+      var isOfficeDay = wd >= 1 && wd <= 4;
+      var dayVariant = isOfficeDay ? WHITE : DAY;
+      var anchors = [[0,NIGHT],[7,NIGHT],[8,dayVariant],[18,dayVariant],[19,SUNSET],[21,NIGHT],[24,NIGHT]];
       var i = 0;
-      while (i < ANCHORS.length - 2 && h >= ANCHORS[i + 1][0]) i++;
-      var t = (h - ANCHORS[i][0]) / (ANCHORS[i + 1][0] - ANCHORS[i][0]);
-      var a = ANCHORS[i][1], b = ANCHORS[i + 1][1];
+      while (i < anchors.length - 2 && h >= anchors[i + 1][0]) i++;
+      var t = (h - anchors[i][0]) / (anchors[i + 1][0] - anchors[i][0]);
+      var a = anchors[i][1], b = anchors[i + 1][1];
       var root = document.documentElement.style;
       KEYS.forEach(function(k){ root.setProperty(VAR_NAME[k], lerpColor(a[k], b[k], t)); });
+      var officeWhite = isOfficeDay && h >= 8 && h < 18;
+      root.setProperty('--parchment', officeWhite ? '#ffffff' : '#ecdfc2');
+      root.setProperty('--parchment-edge', officeWhite ? '#eeeeee' : '#d8c69a');
     }
     applySkyPhase();
     setInterval(applySkyPhase, 60 * 1000);
