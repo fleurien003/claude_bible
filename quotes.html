@@ -80,8 +80,19 @@
     padding:18px 20px;
   }
   .quote-item .qt-text{ font-family:'Nanum Myeongjo',serif; font-size:16px; color:var(--ink); line-height:1.75; white-space:pre-wrap; }
-  .quote-item .qt-text::before{ content:'\\201C'; color:var(--gold); font-weight:700; margin-right:2px; }
-  .quote-item .qt-text::after{ content:'\\201D'; color:var(--gold); font-weight:700; margin-left:2px; }
+  .quote-item .qt-text::before{ content:'\201C'; color:var(--gold); font-weight:700; margin-right:2px; }
+  .quote-item .qt-text::after{ content:'\201D'; color:var(--gold); font-weight:700; margin-left:2px; }
+  .quote-item .qt-ref{ margin-top:10px; font-size:12.5px; font-weight:700; color:var(--pomegranate); }
+  .quote-item .qt-verse-tabs{ margin-top:8px; display:flex; gap:6px; }
+  .quote-item .qt-tab{
+    background:none; border:1px solid var(--parchment-edge); color:var(--ink-soft); border-radius:999px;
+    font-size:11px; padding:3px 10px; cursor:pointer;
+  }
+  .quote-item .qt-tab.active{ background:var(--gold); color:#fff; border-color:var(--gold); }
+  .quote-item .qt-verse-text{
+    margin-top:8px; font-size:13.5px; color:var(--ink); line-height:1.7; white-space:pre-wrap;
+    background:#fbf6e8; border:1px solid var(--parchment-edge); border-radius:4px; padding:10px 12px;
+  }
   .quote-item .qt-meta{ margin-top:10px; font-size:11.5px; color:var(--ink-soft); display:flex; justify-content:space-between; align-items:center; gap:10px; }
   .quote-item .qt-del{
     background:none; border:1px solid var(--parchment-edge); color:var(--pomegranate); border-radius:999px;
@@ -157,8 +168,21 @@
       return;
     }
     listEl.innerHTML = items.map(function(w){
+      var refHtml = '';
+      var br = w.bibleRef;
+      if (br && br.label) {
+        refHtml =
+          '<div class="qt-ref">📖 ' + esc(br.label) + (br.labelEn ? ' · ' + esc(br.labelEn) : '') + '</div>' +
+          '<div class="qt-verse-tabs">' +
+            '<button type="button" class="qt-tab active" data-lang="ko">한글</button>' +
+            '<button type="button" class="qt-tab" data-lang="en">영어</button>' +
+          '</div>' +
+          '<div class="qt-verse-text ko-text">' + esc(br.koText).replace(/\n/g, '<br>') + '</div>' +
+          '<div class="qt-verse-text en-text" hidden>' + esc(br.enText).replace(/\n/g, '<br>') + '</div>';
+      }
       return '<li class="quote-item" data-id="' + esc(w.id) + '">' +
         '<div class="qt-text">' + esc(w.text) + '</div>' +
+        refHtml +
         '<div class="qt-meta"><span>' + esc(w.source || '') + ' · ' + fmtDate(w.createdAt) + '</span>' +
         '<button type="button" class="qt-del" data-id="' + esc(w.id) + '">삭제</button></div>' +
         '</li>';
@@ -170,6 +194,19 @@
         dbRef.doc('quotes/' + id).delete().catch(function(){});
         allQuotes = allQuotes.filter(function(w){ return w.id !== id; });
         render(searchEl.value);
+      });
+    });
+    listEl.querySelectorAll('.qt-tab').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var item = btn.closest('.quote-item');
+        if (!item) return;
+        item.querySelectorAll('.qt-tab').forEach(function(t){ t.classList.remove('active'); });
+        btn.classList.add('active');
+        var lang = btn.getAttribute('data-lang');
+        var koEl = item.querySelector('.ko-text');
+        var enEl = item.querySelector('.en-text');
+        if (koEl) koEl.hidden = lang !== 'ko';
+        if (enEl) enEl.hidden = lang !== 'en';
       });
     });
   }

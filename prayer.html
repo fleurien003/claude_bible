@@ -575,6 +575,45 @@
     return menuEl;
   }
   function hideMenu(){ if (menuEl) menuEl.classList.remove('open'); }
+  function captureBibleRef(sel){
+    try {
+      if (!sel || !sel.rangeCount) return null;
+      var range = sel.getRangeAt(0);
+      var anchor = sel.anchorNode;
+      var anchorEl = anchor && anchor.nodeType === 1 ? anchor : (anchor ? anchor.parentElement : null);
+      var dayEl = anchorEl && anchorEl.closest ? anchorEl.closest('.reading-day') : null;
+      if (!dayEl) return null;
+      var bookKr = dayEl.getAttribute('data-book-kr');
+      var bookEn = dayEl.getAttribute('data-book-en');
+      var chapter = dayEl.getAttribute('data-chapter');
+      if (!bookKr || !chapter) return null;
+      var verses = [];
+      dayEl.querySelectorAll('.rv[data-verse]').forEach(function(rv){
+        if (!range.intersectsNode(rv)) return;
+        var koEl = rv.querySelector('.ko');
+        var enEl = rv.querySelector('.en');
+        verses.push({
+          n: parseInt(rv.getAttribute('data-verse'), 10) || 0,
+          ko: koEl ? koEl.textContent.replace(/^\s*\d+\s*/, '').trim() : '',
+          en: enEl ? enEl.textContent.trim() : ''
+        });
+      });
+      if (!verses.length) return null;
+      verses.sort(function(a,b){ return a.n - b.n; });
+      var vMin = verses[0].n, vMax = verses[verses.length - 1].n;
+      return {
+        bookKr: bookKr,
+        bookEn: bookEn,
+        chapter: parseInt(chapter, 10),
+        verseStart: vMin,
+        verseEnd: vMax,
+        label: bookKr + ' ' + chapter + '\uc7a5 ' + vMin + (vMax > vMin ? '-' + vMax : '') + '\uc808',
+        labelEn: (bookEn || '') + ' ' + chapter + ':' + vMin + (vMax > vMin ? '-' + vMax : ''),
+        koText: verses.map(function(v){ return v.n + '. ' + v.ko; }).join('\n'),
+        enText: verses.map(function(v){ return v.n + '. ' + v.en; }).join('\n')
+      };
+    } catch (err) { return null; }
+  }
   function isInsideFormField(node){
     var el = node && node.nodeType === 1 ? node : (node ? node.parentElement : null);
     return !!(el && el.closest && el.closest('textarea, input'));
@@ -585,14 +624,18 @@
     menu.style.left = left + 'px';
     menu.style.top = y + 'px';
   }
-  function saveQuote(text, btn){
+  function saveQuote(text, btn, bibleRef){
     QUOTES_DB_PROMISE.then(function(db){
       if (!db) return;
       var id = Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
-      db.doc('quotes/' + id).set({
+      var entry = {
         text: text,
         source: (document.title || '').replace(/\s+/g, ' ').trim(),
         createdAt: Date.now()
+      };
+      if (bibleRef) entry.bibleRef = bibleRef;
+      db.doc('quotes/' + id).set(entry).then(function(){
+        document.dispatchEvent(new CustomEvent('solomon-quote-saved', { detail: entry }));
       }).catch(function(){});
     });
     if (btn) btn.textContent = '\u2713 저장했어요';
@@ -604,12 +647,13 @@
     var text = sel && sel.toString().trim();
     if (!text) { hideMenu(); return; }
     e.preventDefault();
+    var bibleRef = captureBibleRef(sel);
     var menu = ensureMenu();
     var btn = menu.querySelector('.sm-save');
     btn.textContent = '\ud83d\udccc 이 구절 저장하기';
     menu.classList.add('open');
     positionMenu(menu, window.scrollX + e.clientX, window.scrollY + e.clientY);
-    btn.onclick = function(){ saveQuote(text, btn); };
+    btn.onclick = function(){ saveQuote(text, btn, bibleRef); };
   });
   document.addEventListener('click', function(e){
     if (menuEl && !(e.target.closest && e.target.closest('.select-menu'))) hideMenu();
