@@ -371,6 +371,35 @@
   }
   .add-btn:hover{ border-color: var(--gn-gold); color: var(--gn-gold); }
 
+  .sv-row{ display:flex; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
+  .sv-row select, .sv-row input[type="text"]{
+    font-family: 'Noto Sans KR', sans-serif; font-size: 13.5px;
+    padding: 8px 10px; border: 1px solid var(--gn-paper-line); border-radius: 4px;
+    background: var(--gn-card); color: var(--gn-ink);
+  }
+  .sv-row input[type="text"]{ width: 140px; }
+  .sv-row input[type="text"]::placeholder{ color: #B3ABA0; }
+  .sv-row select:focus, .sv-row input[type="text"]:focus{ outline: none; border-color: var(--gn-gold); background: #FFFDF8; }
+  .sv-remove{
+    background: none; border: none; color: var(--gn-ink-soft); font-size: 18px;
+    cursor: pointer; padding: 2px 6px; line-height: 1;
+  }
+  .sv-remove:hover{ color: var(--gn-rose); }
+  .sv-rendered{ margin-top: 14px; display: flex; flex-direction: column; gap: 12px; }
+  .sv-card{
+    background: #FBF8F1; border: 1px solid var(--gn-paper-line); border-left: 3px solid var(--gn-gold);
+    border-radius: 4px; padding: 14px 16px;
+  }
+  .sv-card .sv-ref-label{ font-size: 12.5px; font-weight: 700; color: var(--gn-gold); margin-bottom: 8px; }
+  .sv-card .sv-tabs{ display: flex; gap: 6px; margin-bottom: 8px; }
+  .sv-card .sv-tab{
+    background: none; border: 1px solid var(--gn-paper-line); color: var(--gn-ink-soft);
+    border-radius: 999px; font-size: 11px; padding: 3px 10px; cursor: pointer;
+  }
+  .sv-card .sv-tab.active{ background: var(--gn-gold); color: #fff; border-color: var(--gn-gold); }
+  .sv-card .sv-text{ font-size: 14.5px; color: var(--gn-ink); line-height: 1.75; white-space: pre-wrap; }
+  .sv-card .sv-error{ font-size: 12.5px; color: var(--gn-rose); }
+
   .prayer-head{
     display: flex;
     align-items: center;
@@ -551,6 +580,15 @@
     <button class="head-btn" onclick="exitPastView()">현재 작성 화면으로</button>
   </div>
 
+  <!-- 설교 본문 구절 -->
+  <section>
+    <div class="sec-label">SCRIPTURE</div>
+    <div class="sec-title">설교 본문 구절</div>
+    <div class="sv-rows" id="svRows"></div>
+    <button type="button" class="add-btn" onclick="addSermonVerse()">+ 구절 추가</button>
+    <div class="sv-rendered" id="svRendered"></div>
+  </section>
+
   <!-- 설교 말씀 -->
   <section>
     <div class="sec-label">SERMON</div>
@@ -713,6 +751,118 @@
   }
   addThanks(); // 기본 1개 항목
 
+  // 설교 본문 구절 — 책/장절을 고르면 db에 이미 올려 둔 성경 원문(한글·영어)을 그대로 불러와 보여준다
+  const SV_BOOKS = ["창세기","출애굽기","레위기","민수기","신명기","여호수아","사사기","룻기","사무엘상","사무엘하","열왕기상","열왕기하","역대상","역대하","에스라","느헤미야","에스더","욥기","시편","잠언","전도서","아가","이사야","예레미야","예레미야애가","에스겔","다니엘","호세아","요엘","아모스","오바댜","요나","미가","나훔","하박국","스바냐","학개","스가랴","말라기","마태복음","마가복음","누가복음","요한복음","사도행전","로마서","고린도전서","고린도후서","갈라디아서","에베소서","빌립보서","골로새서","데살로니가전서","데살로니가후서","디모데전서","디모데후서","디도서","빌레몬서","히브리서","야고보서","베드로전서","베드로후서","요한일서","요한이서","요한삼서","유다서","요한계시록"];
+  const SV_DB_PROMISE = (window.claude && typeof window.claude.use === 'function')
+    ? window.claude.use('db') : Promise.resolve(null);
+  function svPad(n, w){ n = String(n); while (n.length < w) n = '0' + n; return n; }
+  function svParseRef(refText){
+    const m = (refText || '').trim().match(/^(\d{1,3})\s*[:장]\s*(\d{1,3})(?:\s*[-~]\s*(\d{1,3}))?\s*(?:절)?\s*$/);
+    if (!m) return null;
+    const chapter = parseInt(m[1], 10);
+    const start = parseInt(m[2], 10);
+    const end = m[3] ? parseInt(m[3], 10) : start;
+    return { chapter, start, end };
+  }
+  function svRowsData(){
+    return Array.from(document.querySelectorAll('#svRows .sv-row')).map(row => ({
+      book: row.querySelector('.sv-book').value,
+      ref: row.querySelector('.sv-ref').value.trim()
+    })).filter(r => r.ref);
+  }
+  function addSermonVerseRow(book, ref){
+    const wrap = document.getElementById('svRows');
+    const row = document.createElement('div');
+    row.className = 'sv-row';
+    const options = SV_BOOKS.map(b => `<option value="${b}"${b === book ? ' selected' : ''}>${b}</option>`).join('');
+    row.innerHTML = `
+      <select class="sv-book">${options}</select>
+      <input type="text" class="sv-ref" placeholder="예: 119:1-16" value="${(ref || '').replace(/"/g,'&quot;')}">
+      <button type="button" class="sv-remove" onclick="removeSermonVerseRow(this)" aria-label="삭제">×</button>
+    `;
+    wrap.appendChild(row);
+  }
+  function addSermonVerse(){
+    addSermonVerseRow(SV_BOOKS[0], '');
+    scheduleAutoSave();
+  }
+  function removeSermonVerseRow(btn){
+    btn.closest('.sv-row').remove();
+    renderSermonVerses();
+    scheduleAutoSave();
+  }
+  function resetSermonVerses(){
+    document.getElementById('svRows').innerHTML = '';
+    addSermonVerseRow(SV_BOOKS[0], '');
+    renderSermonVerses();
+  }
+  function loadSermonVerses(list){
+    document.getElementById('svRows').innerHTML = '';
+    if (list && list.length) {
+      list.forEach(v => addSermonVerseRow(v.book, v.ref));
+    } else {
+      addSermonVerseRow(SV_BOOKS[0], '');
+    }
+    renderSermonVerses();
+  }
+  let svRenderTimer = null;
+  function scheduleSvRender(){
+    if (svRenderTimer) clearTimeout(svRenderTimer);
+    svRenderTimer = setTimeout(renderSermonVerses, 400);
+  }
+  async function renderSermonVerses(){
+    const out = document.getElementById('svRendered');
+    const rows = svRowsData();
+    if (!rows.length){ out.innerHTML = ''; return; }
+    const db = await SV_DB_PROMISE;
+    if (!db){ out.innerHTML = '<div class="sv-card"><div class="sv-error">이 화면에서는 성경 본문을 불러올 수 없어요.</div></div>'; return; }
+    const cards = await Promise.all(rows.map(async (r) => {
+      const idx = SV_BOOKS.indexOf(r.book);
+      const parsed = svParseRef(r.ref);
+      if (idx === -1 || !parsed) {
+        return { error: '형식을 확인해주세요 (예: 119:1-16)', book: r.book, ref: r.ref };
+      }
+      const docId = svPad(idx + 1, 2) + '-' + svPad(parsed.chapter, 3);
+      const [koSnap, enSnap] = await Promise.all([
+        db.doc('bible/' + docId).get().catch(() => null),
+        db.doc('bible_en/' + docId).get().catch(() => null)
+      ]);
+      const koData = koSnap && koSnap.exists ? koSnap.data() : null;
+      const enData = enSnap && enSnap.exists ? enSnap.data() : null;
+      if (!koData) return { error: '해당 본문을 찾지 못했어요.', book: r.book, ref: r.ref };
+      const inRange = v => { const n = parseInt(v.n, 10); return n >= parsed.start && n <= parsed.end; };
+      const koText = (koData.verses || []).filter(inRange).map(v => v.n + '. ' + v.t).join('\n');
+      const enText = enData ? (enData.verses || []).filter(inRange).map(v => v.n + '. ' + v.t).join('\n') : '';
+      const label = r.book + ' ' + parsed.chapter + ':' + parsed.start + (parsed.end !== parsed.start ? '-' + parsed.end : '');
+      const labelEn = (enData && enData.book_en ? enData.book_en : '') + ' ' + parsed.chapter + ':' + parsed.start + (parsed.end !== parsed.start ? '-' + parsed.end : '');
+      return { label, labelEn, koText, enText };
+    }));
+    out.innerHTML = cards.map((c, i) => {
+      if (c.error) {
+        return '<div class="sv-card"><div class="sv-ref-label">' + escapeHtml(c.book) + ' ' + escapeHtml(c.ref) + '</div><div class="sv-error">' + escapeHtml(c.error) + '</div></div>';
+      }
+      return '<div class="sv-card" data-i="' + i + '">' +
+        '<div class="sv-ref-label">📖 ' + escapeHtml(c.label) + (c.labelEn ? ' · ' + escapeHtml(c.labelEn) : '') + '</div>' +
+        '<div class="sv-tabs"><button type="button" class="sv-tab active" data-lang="ko">한글</button><button type="button" class="sv-tab" data-lang="en">영어</button></div>' +
+        '<div class="sv-text sv-ko">' + escapeHtml(c.koText) + '</div>' +
+        '<div class="sv-text sv-en" hidden>' + escapeHtml(c.enText || '영어 본문을 찾지 못했어요.') + '</div>' +
+        '</div>';
+    }).join('');
+    out.querySelectorAll('.sv-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const card = btn.closest('.sv-card');
+        card.querySelectorAll('.sv-tab').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+        const lang = btn.getAttribute('data-lang');
+        card.querySelector('.sv-ko').hidden = lang !== 'ko';
+        card.querySelector('.sv-en').hidden = lang !== 'en';
+      });
+    });
+  }
+  document.getElementById('svRows').addEventListener('input', scheduleSvRender);
+  document.getElementById('svRows').addEventListener('change', scheduleSvRender);
+  addSermonVerseRow(SV_BOOKS[0], ''); // 기본 1개 항목
+
   // 기도제목 — 은아(고정) + 6명 슬롯
   const prayerList = document.getElementById('prayerList');
 
@@ -802,6 +952,8 @@
     const sermonBox = document.querySelector('.sermon-box textarea');
     sermonBox.value = data.sermon || '';
     autoGrow(sermonBox);
+
+    loadSermonVerses(data.sermonVerses);
 
     const reflectionBox = document.querySelector('.reflection-text');
     if(reflectionBox){
@@ -995,6 +1147,7 @@
     const sermonBox = document.querySelector('.sermon-box textarea');
     sermonBox.value = '';
     autoGrow(sermonBox);
+    resetSermonVerses();
     const reflectionBox = document.querySelector('.reflection-text');
     reflectionBox.value = '';
     autoGrow(reflectionBox);
@@ -1081,7 +1234,8 @@
       const comment = commentWrap.querySelector('textarea').value.trim();
       return { name, prayer, comment, commentOpen };
     }).filter(p => p.name || p.prayer);
-    return { title, sermon, reflection, thanks, people, savedAt: Date.now() };
+    const sermonVerses = svRowsData();
+    return { title, sermon, sermonVerses, reflection, thanks, people, savedAt: Date.now() };
   }
 
   let autoSaveTimer = null;

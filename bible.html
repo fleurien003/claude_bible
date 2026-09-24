@@ -1,0 +1,448 @@
+<!doctype html><html lang="ko"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>성경책</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Song+Myung&family=Nanum+Myeongjo:wght@400;700;800&family=Nanum+Square:wght@400;700;800&display=swap');
+
+  :root{
+    --bg-void:#100e1c;
+    --bg-glow:#2c2544;
+    --sky-mid:#17132a;
+    --gold:#c9a24b;
+    --gold-bright:#eccd85;
+    --parchment:#ecdfc2;
+    --parchment-edge:#d8c69a;
+    --ink:#2c2013;
+    --ink-soft:#6b5636;
+    --cedar:#5b3324;
+    --pomegranate:#8a3b3b;
+    --star:#f5ecd6;
+    --mh-accent:#eccd85;
+    --mh-title:#f7efd8;
+    --mh-title-glow:rgba(230,190,110,.25);
+    --mh-line:rgba(230,190,110,.3);
+    --mh-nav-bg:rgba(20,17,34,.6);
+  }
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  @media (prefers-reduced-motion: reduce){ html{ scroll-behavior:auto; } }
+
+  body{
+    margin:0; background:var(--bg-void); color:var(--ink);
+    font-family:'Nanum Square','Noto Sans KR',sans-serif;
+    line-height:1.7; -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  }
+  .sky{
+    position:fixed; inset:0; z-index:0;
+    background: radial-gradient(ellipse 80% 50% at 50% 100%, var(--bg-glow), transparent 70%),
+      linear-gradient(180deg, var(--bg-void) 0%, var(--sky-mid) 55%, var(--bg-glow) 100%);
+    transition:background 2s ease;
+    pointer-events:none;
+  }
+  .wrap{ position:relative; z-index:1; max-width:720px; margin:0 auto; padding:44px 18px 70px; }
+
+  .masthead{ text-align:center; color:var(--star); margin-bottom:28px; transition:color 2s ease; }
+  .eyebrow{ font-size:12px; letter-spacing:.3em; font-weight:500; color:var(--mh-accent); opacity:.9; margin-bottom:8px; transition:color 2s ease; }
+  h1.title{
+    font-family:'Song Myung','Nanum Myeongjo',serif; font-weight:400;
+    font-size:clamp(28px,6.5vw,40px); margin:0 0 8px; color:var(--mh-title);
+    text-shadow:0 0 24px var(--mh-title-glow);
+    transition:color 2s ease, text-shadow 2s ease;
+  }
+  .sub{ font-size:14px; color:var(--mh-accent); opacity:.85; transition:color 2s ease; }
+  a.back{
+    display:inline-block; margin-top:14px; font-size:12.5px; color:var(--mh-accent);
+    text-decoration:none; border-bottom:1px solid var(--mh-line);
+    transition:color 2s ease, border-color 2s ease;
+  }
+
+  .scroll{
+    position:relative; background:var(--parchment); color:var(--ink);
+    padding:36px clamp(20px,6vw,48px) 32px;
+    box-shadow:0 20px 50px rgba(0,0,0,.4);
+    transition:background-color 1.5s ease;
+  }
+
+  .kicker{ font-size:12px; letter-spacing:.28em; font-weight:600; color:var(--pomegranate); margin-bottom:8px; }
+  h2{ font-family:'Nanum Square','Noto Sans KR',sans-serif; font-weight:400; font-size:clamp(22px,4.4vw,28px); margin:0 0 18px; color:var(--cedar); }
+
+  .bv-nav{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:22px; }
+  .bv-nav select{
+    font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:14.5px;
+    padding:9px 12px; border:1px solid var(--parchment-edge); background:#f7f1de; color:var(--ink);
+  }
+  .bv-nav-btns{ display:flex; gap:8px; margin-left:auto; }
+  .bv-nav-btns button{
+    font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:13.5px; font-weight:500;
+    background:var(--cedar); color:#f7efd8; border:none; padding:9px 16px; cursor:pointer;
+  }
+  .bv-nav-btns button:hover{ background:#4a2a1d; }
+  .bv-nav-btns button:disabled{ opacity:.4; cursor:default; }
+
+  .reading-day{ background:var(--parchment); }
+  .reading-day .head{ padding-bottom:13px; border-bottom:1px dashed var(--parchment-edge); margin-bottom:6px; }
+  .reading-day .ref{ font-weight:700; color:var(--cedar); font-size:18px; }
+  .reading-day .ref .en-name{ font-weight:400; color:var(--ink-soft); font-size:13.5px; }
+  .rv{ margin:16px 0 0; }
+  .rv .ko{ font-size:16px; color:var(--ink); margin:0; }
+  .rv .en{ font-size:13.5px; color:var(--ink-soft); font-style:italic; margin:4px 0 0; }
+  .rv sup{ font-size:11px; color:var(--gold); font-weight:600; margin-right:4px; }
+
+  .qt-loading, .qt-error{ margin:0; font-size:15px; color:var(--ink-soft); font-style:italic; }
+
+  footer{
+    max-width:720px; margin:30px auto 0; padding-inline:18px; text-align:center;
+    color:var(--mh-accent); opacity:.7; font-size:12px; position:relative; z-index:1;
+    transition:color 2s ease;
+  }
+
+  @media (max-width:480px){ .scroll{ padding-inline:20px; } .bv-nav-btns{ margin-left:0; width:100%; } .bv-nav-btns button{ flex:1; } }
+
+  .select-menu{
+    position:absolute; z-index:10000; background:var(--parchment,#ecdfc2); border:1px solid var(--gold,#c9a24b);
+    border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,.3); padding:4px;
+    opacity:0; transform:translateY(4px); pointer-events:none; transition:opacity .12s ease, transform .12s ease;
+  }
+  .select-menu.open{ opacity:1; transform:translateY(0); pointer-events:auto; }
+  .select-menu button{
+    display:block; width:100%; text-align:left; background:transparent; border:none; cursor:pointer;
+    font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:13px; color:var(--ink,#2c2013);
+    padding:8px 14px; border-radius:5px; white-space:nowrap;
+  }
+  .select-menu button:hover{ background:var(--gold,#c9a24b); color:#fff; }
+</style>
+
+<div class="sky"></div>
+
+<div class="wrap">
+  <div class="masthead">
+    <div class="eyebrow">말씀 전체 보기</div>
+    <h1 class="title">성경책</h1>
+    <div class="sub">궁금한 본문을 책별로 찾아 한글·영어로 함께 읽어보세요</div>
+    <a class="back" href="index.html">← 솔로몬의 편지로 돌아가기</a>
+  </div>
+
+  <div class="scroll">
+    <div class="kicker">본문 찾기</div>
+    <div class="bv-nav">
+      <select id="bvBook"></select>
+      <select id="bvChapter"></select>
+      <div class="bv-nav-btns">
+        <button type="button" id="bvPrev">‹ 이전 장</button>
+        <button type="button" id="bvNext">다음 장 ›</button>
+      </div>
+    </div>
+    <div id="bvContent"><p class="qt-loading">불러오는 중…</p></div>
+  </div>
+</div>
+
+<footer>본문을 드래그한 뒤 마우스 오른쪽 버튼을 누르면 구절을 저장할 수 있어요</footer>
+
+<script>
+(function(){
+  var BOOKS = ["창세기","출애굽기","레위기","민수기","신명기","여호수아","사사기","룻기","사무엘상","사무엘하","열왕기상","열왕기하","역대상","역대하","에스라","느헤미야","에스더","욥기","시편","잠언","전도서","아가","이사야","예레미야","예레미야애가","에스겔","다니엘","호세아","요엘","아모스","오바댜","요나","미가","나훔","하박국","스바냐","학개","스가랴","말라기","마태복음","마가복음","누가복음","요한복음","사도행전","로마서","고린도전서","고린도후서","갈라디아서","에베소서","빌립보서","골로새서","데살로니가전서","데살로니가후서","디모데전서","디모데후서","디도서","빌레몬서","히브리서","야고보서","베드로전서","베드로후서","요한일서","요한이서","요한삼서","유다서","요한계시록"];
+  var BOOK_CHAPTERS = {"창세기":50,"출애굽기":40,"레위기":27,"민수기":36,"신명기":34,"여호수아":24,"사사기":21,"룻기":4,"사무엘상":31,"사무엘하":24,"열왕기상":22,"열왕기하":25,"역대상":29,"역대하":36,"에스라":10,"느헤미야":13,"에스더":10,"욥기":42,"시편":150,"잠언":31,"전도서":12,"아가":8,"이사야":66,"예레미야":52,"예레미야애가":5,"에스겔":48,"다니엘":12,"호세아":14,"요엘":3,"아모스":9,"오바댜":1,"요나":4,"미가":7,"나훔":3,"하박국":3,"스바냐":3,"학개":2,"스가랴":14,"말라기":4,"마태복음":28,"마가복음":16,"누가복음":24,"요한복음":21,"사도행전":28,"로마서":16,"고린도전서":16,"고린도후서":13,"갈라디아서":6,"에베소서":6,"빌립보서":4,"골로새서":4,"데살로니가전서":5,"데살로니가후서":3,"디모데전서":6,"디모데후서":4,"디도서":3,"빌레몬서":1,"히브리서":13,"야고보서":5,"베드로전서":5,"베드로후서":3,"요한일서":5,"요한이서":1,"요한삼서":1,"유다서":1,"요한계시록":22};
+
+  var DB_PROMISE = (window.claude && typeof window.claude.use === 'function')
+    ? window.claude.use('db') : Promise.resolve(null);
+
+  function pad(n, w){ n = String(n); while (n.length < w) n = '0' + n; return n; }
+
+  var bookSel = document.getElementById('bvBook');
+  var chapterSel = document.getElementById('bvChapter');
+  var prevBtn = document.getElementById('bvPrev');
+  var nextBtn = document.getElementById('bvNext');
+  var contentEl = document.getElementById('bvContent');
+
+  BOOKS.forEach(function(b, i){
+    var o = document.createElement('option');
+    o.value = String(i + 1);
+    o.textContent = b;
+    bookSel.appendChild(o);
+  });
+
+  var LAST_KEY = 'solomonBibleLastRef';
+  function loadLastRef(){
+    try { return JSON.parse(localStorage.getItem(LAST_KEY) || 'null'); } catch (e) { return null; }
+  }
+  function saveLastRef(bookIdx, chapter){
+    try { localStorage.setItem(LAST_KEY, JSON.stringify({ bookIdx: bookIdx, chapter: chapter })); } catch (e) {}
+  }
+
+  function populateChapters(bookIdx, selectedChapter){
+    var book = BOOKS[bookIdx - 1];
+    var max = BOOK_CHAPTERS[book] || 1;
+    chapterSel.innerHTML = '';
+    for (var c = 1; c <= max; c++){
+      var o = document.createElement('option');
+      o.value = String(c);
+      o.textContent = c + '장';
+      chapterSel.appendChild(o);
+    }
+    chapterSel.value = String(Math.min(Math.max(selectedChapter || 1, 1), max));
+  }
+
+  function renderChapter(bookIdx, chapter){
+    var book = BOOKS[bookIdx - 1];
+    var docId = pad(bookIdx, 2) + '-' + pad(chapter, 3);
+    contentEl.innerHTML = '<p class="qt-loading">불러오는 중…</p>';
+    DB_PROMISE.then(function(db){
+      if (!db){ contentEl.innerHTML = '<p class="qt-error">이 화면에서는 성경 본문을 불러올 수 없어요.</p>'; return; }
+      return Promise.all([
+        db.doc('bible/' + docId).get().catch(function(){ return null; }),
+        db.doc('bible_en/' + docId).get().catch(function(){ return null; })
+      ]).then(function(res){
+        var koSnap = res[0], enSnap = res[1];
+        if (!koSnap || !koSnap.exists){ contentEl.innerHTML = '<p class="qt-error">이 장의 본문을 아직 찾지 못했어요.</p>'; return; }
+        var koData = koSnap.data();
+        var enData = enSnap && enSnap.exists ? enSnap.data() : null;
+        var koVerses = koData.verses || [];
+        var enVerses = enData ? (enData.verses || []) : [];
+
+        var wrap = document.createElement('div');
+        wrap.className = 'reading-day';
+        wrap.setAttribute('data-book-kr', book);
+        wrap.setAttribute('data-book-en', enData && enData.book_en ? enData.book_en : '');
+        wrap.setAttribute('data-chapter', chapter);
+
+        var head = document.createElement('div');
+        head.className = 'head';
+        var refSpan = document.createElement('span');
+        refSpan.className = 'ref';
+        refSpan.appendChild(document.createTextNode(book + ' ' + chapter + '장 '));
+        if (enData && enData.book_en) {
+          var enName = document.createElement('span');
+          enName.className = 'en-name';
+          enName.textContent = '(' + enData.book_en + ' ' + chapter + ')';
+          refSpan.appendChild(enName);
+        }
+        head.appendChild(refSpan);
+        wrap.appendChild(head);
+
+        var body = document.createElement('div');
+        body.className = 'body';
+        var max = Math.max(koVerses.length, enVerses.length);
+        for (var i = 0; i < max; i++){
+          var kv = koVerses[i], ev = enVerses[i];
+          var div = document.createElement('div');
+          div.className = 'rv';
+          var vNum = (kv && kv.n) || (ev && ev.n) || (i + 1);
+          div.setAttribute('data-verse', vNum);
+          if (kv) {
+            var ko = document.createElement('p');
+            ko.className = 'ko';
+            var sup = document.createElement('sup');
+            sup.textContent = kv.n;
+            ko.appendChild(sup);
+            ko.appendChild(document.createTextNode(kv.t));
+            div.appendChild(ko);
+          }
+          if (ev) {
+            var en = document.createElement('p');
+            en.className = 'en';
+            en.textContent = ev.t;
+            div.appendChild(en);
+          }
+          body.appendChild(div);
+        }
+        wrap.appendChild(body);
+        contentEl.innerHTML = '';
+        contentEl.appendChild(wrap);
+        window.scrollTo({ top: 0, behavior: 'auto' });
+      });
+    }).catch(function(){
+      contentEl.innerHTML = '<p class="qt-error">본문을 불러오지 못했어요.</p>';
+    });
+  }
+
+  function updateNavButtons(bookIdx, chapter){
+    prevBtn.disabled = (bookIdx === 1 && chapter === 1);
+    nextBtn.disabled = (bookIdx === BOOKS.length && chapter === BOOK_CHAPTERS[BOOKS[bookIdx - 1]]);
+  }
+
+  function go(bookIdx, chapter){
+    bookSel.value = String(bookIdx);
+    populateChapters(bookIdx, chapter);
+    chapterSel.value = String(chapter);
+    updateNavButtons(bookIdx, chapter);
+    saveLastRef(bookIdx, chapter);
+    renderChapter(bookIdx, chapter);
+  }
+
+  bookSel.addEventListener('change', function(){
+    go(parseInt(bookSel.value, 10), 1);
+  });
+  chapterSel.addEventListener('change', function(){
+    go(parseInt(bookSel.value, 10), parseInt(chapterSel.value, 10));
+  });
+  prevBtn.addEventListener('click', function(){
+    var bookIdx = parseInt(bookSel.value, 10);
+    var chapter = parseInt(chapterSel.value, 10) - 1;
+    if (chapter < 1){
+      if (bookIdx === 1) return;
+      bookIdx -= 1;
+      chapter = BOOK_CHAPTERS[BOOKS[bookIdx - 1]];
+    }
+    go(bookIdx, chapter);
+  });
+  nextBtn.addEventListener('click', function(){
+    var bookIdx = parseInt(bookSel.value, 10);
+    var chapter = parseInt(chapterSel.value, 10) + 1;
+    if (chapter > BOOK_CHAPTERS[BOOKS[bookIdx - 1]]){
+      if (bookIdx === BOOKS.length) return;
+      bookIdx += 1;
+      chapter = 1;
+    }
+    go(bookIdx, chapter);
+  });
+
+  var last = loadLastRef();
+  var startBook = (last && last.bookIdx >= 1 && last.bookIdx <= BOOKS.length) ? last.bookIdx : 19; // 기본값: 시편
+  var startChapter = (last && last.chapter) || 1;
+  go(startBook, startChapter);
+})();
+</script>
+
+<script>
+(function(){
+  if (window.__quoteSaveInit) return;
+  window.__quoteSaveInit = true;
+
+  var QUOTES_DB_PROMISE = (window.claude && typeof window.claude.use === 'function')
+    ? window.claude.use('db')
+    : Promise.resolve(null);
+
+  var menuEl = null;
+  function ensureMenu(){
+    if (menuEl) return menuEl;
+    menuEl = document.createElement('div');
+    menuEl.className = 'select-menu';
+    menuEl.innerHTML = '<button type="button" class="sm-save">📌 이 구절 저장하기</button>';
+    document.body.appendChild(menuEl);
+    return menuEl;
+  }
+  function hideMenu(){ if (menuEl) menuEl.classList.remove('open'); }
+  function captureBibleRef(sel){
+    try {
+      if (!sel || !sel.rangeCount) return null;
+      var range = sel.getRangeAt(0);
+      var anchor = sel.anchorNode;
+      var anchorEl = anchor && anchor.nodeType === 1 ? anchor : (anchor ? anchor.parentElement : null);
+      var dayEl = anchorEl && anchorEl.closest ? anchorEl.closest('.reading-day') : null;
+      if (!dayEl) return null;
+      var bookKr = dayEl.getAttribute('data-book-kr');
+      var bookEn = dayEl.getAttribute('data-book-en');
+      var chapter = dayEl.getAttribute('data-chapter');
+      if (!bookKr || !chapter) return null;
+      var verses = [];
+      dayEl.querySelectorAll('.rv[data-verse]').forEach(function(rv){
+        if (!range.intersectsNode(rv)) return;
+        var koEl = rv.querySelector('.ko');
+        var enEl = rv.querySelector('.en');
+        verses.push({
+          n: parseInt(rv.getAttribute('data-verse'), 10) || 0,
+          ko: koEl ? koEl.textContent.replace(/^\s*\d+\s*/, '').trim() : '',
+          en: enEl ? enEl.textContent.trim() : ''
+        });
+      });
+      if (!verses.length) return null;
+      verses.sort(function(a,b){ return a.n - b.n; });
+      var vMin = verses[0].n, vMax = verses[verses.length - 1].n;
+      return {
+        bookKr: bookKr,
+        bookEn: bookEn,
+        chapter: parseInt(chapter, 10),
+        verseStart: vMin,
+        verseEnd: vMax,
+        label: bookKr + ' ' + chapter + '장 ' + vMin + (vMax > vMin ? '-' + vMax : '') + '절',
+        labelEn: (bookEn || '') + ' ' + chapter + ':' + vMin + (vMax > vMin ? '-' + vMax : ''),
+        koText: verses.map(function(v){ return v.n + '. ' + v.ko; }).join('\n'),
+        enText: verses.map(function(v){ return v.n + '. ' + v.en; }).join('\n')
+      };
+    } catch (err) { return null; }
+  }
+  function isInsideFormField(node){
+    var el = node && node.nodeType === 1 ? node : (node ? node.parentElement : null);
+    return !!(el && el.closest && el.closest('textarea, input'));
+  }
+  function positionMenu(menu, x, y){
+    var maxLeft = window.scrollX + document.documentElement.clientWidth - menu.offsetWidth - 8;
+    var left = Math.min(x, Math.max(8, maxLeft));
+    menu.style.left = left + 'px';
+    menu.style.top = y + 'px';
+  }
+  function saveQuote(text, btn, bibleRef){
+    QUOTES_DB_PROMISE.then(function(db){
+      if (!db) return;
+      var id = Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+      var entry = {
+        text: text,
+        source: (document.title || '').replace(/\s+/g, ' ').trim(),
+        createdAt: Date.now()
+      };
+      if (bibleRef) entry.bibleRef = bibleRef;
+      db.doc('quotes/' + id).set(entry).then(function(){
+        document.dispatchEvent(new CustomEvent('solomon-quote-saved', { detail: entry }));
+      }).catch(function(){});
+    });
+    if (btn) btn.textContent = '✓ 저장했어요';
+    setTimeout(hideMenu, 700);
+  }
+  document.addEventListener('contextmenu', function(e){
+    if (isInsideFormField(e.target)) return;
+    var sel = window.getSelection();
+    var text = sel && sel.toString().trim();
+    if (!text) { hideMenu(); return; }
+    e.preventDefault();
+    var bibleRef = captureBibleRef(sel);
+    var menu = ensureMenu();
+    var btn = menu.querySelector('.sm-save');
+    btn.textContent = '📌 이 구절 저장하기';
+    menu.classList.add('open');
+    positionMenu(menu, window.scrollX + e.clientX, window.scrollY + e.clientY);
+    btn.onclick = function(){ saveQuote(text, btn, bibleRef); };
+  });
+  document.addEventListener('click', function(e){
+    if (menuEl && !(e.target.closest && e.target.closest('.select-menu'))) hideMenu();
+  });
+  document.addEventListener('scroll', hideMenu, true);
+})();
+</script>
+
+
+<style>
+  .scroll-top-btn{
+    position:fixed; right:18px; bottom:18px; z-index:9998;
+    width:44px; height:44px; border-radius:50%;
+    background:var(--cedar,#5b3324); color:#f7efd8; border:none; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 6px 16px rgba(0,0,0,.35);
+    opacity:0; transform:translateY(10px); pointer-events:none;
+    transition:opacity .2s ease, transform .2s ease, background .2s ease;
+  }
+  .scroll-top-btn.show{ opacity:1; transform:translateY(0); pointer-events:auto; }
+  .scroll-top-btn:hover{ background:var(--gold,#c9a24b); }
+  .scroll-top-btn svg{ width:20px; height:20px; }
+  @media (max-width:480px){ .scroll-top-btn{ right:14px; bottom:14px; width:40px; height:40px; } }
+</style>
+<script>
+(function(){
+  if (window.__scrollTopInit) return;
+  window.__scrollTopInit = true;
+  var btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'scroll-top-btn';
+  btn.setAttribute('aria-label', '맨 위로');
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>';
+  document.body.appendChild(btn);
+  function update(){
+    if (window.scrollY > 320) btn.classList.add('show'); else btn.classList.remove('show');
+  }
+  window.addEventListener('scroll', update, { passive: true });
+  update();
+  btn.addEventListener('click', function(){
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+})();
+</script>
+
+</body></html>
