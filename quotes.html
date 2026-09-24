@@ -180,8 +180,9 @@
           '<div class="qt-verse-text ko-text">' + esc(br.koText).replace(/\n/g, '<br>') + '</div>' +
           '<div class="qt-verse-text en-text" hidden>' + esc(br.enText).replace(/\n/g, '<br>') + '</div>';
       }
+      var rawHtml = br && br.label ? '' : '<div class="qt-text">' + esc(w.text) + '</div>';
       return '<li class="quote-item" data-id="' + esc(w.id) + '">' +
-        '<div class="qt-text">' + esc(w.text) + '</div>' +
+        rawHtml +
         refHtml +
         '<div class="qt-meta"><span>' + esc(w.source || '') + ' · ' + fmtDate(w.createdAt) + '</span>' +
         '<button type="button" class="qt-del" data-id="' + esc(w.id) + '">삭제</button></div>' +
