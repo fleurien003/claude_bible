@@ -618,4 +618,41 @@
 })();
 </script>
 
+
+<style>
+  .scroll-top-btn{
+    position:fixed; right:18px; bottom:18px; z-index:9998;
+    width:44px; height:44px; border-radius:50%;
+    background:var(--cedar,#5b3324); color:#f7efd8; border:none; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 6px 16px rgba(0,0,0,.35);
+    opacity:0; transform:translateY(10px); pointer-events:none;
+    transition:opacity .2s ease, transform .2s ease, background .2s ease;
+  }
+  .scroll-top-btn.show{ opacity:1; transform:translateY(0); pointer-events:auto; }
+  .scroll-top-btn:hover{ background:var(--gold,#c9a24b); }
+  .scroll-top-btn svg{ width:20px; height:20px; }
+  @media (max-width:480px){ .scroll-top-btn{ right:14px; bottom:14px; width:40px; height:40px; } }
+</style>
+<script>
+(function(){
+  if (window.__scrollTopInit) return;
+  window.__scrollTopInit = true;
+  var btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'scroll-top-btn';
+  btn.setAttribute('aria-label', '\ub9e8 \uc704\ub85c');
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>';
+  document.body.appendChild(btn);
+  function update(){
+    if (window.scrollY > 320) btn.classList.add('show'); else btn.classList.remove('show');
+  }
+  window.addEventListener('scroll', update, { passive: true });
+  update();
+  btn.addEventListener('click', function(){
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+})();
+</script>
+
 </body></html>
