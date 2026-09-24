@@ -1,0 +1,196 @@
+<!doctype html><html lang="ko"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>저장한 글귀</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Song+Myung&family=Nanum+Myeongjo:wght@400;700;800&family=Nanum+Square:wght@400;700;800&display=swap');
+
+  :root{
+    --bg-void:#100e1c;
+    --bg-glow:#2c2544;
+    --sky-mid:#17132a;
+    --gold:#c9a24b;
+    --gold-bright:#eccd85;
+    --parchment:#ecdfc2;
+    --parchment-edge:#d8c69a;
+    --ink:#2c2013;
+    --ink-soft:#6b5636;
+    --cedar:#5b3324;
+    --pomegranate:#8a3b3b;
+    --star:#f5ecd6;
+    --mh-accent:#eccd85;
+    --mh-title:#f7efd8;
+    --mh-title-glow:rgba(230,190,110,.25);
+    --mh-line:rgba(230,190,110,.3);
+    --mh-nav-bg:rgba(20,17,34,.6);
+  }
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  @media (prefers-reduced-motion: reduce){ html{ scroll-behavior:auto; } }
+
+  body{
+    margin:0; background:var(--bg-void); color:var(--ink);
+    font-family:'Nanum Square','Noto Sans KR',sans-serif;
+    line-height:1.7; -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  }
+  .sky{
+    position:fixed; inset:0; z-index:0;
+    background: radial-gradient(ellipse 80% 50% at 50% 100%, var(--bg-glow), transparent 70%),
+      linear-gradient(180deg, var(--bg-void) 0%, var(--sky-mid) 55%, var(--bg-glow) 100%);
+    transition:background 2s ease;
+    pointer-events:none;
+  }
+  .wrap{ position:relative; z-index:1; max-width:720px; margin:0 auto; padding:44px 18px 70px; }
+
+  .masthead{ text-align:center; color:var(--star); margin-bottom:28px; transition:color 2s ease; }
+  .eyebrow{ font-size:12px; letter-spacing:.3em; font-weight:500; color:var(--mh-accent); opacity:.9; margin-bottom:8px; transition:color 2s ease; }
+  h1.title{
+    font-family:'Song Myung','Nanum Myeongjo',serif; font-weight:400;
+    font-size:clamp(28px,6.5vw,40px); margin:0 0 8px; color:var(--mh-title);
+    text-shadow:0 0 24px var(--mh-title-glow);
+    transition:color 2s ease, text-shadow 2s ease;
+  }
+  .sub{ font-size:14px; color:var(--mh-accent); opacity:.85; transition:color 2s ease; }
+  a.back{
+    display:inline-block; margin-top:14px; font-size:12.5px; color:var(--mh-accent);
+    text-decoration:none; border-bottom:1px solid var(--mh-line);
+    transition:color 2s ease, border-color 2s ease;
+  }
+
+  .scroll{
+    position:relative; background:var(--parchment); color:var(--ink);
+    padding:36px clamp(20px,6vw,48px) 32px;
+    box-shadow:0 20px 50px rgba(0,0,0,.4);
+    transition:background-color 1.5s ease;
+  }
+
+  .kicker{ font-size:12px; letter-spacing:.28em; font-weight:600; color:var(--pomegranate); margin-bottom:8px; }
+  h2{ font-family:'Nanum Square','Noto Sans KR',sans-serif; font-weight:400; font-size:clamp(22px,4.4vw,28px); margin:0 0 18px; color:var(--cedar); }
+
+  .search-row{ margin-bottom:20px; }
+  .search-row input{
+    width:100%; font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:15px;
+    padding:11px 14px; border:1px solid var(--parchment-edge); background:#f7f1de; color:var(--ink);
+  }
+  .search-row input:focus{ outline:2px solid var(--gold); outline-offset:1px; }
+
+  .quote-count{ font-size:12.5px; color:var(--ink-soft); margin-bottom:16px; }
+
+  .quote-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:14px; }
+  .quote-item{
+    position:relative; background:#f7f1de; border:1px solid var(--parchment-edge); border-left:3px solid var(--gold);
+    padding:18px 20px;
+  }
+  .quote-item .qt-text{ font-family:'Nanum Myeongjo',serif; font-size:16px; color:var(--ink); line-height:1.75; white-space:pre-wrap; }
+  .quote-item .qt-text::before{ content:'\\201C'; color:var(--gold); font-weight:700; margin-right:2px; }
+  .quote-item .qt-text::after{ content:'\\201D'; color:var(--gold); font-weight:700; margin-left:2px; }
+  .quote-item .qt-meta{ margin-top:10px; font-size:11.5px; color:var(--ink-soft); display:flex; justify-content:space-between; align-items:center; gap:10px; }
+  .quote-item .qt-del{
+    background:none; border:1px solid var(--parchment-edge); color:var(--pomegranate); border-radius:999px;
+    font-size:11px; padding:3px 9px; cursor:pointer; flex:none;
+  }
+  .quote-item .qt-del:hover{ background:var(--pomegranate); color:#fff; border-color:var(--pomegranate); }
+
+  .quote-empty, .quote-loading{ margin:0; font-size:15px; color:var(--ink-soft); font-style:italic; }
+
+  footer{
+    max-width:720px; margin:30px auto 0; padding-inline:18px; text-align:center;
+    color:var(--mh-accent); opacity:.7; font-size:12px; position:relative; z-index:1;
+    transition:color 2s ease;
+  }
+
+  @media (max-width:480px){ .scroll{ padding-inline:20px; } }
+</style>
+
+<div class="sky"></div>
+
+<div class="wrap">
+  <div class="masthead">
+    <div class="eyebrow">마우스 오른쪽 버튼으로 저장한 구절</div>
+    <h1 class="title">저장한 글귀</h1>
+    <div class="sub">본문에서 드래그 후 우클릭 → 저장하기로 모은 구절이 쌓여요</div>
+    <a class="back" href="index.html">← 솔로몬의 편지로 돌아가기</a>
+  </div>
+
+  <div class="scroll">
+    <div class="kicker">모은 글귀</div>
+    <h2>저장한 구절들</h2>
+
+    <div class="search-row">
+      <input type="text" id="quoteSearch" placeholder="내용으로 검색...">
+    </div>
+    <div class="quote-count" id="quoteCount"></div>
+
+    <ul class="quote-list" id="quoteList">
+      <li class="quote-loading">불러오는 중…</li>
+    </ul>
+  </div>
+</div>
+
+<footer>어느 페이지에서든 문장을 드래그한 뒤 마우스 오른쪽 버튼을 누르면 저장할 수 있어요</footer>
+
+<script>
+(function(){
+  var DB_PROMISE = (window.claude && typeof window.claude.use === 'function')
+    ? window.claude.use('db')
+    : Promise.resolve(null);
+
+  var listEl = document.getElementById('quoteList');
+  var countEl = document.getElementById('quoteCount');
+  var searchEl = document.getElementById('quoteSearch');
+  var allQuotes = [];
+  var dbRef = null;
+
+  function esc(s){
+    return String(s || '').replace(/[<>&]/g, function(c){ return c === '<' ? '&lt;' : c === '>' ? '&gt;' : '&amp;'; });
+  }
+  function fmtDate(ts){
+    if (!ts) return '';
+    var d = new Date(ts);
+    return (d.getMonth()+1) + '월 ' + d.getDate() + '일 ' + (d.getHours()<10?'0':'') + d.getHours() + ':' + (d.getMinutes()<10?'0':'') + d.getMinutes();
+  }
+
+  function render(filterText){
+    var q = (filterText || '').trim();
+    var items = q ? allQuotes.filter(function(w){ return (w.text||'').indexOf(q) !== -1; }) : allQuotes;
+    countEl.textContent = allQuotes.length ? ('총 ' + allQuotes.length + '개 저장됨' + (q ? ' · ' + items.length + '개 검색됨' : '')) : '';
+    if (!items.length){
+      listEl.innerHTML = '<li class="quote-empty">' + (allQuotes.length ? '검색 결과가 없어요.' : '아직 저장한 구절이 없어요. 본문에서 드래그 후 마우스 오른쪽 버튼을 눌러보세요.') + '</li>';
+      return;
+    }
+    listEl.innerHTML = items.map(function(w){
+      return '<li class="quote-item" data-id="' + esc(w.id) + '">' +
+        '<div class="qt-text">' + esc(w.text) + '</div>' +
+        '<div class="qt-meta"><span>' + esc(w.source || '') + ' · ' + fmtDate(w.createdAt) + '</span>' +
+        '<button type="button" class="qt-del" data-id="' + esc(w.id) + '">삭제</button></div>' +
+        '</li>';
+    }).join('');
+    listEl.querySelectorAll('.qt-del').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var id = btn.getAttribute('data-id');
+        if (!dbRef) return;
+        dbRef.doc('quotes/' + id).delete().catch(function(){});
+        allQuotes = allQuotes.filter(function(w){ return w.id !== id; });
+        render(searchEl.value);
+      });
+    });
+  }
+
+  DB_PROMISE.then(function(db){
+    if (!db){
+      listEl.innerHTML = '<li class="quote-empty">이 기능은 Claude 아티팩트 화면에서만 동작해요.</li>';
+      return;
+    }
+    dbRef = db;
+    return db.collection('quotes').get().then(function(qs){
+      allQuotes = (qs && qs.docs ? qs.docs : []).map(function(s){ return Object.assign({ id: s.id }, s.data()); })
+        .sort(function(a,b){ return (b.createdAt||0) - (a.createdAt||0); });
+      render('');
+    });
+  }).catch(function(){
+    listEl.innerHTML = '<li class="quote-empty">불러오지 못했어요.</li>';
+  });
+
+  searchEl.addEventListener('input', function(){ render(searchEl.value); });
+})();
+</script>
+
+</body></html>

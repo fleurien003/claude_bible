@@ -120,6 +120,18 @@
   .word-tooltip .wt-verse-block{ margin:6px 0; }
   .word-tooltip .wt-verse-block b{ display:block; font-size:11px; color:var(--pomegranate,#8a3b3b); margin-bottom:2px; }
   .word-tooltip .wt-verse-text{ font-size:12px; line-height:1.5; color:var(--ink,#2c2013); padding-left:8px; border-left:2px solid var(--parchment-edge,#d8c69a); }
+  .select-menu{
+    position:absolute; z-index:10000; background:var(--parchment,#ecdfc2); border:1px solid var(--gold,#c9a24b);
+    border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,.3); padding:4px;
+    opacity:0; transform:translateY(4px); pointer-events:none; transition:opacity .12s ease, transform .12s ease;
+  }
+  .select-menu.open{ opacity:1; transform:translateY(0); pointer-events:auto; }
+  .select-menu button{
+    display:block; width:100%; text-align:left; background:transparent; border:none; cursor:pointer;
+    font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:13px; color:var(--ink,#2c2013);
+    padding:8px 14px; border-radius:5px; white-space:nowrap;
+  }
+  .select-menu button:hover{ background:var(--gold,#c9a24b); color:#fff; }
 
   .review-panel{
     display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;
@@ -657,13 +669,77 @@
     });
   }
   document.addEventListener('mouseup', function(e){
-    if (e.target && e.target.closest && e.target.closest('.word-tooltip')) return;
+    if (e.button !== 0) return;
+    if (e.target && e.target.closest && (e.target.closest('.word-tooltip') || e.target.closest('.select-menu'))) return;
     setTimeout(handleSelection, 10);
   });
   document.addEventListener('mousedown', function(e){
     if (!(e.target && e.target.closest && e.target.closest('.word-tooltip'))) hideTooltip();
   });
   document.addEventListener('scroll', hideTooltip, true);
+})();
+</script>
+
+
+<script>
+(function(){
+  if (window.__quoteSaveInit) return;
+  window.__quoteSaveInit = true;
+
+  var QUOTES_DB_PROMISE = (window.claude && typeof window.claude.use === 'function')
+    ? window.claude.use('db')
+    : Promise.resolve(null);
+
+  var menuEl = null;
+  function ensureMenu(){
+    if (menuEl) return menuEl;
+    menuEl = document.createElement('div');
+    menuEl.className = 'select-menu';
+    menuEl.innerHTML = '<button type="button" class="sm-save">\ud83d\udccc 이 구절 저장하기</button>';
+    document.body.appendChild(menuEl);
+    return menuEl;
+  }
+  function hideMenu(){ if (menuEl) menuEl.classList.remove('open'); }
+  function isInsideFormField(node){
+    var el = node && node.nodeType === 1 ? node : (node ? node.parentElement : null);
+    return !!(el && el.closest && el.closest('textarea, input'));
+  }
+  function positionMenu(menu, x, y){
+    var maxLeft = window.scrollX + document.documentElement.clientWidth - menu.offsetWidth - 8;
+    var left = Math.min(x, Math.max(8, maxLeft));
+    menu.style.left = left + 'px';
+    menu.style.top = y + 'px';
+  }
+  function saveQuote(text, btn){
+    QUOTES_DB_PROMISE.then(function(db){
+      if (!db) return;
+      var id = Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+      db.doc('quotes/' + id).set({
+        text: text,
+        source: (document.title || '').replace(/\s+/g, ' ').trim(),
+        createdAt: Date.now()
+      }).catch(function(){});
+    });
+    if (btn) btn.textContent = '\u2713 저장했어요';
+    setTimeout(hideMenu, 700);
+  }
+  document.addEventListener('contextmenu', function(e){
+    if (isInsideFormField(e.target)) return;
+    var sel = window.getSelection();
+    var text = sel && sel.toString().trim();
+    if (!text) { hideMenu(); return; }
+    e.preventDefault();
+    var menu = ensureMenu();
+    var btn = menu.querySelector('.sm-save');
+    btn.textContent = '\ud83d\udccc 이 구절 저장하기';
+    menu.classList.add('open');
+    positionMenu(menu, window.scrollX + e.clientX, window.scrollY + e.clientY);
+    btn.onclick = function(){ saveQuote(text, btn); };
+  });
+  document.addEventListener('click', function(e){
+    if (menuEl && !(e.target.closest && e.target.closest('.select-menu'))) hideMenu();
+  });
+  document.addEventListener('scroll', hideMenu, true);
 })();
 </script>
 
