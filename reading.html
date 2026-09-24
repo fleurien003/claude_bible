@@ -136,6 +136,18 @@
   .word-tooltip .wt-word{ font-weight:700; font-size:14px; color:var(--ink,#2c2013); margin-bottom:6px; }
   .word-tooltip .wt-body{ font-size:13px; line-height:1.55; color:var(--ink-soft,#6b5636); white-space:pre-wrap; }
   .word-tooltip .wt-badge{ margin-top:8px; font-size:11px; color:var(--gold,#c9a24b); font-weight:600; }
+  .word-tooltip .wt-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px; }
+  .word-tooltip .wt-head .wt-word{ margin-bottom:0; }
+  .word-tooltip .wt-speak{
+    background:transparent; border:1px solid var(--parchment-edge,#d8c69a); border-radius:999px;
+    font-size:12px; line-height:1; padding:4px 7px; cursor:pointer; color:var(--cedar,#5b3324); flex:none;
+  }
+  .word-tooltip .wt-speak:hover{ background:var(--gold,#c9a24b); color:#fff; border-color:var(--gold,#c9a24b); }
+  .word-tooltip .wt-speak:disabled{ opacity:.4; cursor:default; }
+  .word-tooltip .wt-extra{ margin-top:8px; font-size:12px; color:var(--ink-soft,#6b5636); }
+  .word-tooltip .wt-extra .wt-verses{ margin-bottom:4px; }
+  .word-tooltip .wt-extra .wt-related div{ margin-bottom:2px; }
+  .word-tooltip .wt-extra b{ color:var(--cedar,#5b3324); font-weight:700; }
 </style>
 
 <div class="sky"></div>
@@ -462,13 +474,27 @@
     ? window.claude.use('db')
     : Promise.resolve(null);
 
+  function speakKorean(text){
+    try{
+      if (!('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+      var u = new SpeechSynthesisUtterance(text);
+      u.lang = 'ko-KR';
+      u.rate = 0.92;
+      window.speechSynthesis.speak(u);
+    }catch(e){}
+  }
+
   var tooltipEl = null;
   function ensureTooltip(){
     if (tooltipEl) return tooltipEl;
     tooltipEl = document.createElement('div');
     tooltipEl.className = 'word-tooltip';
-    tooltipEl.innerHTML = '<div class="wt-word"></div><div class="wt-body"></div><div class="wt-badge" hidden></div>';
+    tooltipEl.innerHTML = '<div class="wt-head"><span class="wt-word"></span><button type="button" class="wt-speak" title="발음 듣기">\ud83d\udd0a</button></div><div class="wt-body"></div><div class="wt-extra"></div><div class="wt-badge" hidden></div>';
     document.body.appendChild(tooltipEl);
+    tooltipEl.querySelector('.wt-speak').addEventListener('click', function(){
+      speakKorean(tooltipEl.querySelector('.wt-word').textContent);
+    });
     return tooltipEl;
   }
   function hideTooltip(){ if (tooltipEl) tooltipEl.classList.remove('open'); }
@@ -483,6 +509,23 @@
     el.style.left = left + 'px';
   }
   function vocabKey(word){ return 'vocab/' + encodeURIComponent(word); }
+  function renderExtra(el, entry){
+    var parts = [];
+    if (entry.verses && entry.verses.length){
+      parts.push('<div class="wt-verses"><b>\ud83d\udcd6 관련 구절</b> ' + entry.verses.map(function(v){
+        return String(v).replace(/[<>&]/g, function(c){ return c === '<' ? '&lt;' : c === '>' ? '&gt;' : '&amp;'; });
+      }).join(', ') + '</div>');
+    }
+    if (entry.related && entry.related.length){
+      var rows = entry.related.map(function(r2){
+        var w = String(r2.word||'').replace(/[<>&]/g, function(c){ return c === '<' ? '&lt;' : c === '>' ? '&gt;' : '&amp;'; });
+        var n = String(r2.nuance||'').replace(/[<>&]/g, function(c){ return c === '<' ? '&lt;' : c === '>' ? '&gt;' : '&amp;'; });
+        return '<div>· <b>' + w + '</b>' + (n ? ' — ' + n : '') + '</div>';
+      }).join('');
+      parts.push('<div class="wt-related"><b>\ud83d\udd17 비슷한 단어</b>' + rows + '</div>');
+    }
+    el.innerHTML = parts.join('');
+  }
   function lookupWord(word){
     return VOCAB_DB_PROMISE.then(function(db){
       if (!db) return { db: null, hit: null };
@@ -490,16 +533,23 @@
         return { db: db, hit: (snap && snap.exists) ? snap.data() : null };
       }).catch(function(){ return { db: db, hit: null }; });
     }).then(function(r){
-      if (r.hit) return { word: word, definition: r.hit.definition, cached: true };
+      if (r.hit) return Object.assign({ cached: true }, r.hit);
       return SAMPLE_PROMISE.then(function(sample){
         if (!sample) return null;
-        return sample(
-          '다음 한국어 단어 또는 구절의 뜻을 신앙·성경 맥락을 고려해 짧게 설명해줘. 2~3문장 이내, 정의 위주로, 인사말 없이.\n\n단어: ' + word,
+        return sample.json(
+          '아래 한국어 단어 또는 구절을 성경 본문에서 만났다. 다음 JSON 형식으로만 답해라(다른 설명 없이):\n' +
+          '{"definition": "2~3문장의 기본 뜻, 신앙·성경 맥락 고려, 인사말 없이", "verses": ["책 장:절", "책 장:절"], "related": [{"word": "비슷한 뜻이지만 뉘앙스가 다른 단어", "nuance": "그 차이를 1문장으로"}]}\n' +
+          'verses는 이 단어와 실제로 관련 있는 성경 구절 참조 1~3개 (예: "사도행전 16:31-34"). 원어(히브리어/헬라어)나 번역에 따라 뜻이 갈리는 지점이 있으면 definition이나 nuance에 녹여라. related는 뜻은 비슷하지만 결이 다른 단어 0~3개, 없으면 빈 배열.\n\n단어: ' + word,
           { modelTier: 'quick' }
-        ).then(function(res){
-          var definition = res.text.trim();
-          if (r.db){ r.db.doc(vocabKey(word)).set({ word: word, definition: definition, createdAt: Date.now() }).catch(function(){}); }
-          return { word: word, definition: definition, cached: false };
+        ).then(function(data){
+          var definition = String((data && data.definition) || '').trim();
+          var verses = Array.isArray(data && data.verses) ? data.verses.filter(Boolean).map(String) : [];
+          var related = Array.isArray(data && data.related)
+            ? data.related.filter(function(r2){ return r2 && r2.word; }).map(function(r2){ return { word: String(r2.word), nuance: String(r2.nuance || '') }; })
+            : [];
+          var entry = { word: word, definition: definition, verses: verses, related: related, createdAt: Date.now(), box: 1, nextReview: Date.now() };
+          if (r.db){ r.db.doc(vocabKey(word)).set(entry).catch(function(){}); }
+          return Object.assign({ cached: false }, entry);
         });
       });
     });
@@ -522,6 +572,7 @@
     var el = ensureTooltip();
     el.querySelector('.wt-word').textContent = text;
     el.querySelector('.wt-body').textContent = '뜻을 찾는 중...';
+    el.querySelector('.wt-extra').innerHTML = '';
     var badge = el.querySelector('.wt-badge');
     badge.hidden = true;
     el.classList.add('open');
@@ -535,9 +586,10 @@
         return;
       }
       el.querySelector('.wt-body').textContent = result.definition;
+      renderExtra(el.querySelector('.wt-extra'), result);
       badge.hidden = false;
       badge.className = 'wt-badge' + (result.cached ? ' cached' : '');
-      badge.textContent = result.cached ? '⚡ 단어장에서 바로 불러왔어요 (무료)' : '✓ 단어장에 저장했어요';
+      badge.textContent = result.cached ? '\u26a1 단어장에서 바로 불러왔어요 (무료)' : '\u2713 단어장에 저장했어요';
     }).catch(function(){
       if (myTicket !== pending) return;
       el.querySelector('.wt-body').textContent = '뜻을 가져오지 못했어요.';
