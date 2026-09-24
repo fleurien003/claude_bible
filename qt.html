@@ -184,6 +184,9 @@
   .word-tooltip .wt-extra .wt-verses{ margin-bottom:4px; }
   .word-tooltip .wt-extra .wt-related div{ margin-bottom:2px; }
   .word-tooltip .wt-extra b{ color:var(--cedar,#5b3324); font-weight:700; }
+  .word-tooltip .wt-verse-block{ margin:6px 0; }
+  .word-tooltip .wt-verse-block b{ display:block; font-size:11px; color:var(--pomegranate,#8a3b3b); margin-bottom:2px; }
+  .word-tooltip .wt-verse-text{ font-size:12px; line-height:1.5; color:var(--ink,#2c2013); padding-left:8px; border-left:2px solid var(--parchment-edge,#d8c69a); }
 </style>
 
 <div class="sky"></div>
@@ -565,6 +568,8 @@
   if (window.__wordTooltipInit) return;
   window.__wordTooltipInit = true;
 
+  var BOOK_INDEX = {"창세기":1, "출애굽기":2, "레위기":3, "민수기":4, "신명기":5, "여호수아":6, "사사기":7, "룻기":8, "사무엘상":9, "사무엘하":10, "열왕기상":11, "열왕기하":12, "역대상":13, "역대하":14, "에스라":15, "느헤미야":16, "에스더":17, "욥기":18, "시편":19, "잠언":20, "전도서":21, "아가":22, "이사야":23, "예레미야":24, "예레미야애가":25, "에스겔":26, "다니엘":27, "호세아":28, "요엘":29, "아모스":30, "오바댜":31, "요나":32, "미가":33, "나훔":34, "하박국":35, "스바냐":36, "학개":37, "스가랴":38, "말라기":39, "마태복음":40, "마가복음":41, "누가복음":42, "요한복음":43, "사도행전":44, "로마서":45, "고린도전서":46, "고린도후서":47, "갈라디아서":48, "에베소서":49, "빌립보서":50, "골로새서":51, "데살로니가전서":52, "데살로니가후서":53, "디모데전서":54, "디모데후서":55, "디도서":56, "빌레몬서":57, "히브리서":58, "야고보서":59, "베드로전서":60, "베드로후서":61, "요한일서":62, "요한이서":63, "요한삼서":64, "유다서":65, "요한계시록":66};
+
   var SAMPLE_PROMISE = (window.claude && typeof window.claude.use === 'function')
     ? window.claude.use('sample')
     : Promise.resolve(null);
@@ -581,6 +586,36 @@
       u.rate = 0.92;
       window.speechSynthesis.speak(u);
     }catch(e){}
+  }
+  function escHtml(s){
+    return String(s || '').replace(/[<>&]/g, function(c){ return c === '<' ? '&lt;' : c === '>' ? '&gt;' : '&amp;'; });
+  }
+  function pad(n, w){ n = String(n); while (n.length < w) n = '0' + n; return n; }
+  function chapterDocId(book, chapter){
+    var num = BOOK_INDEX[book];
+    if (!num) return null;
+    return pad(num, 2) + '-' + pad(chapter, 3);
+  }
+  function resolveVerses(db, refs){
+    if (!db || !refs || !refs.length) return Promise.resolve([]);
+    return Promise.all(refs.map(function(ref){
+      var docId = chapterDocId(ref.book, ref.chapter);
+      if (!docId) return null;
+      return db.doc('bible/' + docId).get().then(function(snap){
+        if (!snap.exists) return null;
+        var data = snap.data();
+        var start = ref.start || 1;
+        var end = ref.end || start;
+        var matched = (data.verses || []).filter(function(v){
+          var n = parseInt(v.n, 10);
+          return n >= start && n <= end;
+        });
+        if (!matched.length) return null;
+        var label = ref.book + ' ' + ref.chapter + ':' + start + (end !== start ? '-' + end : '');
+        var text = matched.map(function(v){ return v.n + '. ' + v.t; }).join(' ');
+        return { label: label, text: text };
+      }).catch(function(){ return null; });
+    })).then(function(results){ return results.filter(Boolean); });
   }
 
   var tooltipEl = null;
@@ -610,15 +645,14 @@
   function renderExtra(el, entry){
     var parts = [];
     if (entry.verses && entry.verses.length){
-      parts.push('<div class="wt-verses"><b>\ud83d\udcd6 관련 구절</b> ' + entry.verses.map(function(v){
-        return String(v).replace(/[<>&]/g, function(c){ return c === '<' ? '&lt;' : c === '>' ? '&gt;' : '&amp;'; });
-      }).join(', ') + '</div>');
+      var vRows = entry.verses.map(function(vb){
+        return '<div class="wt-verse-block"><b>' + escHtml(vb.label) + '</b><div class="wt-verse-text">' + escHtml(vb.text) + '</div></div>';
+      }).join('');
+      parts.push('<div class="wt-verses">\ud83d\udcd6 관련 구절' + vRows + '</div>');
     }
     if (entry.related && entry.related.length){
       var rows = entry.related.map(function(r2){
-        var w = String(r2.word||'').replace(/[<>&]/g, function(c){ return c === '<' ? '&lt;' : c === '>' ? '&gt;' : '&amp;'; });
-        var n = String(r2.nuance||'').replace(/[<>&]/g, function(c){ return c === '<' ? '&lt;' : c === '>' ? '&gt;' : '&amp;'; });
-        return '<div>· <b>' + w + '</b>' + (n ? ' — ' + n : '') + '</div>';
+        return '<div>· <b>' + escHtml(r2.word) + '</b>' + (r2.nuance ? ' — ' + escHtml(r2.nuance) : '') + '</div>';
       }).join('');
       parts.push('<div class="wt-related"><b>\ud83d\udd17 비슷한 단어</b>' + rows + '</div>');
     }
@@ -636,18 +670,24 @@
         if (!sample) return null;
         return sample.json(
           '아래 한국어 단어 또는 구절을 성경 본문에서 만났다. 다음 JSON 형식으로만 답해라(다른 설명 없이):\n' +
-          '{"definition": "2~3문장의 기본 뜻, 신앙·성경 맥락 고려, 인사말 없이", "verses": ["책 장:절", "책 장:절"], "related": [{"word": "비슷한 뜻이지만 뉘앙스가 다른 단어", "nuance": "그 차이를 1문장으로"}]}\n' +
-          'verses는 이 단어와 실제로 관련 있는 성경 구절 참조 1~3개 (예: "사도행전 16:31-34"). 원어(히브리어/헬라어)나 번역에 따라 뜻이 갈리는 지점이 있으면 definition이나 nuance에 녹여라. related는 뜻은 비슷하지만 결이 다른 단어 0~3개, 없으면 빈 배열.\n\n단어: ' + word,
+          '{"definition": "2~3문장의 기본 뜻, 신앙·성경 맥락 고려, 인사말 없이", "verses": [{"book": "사도행전", "chapter": 16, "start": 31, "end": 34}], "related": [{"word": "비슷한 뜻이지만 뉘앙스가 다른 단어", "nuance": "그 차이를 1문장으로"}]}\n' +
+          'verses의 book은 정확한 개역한글 성경 책 이름 하나(창세기~요한계시록 중), chapter/start/end는 숫자. 이 단어와 실제로 관련 있는 구절 1~2개만 골라라. 원어(히브리어/헬라어)나 번역에 따라 뜻이 갈리는 지점이 있으면 definition이나 nuance에 녹여라. related는 뜻은 비슷하지만 결이 다른 단어 0~3개, 없으면 빈 배열.\n\n단어: ' + word,
           { modelTier: 'quick' }
         ).then(function(data){
           var definition = String((data && data.definition) || '').trim();
-          var verses = Array.isArray(data && data.verses) ? data.verses.filter(Boolean).map(String) : [];
+          var refs = Array.isArray(data && data.verses) ? data.verses.filter(function(v){
+            return v && v.book && BOOK_INDEX[v.book] && v.chapter;
+          }).map(function(v){
+            return { book: String(v.book), chapter: Number(v.chapter), start: Number(v.start || 1), end: Number(v.end || v.start || 1) };
+          }) : [];
           var related = Array.isArray(data && data.related)
             ? data.related.filter(function(r2){ return r2 && r2.word; }).map(function(r2){ return { word: String(r2.word), nuance: String(r2.nuance || '') }; })
             : [];
-          var entry = { word: word, definition: definition, verses: verses, related: related, createdAt: Date.now(), box: 1, nextReview: Date.now() };
-          if (r.db){ r.db.doc(vocabKey(word)).set(entry).catch(function(){}); }
-          return Object.assign({ cached: false }, entry);
+          return resolveVerses(r.db, refs).then(function(verseBlocks){
+            var entry = { word: word, definition: definition, verses: verseBlocks, related: related, createdAt: Date.now(), box: 1, nextReview: Date.now() };
+            if (r.db){ r.db.doc(vocabKey(word)).set(entry).catch(function(){}); }
+            return Object.assign({ cached: false }, entry);
+          });
         });
       });
     });
@@ -687,7 +727,7 @@
       renderExtra(el.querySelector('.wt-extra'), result);
       badge.hidden = false;
       badge.className = 'wt-badge' + (result.cached ? ' cached' : '');
-      badge.textContent = result.cached ? '\u26a1 단어장에서 바로 불러왔어요 (무료)' : '\u2713 단어장에 저장했어요';
+      badge.textContent = result.cached ? '⚡ 단어장에서 바로 불러왔어요 (무료)' : '✓ 단어장에 저장했어요';
     }).catch(function(){
       if (myTicket !== pending) return;
       el.querySelector('.wt-body').textContent = '뜻을 가져오지 못했어요.';
