@@ -71,6 +71,8 @@
     padding:9px 12px; border:1px solid var(--parchment-edge); background:#f7f1de; color:var(--ink);
   }
   .bv-nav-btns{ display:flex; gap:8px; margin-left:auto; }
+  .bv-nav-bottom{ margin-top:26px; margin-bottom:0; justify-content:center; }
+  .bv-nav-bottom .bv-nav-btns{ margin-left:0; }
   .bv-nav-btns button{
     font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:13.5px; font-weight:500;
     background:var(--cedar); color:#f7efd8; border:none; padding:9px 16px; cursor:pointer;
@@ -132,6 +134,12 @@
       </div>
     </div>
     <div id="bvContent"><p class="qt-loading">불러오는 중…</p></div>
+    <div class="bv-nav bv-nav-bottom">
+      <div class="bv-nav-btns">
+        <button type="button" id="bvPrevBottom">‹ 이전 장</button>
+        <button type="button" id="bvNextBottom">다음 장 ›</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -151,6 +159,8 @@
   var chapterSel = document.getElementById('bvChapter');
   var prevBtn = document.getElementById('bvPrev');
   var nextBtn = document.getElementById('bvNext');
+  var prevBtnBottom = document.getElementById('bvPrevBottom');
+  var nextBtnBottom = document.getElementById('bvNextBottom');
   var contentEl = document.getElementById('bvContent');
 
   BOOKS.forEach(function(b, i){
@@ -255,8 +265,12 @@
   }
 
   function updateNavButtons(bookIdx, chapter){
-    prevBtn.disabled = (bookIdx === 1 && chapter === 1);
-    nextBtn.disabled = (bookIdx === BOOKS.length && chapter === BOOK_CHAPTERS[BOOKS[bookIdx - 1]]);
+    var atStart = (bookIdx === 1 && chapter === 1);
+    var atEnd = (bookIdx === BOOKS.length && chapter === BOOK_CHAPTERS[BOOKS[bookIdx - 1]]);
+    prevBtn.disabled = atStart;
+    nextBtn.disabled = atEnd;
+    prevBtnBottom.disabled = atStart;
+    nextBtnBottom.disabled = atEnd;
   }
 
   function go(bookIdx, chapter){
@@ -274,7 +288,7 @@
   chapterSel.addEventListener('change', function(){
     go(parseInt(bookSel.value, 10), parseInt(chapterSel.value, 10));
   });
-  prevBtn.addEventListener('click', function(){
+  function goPrev(){
     var bookIdx = parseInt(bookSel.value, 10);
     var chapter = parseInt(chapterSel.value, 10) - 1;
     if (chapter < 1){
@@ -283,8 +297,8 @@
       chapter = BOOK_CHAPTERS[BOOKS[bookIdx - 1]];
     }
     go(bookIdx, chapter);
-  });
-  nextBtn.addEventListener('click', function(){
+  }
+  function goNext(){
     var bookIdx = parseInt(bookSel.value, 10);
     var chapter = parseInt(chapterSel.value, 10) + 1;
     if (chapter > BOOK_CHAPTERS[BOOKS[bookIdx - 1]]){
@@ -293,7 +307,11 @@
       chapter = 1;
     }
     go(bookIdx, chapter);
-  });
+  }
+  prevBtn.addEventListener('click', goPrev);
+  nextBtn.addEventListener('click', goNext);
+  prevBtnBottom.addEventListener('click', goPrev);
+  nextBtnBottom.addEventListener('click', goNext);
 
   var last = loadLastRef();
   var startBook = (last && last.bookIdx >= 1 && last.bookIdx <= BOOKS.length) ? last.bookIdx : 19; // 기본값: 시편
