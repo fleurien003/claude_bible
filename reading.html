@@ -461,6 +461,23 @@
       }
     });
   }
+
+  // 새로고침·재접속으로 입력 중이던 내용이 사라지지 않도록, 타이핑을 잠시 멈추면
+  // 자동으로 임시 저장한다 (버튼을 눌러야만 저장되던 이전 방식 때문에 실제로 기록을
+  // 잃어버린 적이 있어 추가함).
+  if (readingNoteEl) {
+    var readingAutosaveTimer = null;
+    readingNoteEl.addEventListener('input', function(){
+      if (readingAutosaveTimer) clearTimeout(readingAutosaveTimer);
+      readingAutosaveTimer = setTimeout(function(){
+        var val = readingNoteEl.value;
+        if (!val || !val.trim()) return;
+        readingJournal[selectedKey] = { note: val, ts: new Date().toISOString() };
+        saveReadingJournalMap(readingJournal);
+        if (readingStatusEl) readingStatusEl.textContent = '임시 저장됨 (자동) · 안심하고 계속 쓰라';
+      }, 600);
+    });
+  }
 })();
 </script>
 

@@ -508,6 +508,28 @@
     });
   }
 
+  // 새로고침·재접속으로 입력 중이던 내용이 사라지지 않도록, 타이핑을 잠시 멈추면
+  // 자동으로 임시 저장한다 (버튼을 눌러야만 저장되던 이전 방식 때문에 실제로 기록을
+  // 잃어버린 적이 있어 추가함).
+  if (noteEl) {
+    var qtAutosaveTimer = null;
+    noteEl.addEventListener('input', function(){
+      if (qtAutosaveTimer) clearTimeout(qtAutosaveTimer);
+      qtAutosaveTimer = setTimeout(function(){
+        var val = noteEl.value;
+        if (!val || !val.trim()) return;
+        journal[todayKey] = {
+          reference: currentQT ? currentQT.reference : ((journal[todayKey] && journal[todayKey].reference) || ''),
+          prompt: todayPrompt,
+          note: val,
+          ts: new Date().toISOString()
+        };
+        saveJournalMap(journal);
+        if (statusEl) statusEl.textContent = '임시 저장됨 (자동) · 안심하고 계속 쓰라';
+      }, 600);
+    });
+  }
+
   var archiveResultEl = document.getElementById('archiveResult');
   var archiveDateLabel = document.getElementById('archiveDateLabel');
   var archiveWisdomEl = document.getElementById('archiveWisdom');
