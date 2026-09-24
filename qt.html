@@ -65,6 +65,29 @@
   .kicker{ font-size:12px; letter-spacing:.28em; font-weight:600; color:var(--pomegranate); margin-bottom:8px; }
   h2{ font-family:'Nanum Square','Noto Sans KR',sans-serif; font-weight:400; font-size:clamp(22px,4.4vw,28px); margin:0 0 18px; color:var(--cedar); }
 
+  .gist{
+    position:relative; margin:0 0 22px; padding:20px 22px 18px 26px;
+    background:#f7f1de; border:1px solid var(--parchment-edge); border-left:3px solid var(--cedar);
+  }
+  .gist .glabel{ font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:11px; letter-spacing:.2em; color:var(--cedar); font-weight:600; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+  .trans-toggle{ display:inline-flex; gap:4px; }
+  .trans-toggle button{
+    font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:10.5px; font-weight:600; letter-spacing:.02em;
+    background:transparent; color:var(--ink-soft); border:1px solid var(--parchment-edge);
+    padding:3px 9px; cursor:pointer; border-radius:999px;
+  }
+  .trans-toggle button.active{ background:var(--cedar); color:#f7efd8; border-color:var(--cedar); }
+  .trans-toggle button:disabled{ opacity:.4; cursor:default; }
+  .gist p{ margin:0; font-size:16px; max-width:none; }
+
+  .qt-section-title{
+    font-family:'Nanum Square','Noto Sans KR',sans-serif; font-weight:600; font-size:12.5px;
+    letter-spacing:.04em; color:var(--pomegranate); margin:18px 0 8px;
+  }
+  .qt-section-title:first-child{ margin-top:0; }
+  .qt-verse{ margin:0 0 10px; font-size:16.5px; }
+  .qt-verse sup{ font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:11px; color:var(--gold); font-weight:600; margin-right:5px; }
+
   .qt-loading, .qt-error{ margin:0; font-size:15px; color:var(--ink-soft); font-style:italic; }
   .retry-btn{
     font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:12.5px; font-weight:500;
@@ -151,6 +174,15 @@
   <div class="scroll">
     <div class="kicker">오늘의 본문</div>
     <h2 id="qtRefTitle">불러오는 중…</h2>
+
+    <div class="gist" id="qtTextBox">
+      <div class="glabel" id="qtTransRow">오늘의 QT
+        <span class="trans-toggle" id="transToggle" hidden>
+          <button type="button" data-t="krv" id="transKrvBtn">개역개정</button><button type="button" data-t="woorimal" id="transWoorimalBtn">우리말성경</button>
+        </span>
+      </div>
+      <div id="bibleText"><p class="qt-loading">오늘의 본문을 불러오는 중이니, 잠시 기다리라…</p></div>
+    </div>
 
     <div class="prompt" id="promptLine">오늘의 물음: 오늘 읽은 장에서 가장 마음에 머문 구절은 무엇인가?</div>
     <div class="journal">
@@ -291,18 +323,75 @@
   var promptEl = document.getElementById('promptLine');
   promptEl.textContent = '오늘의 물음: ' + todayPrompt;
 
+  // -- 오늘의 QT 본문 (index.html과 동일한 번역 토글 로직) --
+  var QT_TRANS_KEY = 'solomonQtTranslation';
+  function getPreferredTranslation(){
+    try { return localStorage.getItem(QT_TRANS_KEY) || 'krv'; } catch (e) { return 'krv'; }
+  }
+  function setPreferredTranslation(t){
+    try { localStorage.setItem(QT_TRANS_KEY, t); } catch (e) {}
+  }
+
+  function renderVerses(container, sections){
+    container.innerHTML = '';
+    (sections || []).forEach(function(sec){
+      if (sec.title) {
+        var h = document.createElement('div');
+        h.className = 'qt-section-title';
+        h.textContent = sec.title;
+        container.appendChild(h);
+      }
+      (sec.verses || []).forEach(function(v){
+        var p = document.createElement('p');
+        p.className = 'qt-verse';
+        var sup = document.createElement('sup');
+        sup.textContent = v.num;
+        p.appendChild(sup);
+        p.appendChild(document.createTextNode(v.text));
+        container.appendChild(p);
+      });
+    });
+  }
+
+  function renderCurrentTranslation(){
+    if (!currentQT) return;
+    var t = getPreferredTranslation();
+    var hasWoorimal = currentQT.sectionsWoorimal && currentQT.sectionsWoorimal.length;
+    if (t === 'woorimal' && !hasWoorimal) t = 'krv';
+    var textEl = document.getElementById('bibleText');
+    if (textEl) renderVerses(textEl, t === 'woorimal' ? currentQT.sectionsWoorimal : currentQT.sections);
+    var krvBtn = document.getElementById('transKrvBtn');
+    var wBtn = document.getElementById('transWoorimalBtn');
+    if (krvBtn) krvBtn.classList.toggle('active', t === 'krv');
+    if (wBtn) { wBtn.classList.toggle('active', t === 'woorimal'); wBtn.disabled = !hasWoorimal; }
+    var toggleEl = document.getElementById('transToggle');
+    if (toggleEl) toggleEl.hidden = !hasWoorimal;
+  }
+  (function(){
+    var krvBtn = document.getElementById('transKrvBtn');
+    var wBtn = document.getElementById('transWoorimalBtn');
+    if (krvBtn) krvBtn.addEventListener('click', function(){ setPreferredTranslation('krv'); renderCurrentTranslation(); });
+    if (wBtn) wBtn.addEventListener('click', function(){ setPreferredTranslation('woorimal'); renderCurrentTranslation(); });
+  })();
+
+  function showQtTextError(){
+    var textEl = document.getElementById('bibleText');
+    if (textEl) textEl.innerHTML = '<p class="qt-error">아직 오늘의 본문을 불러오지 못했다. 네 손의 성경을 직접 펴 보거나, 페이지를 새로고침해 보라.</p>';
+  }
+
   function loadTodayQT(){
     var titleEl = document.getElementById('qtRefTitle');
     DB_PROMISE.then(function(db){
-      if (!db) { if (titleEl) titleEl.textContent = '오늘의 본문'; return; }
+      if (!db) { if (titleEl) titleEl.textContent = '오늘의 본문'; showQtTextError(); return; }
       db.doc('qt/' + todayKey).get().then(function(snap){
-        if (!snap.exists) { if (titleEl) titleEl.textContent = '오늘의 본문'; return; }
+        if (!snap.exists) { if (titleEl) titleEl.textContent = '오늘의 본문'; showQtTextError(); return; }
         var data = snap.data();
         currentQT = data;
         if (titleEl) titleEl.textContent = data.reference || '오늘의 본문';
         if (data.question) promptEl.textContent = '오늘의 물음: ' + data.question;
-      }).catch(function(){ if (titleEl) titleEl.textContent = '오늘의 본문'; });
-    }).catch(function(){ if (titleEl) titleEl.textContent = '오늘의 본문'; });
+        renderCurrentTranslation();
+      }).catch(function(){ if (titleEl) titleEl.textContent = '오늘의 본문'; showQtTextError(); });
+    }).catch(function(){ if (titleEl) titleEl.textContent = '오늘의 본문'; showQtTextError(); });
   }
   loadTodayQT();
 
