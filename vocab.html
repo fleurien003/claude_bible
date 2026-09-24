@@ -1,5 +1,5 @@
 <!doctype html><html lang="ko"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>오늘의 기도</title>
+<title>나의 단어장</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Song+Myung&family=Nanum+Myeongjo:wght@400;700;800&family=Nanum+Square:wght@400;700;800&display=swap');
 
@@ -64,42 +64,26 @@
 
   .kicker{ font-size:12px; letter-spacing:.28em; font-weight:600; color:var(--pomegranate); margin-bottom:8px; }
   h2{ font-family:'Nanum Square','Noto Sans KR',sans-serif; font-weight:400; font-size:clamp(22px,4.4vw,28px); margin:0 0 18px; color:var(--cedar); }
-  #prayerText p{ margin:0 0 16px; font-size:16.5px; }
 
-  .qt-loading, .qt-error{ margin:0; font-size:15px; color:var(--ink-soft); font-style:italic; }
-
-  .gnote{ font-size:12.5px; color:var(--ink-soft); }
-
-  .fields{
-    list-style:none; margin:0; padding:18px 20px;
-    background:rgba(91,51,36,.06);
-    border:1px solid var(--parchment-edge);
-    border-left:3px solid var(--pomegranate);
-    display:flex; flex-direction:column; gap:14px;
+  .search-row{ margin-bottom:20px; }
+  .search-row input{
+    width:100%; font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:15px;
+    padding:11px 14px; border:1px solid var(--parchment-edge); background:#f7f1de; color:var(--ink);
   }
-  .fields li{ display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 10px; }
-  .fields .name{ font-weight:700; color:var(--cedar); flex:0 0 auto; font-size:15.5px; }
-  .fields .note{ font-size:14.5px; color:var(--ink-soft); flex-basis:100%; }
-  .fields .empty{ font-size:14px; color:var(--ink-soft); font-style:italic; }
+  .search-row input:focus{ outline:2px solid var(--gold); outline-offset:1px; }
 
-  .meditate{ margin-top:30px; padding-top:24px; border-top:1px dashed var(--parchment-edge); }
+  .vocab-count{ font-size:12.5px; color:var(--ink-soft); margin-bottom:16px; }
 
-  .journal textarea{
-    width:100%; min-height:90px; resize:vertical;
-    font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:16px; line-height:1.75; color:var(--ink);
-    background:#f7f1de; border:1px solid var(--parchment-edge);
-    padding:14px 16px; margin-bottom:12px;
+  .vocab-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:14px; }
+  .vocab-item{
+    background:#f7f1de; border:1px solid var(--parchment-edge); border-left:3px solid var(--cedar);
+    padding:16px 18px;
   }
-  .journal textarea:focus{ outline:2px solid var(--gold); outline-offset:1px; }
-  .journal-row{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
-  .journal button{
-    font-family:'Nanum Square','Noto Sans KR',sans-serif;
-    font-size:13.5px; letter-spacing:.05em; font-weight:500;
-    background:var(--cedar); color:#f7efd8; border:none;
-    padding:10px 20px; cursor:pointer;
-  }
-  .journal button:hover{ background:#4a2a1d; }
-  .journal .status{ font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:12.5px; color:var(--ink-soft); }
+  .vocab-item .vw{ font-family:'Nanum Square','Noto Sans KR',sans-serif; font-weight:700; font-size:16px; color:var(--cedar); margin-bottom:6px; }
+  .vocab-item .vd{ font-size:14.5px; color:var(--ink); line-height:1.65; white-space:pre-wrap; }
+  .vocab-item .vt{ margin-top:8px; font-size:11.5px; color:var(--ink-soft); }
+
+  .vocab-empty, .vocab-loading{ margin:0; font-size:15px; color:var(--ink-soft); font-style:italic; }
 
   footer{
     max-width:720px; margin:30px auto 0; padding-inline:18px; text-align:center;
@@ -108,58 +92,34 @@
   }
 
   @media (max-width:480px){ .scroll{ padding-inline:20px; } }
-
-  .word-tooltip{
-    position:absolute; z-index:9999; max-width:280px; min-width:180px;
-    background:var(--parchment,#ecdfc2); border:1px solid var(--gold,#c9a24b); border-radius:10px;
-    box-shadow:0 8px 24px rgba(0,0,0,.28); padding:12px 14px;
-    font-family:'Nanum Square','Noto Sans KR',sans-serif;
-    opacity:0; transform:translateY(4px); pointer-events:none;
-    transition:opacity .15s ease, transform .15s ease;
-  }
-  .word-tooltip.open{ opacity:1; transform:translateY(0); pointer-events:auto; }
-  .word-tooltip .wt-word{ font-weight:700; font-size:14px; color:var(--ink,#2c2013); margin-bottom:6px; }
-  .word-tooltip .wt-body{ font-size:13px; line-height:1.55; color:var(--ink-soft,#6b5636); white-space:pre-wrap; }
-  .word-tooltip .wt-badge{ margin-top:8px; font-size:11px; color:var(--gold,#c9a24b); font-weight:600; }
 </style>
 
 <div class="sky"></div>
 
 <div class="wrap">
   <div class="masthead">
-    <div class="eyebrow">매일의 기도</div>
-    <h1 class="title">오늘의 QT 기도</h1>
-    <div class="sub" id="dateLabel"></div>
+    <div class="eyebrow">드래그해서 뜻 찾은 단어들</div>
+    <h1 class="title">나의 단어장</h1>
+    <div class="sub">본문이나 기록에서 드래그로 찾아본 단어가 여기 자동으로 쌓여요</div>
     <a class="back" href="index.html">← 솔로몬의 편지로 돌아가기</a>
   </div>
 
   <div class="scroll">
-    <div class="kicker">오늘의 QT 기도</div>
-    <h2>오늘의 QT 기도</h2>
-    <div id="prayerText"><p class="qt-loading">불러오는 중…</p></div>
+    <div class="kicker">단어장</div>
+    <h2>모아둔 단어</h2>
 
-    <div class="meditate">
-      <div class="kicker">나의 기도</div>
-      <h2>오늘의 기도</h2>
-      <div class="journal">
-        <textarea id="myPrayerNote" placeholder="오늘 드리고 싶은 기도를 적어 보라..."></textarea>
-        <div class="journal-row">
-          <button id="saveMyPrayer" type="button">오늘의 기도 기록하기</button>
-          <span class="status" id="myPrayerStatus"></span>
-        </div>
-      </div>
+    <div class="search-row">
+      <input type="text" id="vocabSearch" placeholder="단어로 검색...">
     </div>
+    <div class="vocab-count" id="vocabCount"></div>
 
-    <div class="meditate">
-      <div class="kicker">지난 목장의 기도제목</div>
-      <h2>함께 기도할 제목</h2>
-      <div class="gnote" id="prayerWeekLabel" style="margin:0 0 16px"></div>
-      <ul class="fields" id="prayerFieldsList"></ul>
-    </div>
+    <ul class="vocab-list" id="vocabList">
+      <li class="vocab-loading">불러오는 중…</li>
+    </ul>
   </div>
 </div>
 
-<footer>매주 토요일 아침, 함께 기도할 제목이 새로 올라옵니다</footer>
+<footer>단어를 드래그하면 뜻이 뜨고, 자동으로 이 목록에 저장돼요</footer>
 
 <script>
 (function(){
@@ -192,7 +152,6 @@
       mhAccent:'#ffb473', mhTitle:'#fff4e2', mhTitleGlow:'rgba(255,140,80,.4)',
       mhLine:'rgba(255,178,120,.35)', mhNavBg:'rgba(40,22,30,.55)', textScheme:'light'
     };
-    // 월~목 08~18시 "위장 모드" — 회사에서 볼 때 티나지 않도록 낮 하늘을 새하얗게
     var WHITE = {
       bgVoid:'#ffffff', skyMid:'#ffffff', bgGlow:'#ffffff', star:'#2b2b2b',
       mhAccent:'#6b6b6b', mhTitle:'#1c1c1c', mhTitleGlow:'rgba(0,0,0,0)',
@@ -227,124 +186,52 @@
     setInterval(applySkyPhase, 60 * 1000);
   })();
 
-  function pad(n){ return n < 10 ? '0'+n : ''+n; }
-  function dateKey(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
-
-  var now = new Date();
-  var todayKey = dateKey(now);
-
-  var dateLabelEl = document.getElementById('dateLabel');
-  if (dateLabelEl) dateLabelEl.textContent = (now.getMonth()+1)+'월 '+now.getDate()+'일';
-
   var DB_PROMISE = (window.claude && typeof window.claude.use === 'function')
     ? window.claude.use('db')
     : Promise.resolve(null);
 
-  // -- 오늘의 QT 기도 (두란노 QT의 기도문) --
-  function loadTodayPrayer(){
-    var textEl = document.getElementById('prayerText');
-    DB_PROMISE.then(function(db){
-      if (!db) { showFallback(); return; }
-      db.doc('qt/' + todayKey).get().then(function(snap){
-        if (!snap.exists) { showFallback(); return; }
-        var data = snap.data();
-        if (data.prayer) {
-          textEl.innerHTML = '';
-          var p = document.createElement('p');
-          p.textContent = data.prayer;
-          textEl.appendChild(p);
-        } else {
-          showFallback();
-        }
-      }).catch(showFallback);
-    }).catch(showFallback);
+  var listEl = document.getElementById('vocabList');
+  var countEl = document.getElementById('vocabCount');
+  var searchEl = document.getElementById('vocabSearch');
+  var allWords = [];
 
-    function showFallback(){
-      textEl.innerHTML = '<p>오늘은 별도로 준비된 기도문이 없다. 오늘의 말씀을 다시 떠올리며, 그 말씀대로 살게 해 달라고 스스로 기도해 보라.</p>';
-    }
+  function fmtDate(ts){
+    if (!ts) return '';
+    var d = new Date(ts);
+    return (d.getMonth()+1) + '월 ' + d.getDate() + '일';
   }
-  loadTodayPrayer();
 
-  // -- 오늘의 기도 (나의 기도, 이 브라우저에만 저장) --
-  var MY_PRAYER_KEY = 'solomonPrayerJournal';
-  function loadMyPrayer(){
-    try { var raw = localStorage.getItem(MY_PRAYER_KEY); return raw ? JSON.parse(raw) : {}; }
-    catch (e) { return {}; }
+  function render(filterText){
+    var q = (filterText || '').trim();
+    var items = q ? allWords.filter(function(w){ return w.word.indexOf(q) !== -1; }) : allWords;
+    countEl.textContent = allWords.length ? ('총 ' + allWords.length + '개 저장됨' + (q ? ' · ' + items.length + '개 검색됨' : '')) : '';
+    if (!items.length){
+      listEl.innerHTML = '<li class="vocab-empty">' + (allWords.length ? '검색 결과가 없어요.' : '아직 저장된 단어가 없어요. 본문 위 단어를 드래그해서 뜻을 찾아보세요.') + '</li>';
+      return;
+    }
+    listEl.innerHTML = items.map(function(w){
+      var word = String(w.word || '').replace(/[<>&]/g, function(c){ return c === '<' ? '&lt;' : c === '>' ? '&gt;' : '&amp;'; });
+      var def = String(w.definition || '').replace(/[<>&]/g, function(c){ return c === '<' ? '&lt;' : c === '>' ? '&gt;' : '&amp;'; });
+      return '<li class="vocab-item"><div class="vw">' + word + '</div><div class="vd">' + def + '</div><div class="vt">' + fmtDate(w.createdAt) + '</div></li>';
+    }).join('');
   }
-  function saveMyPrayerMap(map){
-    try { localStorage.setItem(MY_PRAYER_KEY, JSON.stringify(map)); } catch (e) {}
-  }
-  (function(){
-    var myPrayer = loadMyPrayer();
-    var noteEl = document.getElementById('myPrayerNote');
-    var statusEl = document.getElementById('myPrayerStatus');
-    if (myPrayer[todayKey] && noteEl) {
-      noteEl.value = myPrayer[todayKey].note || '';
-      if (statusEl) statusEl.textContent = '오늘 이미 기록하였습니다. 다시 저장하면 덮어씁니다.';
-    }
-    var saveBtn = document.getElementById('saveMyPrayer');
-    if (saveBtn) {
-      saveBtn.addEventListener('click', function(){
-        var val = noteEl ? noteEl.value : '';
-        if (!val || !val.trim()) {
-          if (statusEl) statusEl.textContent = '먼저 몇 마디라도 적어 보라.';
-          return;
-        }
-        myPrayer[todayKey] = { note: val, ts: new Date().toISOString() };
-        saveMyPrayerMap(myPrayer);
-        if (statusEl) {
-          var d = new Date();
-          statusEl.textContent = '저장되었습니다 · ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
-        }
-      });
-    }
-  })();
 
-  // -- 지난 목장의 기도제목 (읽기 전용). 목장 나눔 자체는 group.html에서 작성하고,
-  //    여기에는 db 문서 prayer/current의 스냅샷만 보여준다. 매주 토요일 09:00 KST에
-  //    자동화가 그 문서를 최신 내용으로 갱신한다. --
-  (function(){
-    var labelEl = document.getElementById('prayerWeekLabel');
-    var listEl = document.getElementById('prayerFieldsList');
-    if (!labelEl || !listEl) return;
-    listEl.innerHTML = '<li class="empty">불러오는 중…</li>';
-
-    function renderPrayer(data){
-      labelEl.textContent = (data.weekLabel || '지난 목장') + ' · 매주 토요일 아침 갱신';
-      listEl.innerHTML = '';
-      (data.people || []).forEach(function(p){
-        var li = document.createElement('li');
-        var name = document.createElement('span');
-        name.className = 'name';
-        name.textContent = p.name;
-        var note = document.createElement('span');
-        note.className = 'note';
-        note.textContent = p.prayer;
-        li.appendChild(name);
-        li.appendChild(note);
-        listEl.appendChild(li);
-      });
+  DB_PROMISE.then(function(db){
+    if (!db){
+      listEl.innerHTML = '<li class="vocab-empty">이 기능은 Claude 아티팩트 화면에서만 동작해요.</li>';
+      return;
     }
-    function showPrayerError(){
-      labelEl.textContent = '';
-      listEl.innerHTML = '';
-      var li = document.createElement('li');
-      li.className = 'empty';
-      li.textContent = '아직 기도제목을 불러오지 못했다. 페이지를 새로고침해 보라.';
-      listEl.appendChild(li);
-    }
+    return db.collection('vocab').get().then(function(qs){
+      allWords = (qs && qs.docs ? qs.docs : []).map(function(s){ return s.data(); }).sort(function(a,b){ return (b.createdAt||0) - (a.createdAt||0); });
+      render('');
+    });
+  }).catch(function(){
+    listEl.innerHTML = '<li class="vocab-empty">단어장을 불러오지 못했어요.</li>';
+  });
 
-    DB_PROMISE.then(function(db){
-      if (!db) { showPrayerError(); return; }
-      db.doc('prayer/current').get().then(function(snap){
-        if (!snap.exists) { showPrayerError(); return; }
-        renderPrayer(snap.data());
-      }).catch(showPrayerError);
-    }).catch(showPrayerError);
-  })();
+  searchEl.addEventListener('input', function(){ render(searchEl.value); });
 })();
 </script>
-
 
 <script>
 (function(){
