@@ -185,6 +185,7 @@
   section + section{ margin-top:44px; }
 
   .divider{ display:flex; align-items:center; gap:14px; margin:8px 0 30px; color:var(--gold); }
+  .divider[id], #s0{ scroll-margin-top:108px; }
   .divider .line{ flex:1; height:1px; background:linear-gradient(90deg, transparent, var(--gold), transparent); }
   .divider svg{ width:20px; height:20px; flex:none; }
 
@@ -451,9 +452,9 @@
       <div class="gist"><p id="greetingText">내 딸아, 나 솔로몬이 네게 편지하노라.</p></div>
     </section>
 
-    <div class="divider"><div class="line"></div><svg viewBox="0 0 24 24" fill="none"><path d="M12 2 L15 9 L22 12 L15 15 L12 22 L9 15 L2 12 L9 9 Z" stroke="var(--gold)" stroke-width="1.2"/></svg><div class="line"></div></div>
+    <div class="divider" id="bible"><div class="line"></div><svg viewBox="0 0 24 24" fill="none"><path d="M12 2 L15 9 L22 12 L15 15 L12 22 L9 15 L2 12 L9 9 Z" stroke="var(--gold)" stroke-width="1.2"/></svg><div class="line"></div></div>
 
-    <section id="bible">
+    <section>
       <div class="kicker">매일의 묵상</div>
       <h2>오늘의 QT</h2>
 
@@ -479,27 +480,27 @@
       <p class="portion-link"><a href="qt.html">오늘 QT 기록하기 · 지난 묵상 보기 →</a></p>
     </section>
 
-    <div class="divider"><div class="line"></div><svg viewBox="0 0 24 24" fill="none"><path d="M12 2 L15 9 L22 12 L15 15 L12 22 L9 15 L2 12 L9 9 Z" stroke="var(--gold)" stroke-width="1.2"/></svg><div class="line"></div></div>
+    <div class="divider" id="reading"><div class="line"></div><svg viewBox="0 0 24 24" fill="none"><path d="M12 2 L15 9 L22 12 L15 15 L12 22 L9 15 L2 12 L9 9 Z" stroke="var(--gold)" stroke-width="1.2"/></svg><div class="line"></div></div>
 
-    <section id="reading">
+    <section>
       <div class="kicker">매삼주오 통독</div>
       <h2>오늘의 말씀</h2>
       <p id="readingSummary" class="qt-loading">불러오는 중…</p>
       <p class="portion-link"><a href="reading.html">오늘의 본문 전체 보기 · 묵상 질문 →</a></p>
     </section>
 
-    <div class="divider"><div class="line"></div><svg viewBox="0 0 24 24" fill="none"><path d="M12 2 L15 9 L22 12 L15 15 L12 22 L9 15 L2 12 L9 9 Z" stroke="var(--gold)" stroke-width="1.2"/></svg><div class="line"></div></div>
+    <div class="divider" id="portion"><div class="line"></div><svg viewBox="0 0 24 24" fill="none"><path d="M12 2 L15 9 L22 12 L15 15 L12 22 L9 15 L2 12 L9 9 Z" stroke="var(--gold)" stroke-width="1.2"/></svg><div class="line"></div></div>
 
-    <section id="portion">
+    <section>
       <div class="kicker">오늘 다스릴 조각</div>
       <h2>오늘의 조각</h2>
       <div id="portionList"><p class="qt-loading">불러오는 중…</p></div>
       <p class="portion-link"><a href="checklist.html">전체 목록 보기 · 항목 추가/편집 →</a></p>
     </section>
 
-    <div class="divider"><div class="line"></div><svg viewBox="0 0 24 24" fill="none"><path d="M12 2 L15 9 L22 12 L15 15 L12 22 L9 15 L2 12 L9 9 Z" stroke="var(--gold)" stroke-width="1.2"/></svg><div class="line"></div></div>
+    <div class="divider" id="prayer"><div class="line"></div><svg viewBox="0 0 24 24" fill="none"><path d="M12 2 L15 9 L22 12 L15 15 L12 22 L9 15 L2 12 L9 9 Z" stroke="var(--gold)" stroke-width="1.2"/></svg><div class="line"></div></div>
 
-    <section id="prayer">
+    <section>
       <div class="kicker">매일의 기도</div>
       <h2>오늘의 기도</h2>
       <div class="gist qt-side" id="myPrayerBox" hidden>
@@ -509,9 +510,9 @@
       <p class="portion-link"><a href="prayer.html">오늘의 기도 보기 · 함께 기도할 제목 →</a></p>
     </section>
 
-    <div class="divider"><div class="line"></div><svg viewBox="0 0 24 24" fill="none"><path d="M12 2 L15 9 L22 12 L15 15 L12 22 L9 15 L2 12 L9 9 Z" stroke="var(--gold)" stroke-width="1.2"/></svg><div class="line"></div></div>
+    <div class="divider" id="s3"><div class="line"></div><svg viewBox="0 0 24 24" fill="none"><path d="M12 2 L15 9 L22 12 L15 15 L12 22 L9 15 L2 12 L9 9 Z" stroke="var(--gold)" stroke-width="1.2"/></svg><div class="line"></div></div>
 
-    <section id="s3">
+    <section>
       <div class="kicker">맺음말</div>
       <div class="gist"><p id="closingText">네게 평강이 있을지어다.</p></div>
       <p class="signoff">— 솔로몬</p>
