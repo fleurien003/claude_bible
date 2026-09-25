@@ -1,0 +1,463 @@
+<!doctype html><html lang="ko"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>솔로몬과의 대화</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Song+Myung&family=Nanum+Myeongjo:wght@400;700;800&family=Nanum+Square:wght@400;700;800&display=swap');
+
+  :root{
+    --bg-void:#100e1c;
+    --bg-glow:#2c2544;
+    --sky-mid:#17132a;
+    --gold:#c9a24b;
+    --gold-bright:#eccd85;
+    --parchment:#ecdfc2;
+    --parchment-edge:#d8c69a;
+    --ink:#2c2013;
+    --ink-soft:#6b5636;
+    --cedar:#5b3324;
+    --pomegranate:#8a3b3b;
+    --star:#f5ecd6;
+    --mh-accent:#eccd85;
+    --mh-title:#f7efd8;
+    --mh-title-glow:rgba(230,190,110,.25);
+    --mh-line:rgba(230,190,110,.3);
+    --mh-nav-bg:rgba(20,17,34,.6);
+  }
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  @media (prefers-reduced-motion: reduce){ html{ scroll-behavior:auto; } }
+
+  body{
+    margin:0; background:var(--bg-void); color:var(--ink);
+    font-family:'Nanum Square','Noto Sans KR',sans-serif;
+    line-height:1.7; -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  }
+  .sky{
+    position:fixed; inset:0; z-index:0;
+    background: radial-gradient(ellipse 80% 50% at 50% 100%, var(--bg-glow), transparent 70%),
+      linear-gradient(180deg, var(--bg-void) 0%, var(--sky-mid) 55%, var(--bg-glow) 100%);
+    transition:background 2s ease;
+    pointer-events:none;
+  }
+  .wrap{ position:relative; z-index:1; max-width:720px; margin:0 auto; padding:44px 18px 70px; }
+
+  .masthead{ text-align:center; color:var(--star); margin-bottom:28px; transition:color 2s ease; }
+  .eyebrow{ font-size:12px; letter-spacing:.3em; font-weight:500; color:var(--mh-accent); opacity:.9; margin-bottom:8px; transition:color 2s ease; }
+  h1.title{
+    font-family:'Song Myung','Nanum Myeongjo',serif; font-weight:400;
+    font-size:clamp(28px,6.5vw,40px); margin:0 0 8px; color:var(--mh-title);
+    text-shadow:0 0 24px var(--mh-title-glow);
+    transition:color 2s ease, text-shadow 2s ease;
+  }
+  .sub{ font-size:14px; color:var(--mh-accent); opacity:.85; transition:color 2s ease; }
+  a.back{
+    display:inline-block; margin-top:14px; font-size:12.5px; color:var(--mh-accent);
+    text-decoration:none; border-bottom:1px solid var(--mh-line);
+    transition:color 2s ease, border-color 2s ease;
+  }
+
+  .scroll{
+    position:relative; background:var(--parchment); color:var(--ink);
+    padding:36px clamp(20px,6vw,48px) 32px;
+    box-shadow:0 20px 50px rgba(0,0,0,.4);
+    transition:background-color 1.5s ease;
+  }
+
+  .kicker{ font-size:12px; letter-spacing:.28em; font-weight:600; color:var(--pomegranate); margin-bottom:8px; }
+
+  .cs-session-row{ display:flex; gap:8px; align-items:center; margin-bottom:22px; flex-wrap:wrap; }
+  .cs-session-row select{
+    flex:1; min-width:150px; font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:13.5px;
+    padding:9px 11px; border:1px solid var(--parchment-edge); background:#f7f1de; color:var(--ink);
+  }
+  .cs-session-row button{
+    font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:13px; font-weight:500;
+    padding:9px 15px; cursor:pointer; flex:none;
+  }
+  #csNewBtn{ background:var(--cedar); color:#f7efd8; border:none; }
+  #csNewBtn:hover{ background:#4a2a1d; }
+  #csDeleteBtn{ background:none; border:1px solid var(--pomegranate); color:var(--pomegranate); }
+  #csDeleteBtn:hover{ background:var(--pomegranate); color:#fff; }
+  #csDeleteBtn:disabled{ opacity:.35; cursor:default; }
+  #csDeleteBtn:disabled:hover{ background:none; color:var(--pomegranate); }
+
+  .cs-chat{ display:flex; flex-direction:column; gap:16px; margin-bottom:20px; min-height:100px; }
+  .cs-empty{ font-size:14.5px; color:var(--ink-soft); font-style:italic; margin:0; }
+
+  .cs-msg{ display:flex; flex-direction:column; max-width:82%; }
+  .cs-msg.user{ align-self:flex-end; align-items:flex-end; }
+  .cs-msg.solomon{ align-self:flex-start; align-items:flex-start; }
+  .cs-bubble{ padding:13px 16px; border-radius:14px; font-size:15px; line-height:1.75; white-space:pre-wrap; }
+  .cs-msg.user .cs-bubble{ background:var(--cedar); color:#f7efd8; border-bottom-right-radius:3px; }
+  .cs-msg.solomon .cs-bubble{
+    background:#f7f1de; border:1px solid var(--parchment-edge); border-left:3px solid var(--gold);
+    color:var(--ink); font-family:'Nanum Myeongjo',serif; border-bottom-left-radius:3px;
+  }
+  .cs-time{ font-size:10.5px; color:var(--ink-soft); margin-top:5px; padding:0 4px; }
+
+  .cs-verse-card{
+    margin-top:10px; width:100%; background:#fbf6e8; border:1px solid var(--parchment-edge); border-left:3px solid var(--gold);
+    border-radius:4px; padding:12px 14px;
+  }
+  .cs-verse-ref{ font-size:12px; font-weight:700; color:var(--pomegranate); margin-bottom:7px; }
+  .cs-verse-tabs{ display:flex; gap:6px; margin-bottom:7px; }
+  .cs-vtab{
+    background:none; border:1px solid var(--parchment-edge); color:var(--ink-soft); border-radius:999px;
+    font-size:10.5px; padding:3px 9px; cursor:pointer;
+  }
+  .cs-vtab.active{ background:var(--gold); color:#fff; border-color:var(--gold); }
+  .cs-verse-text{ font-size:13px; line-height:1.65; color:var(--ink); white-space:pre-wrap; }
+
+  .cs-input-row{ display:flex; gap:8px; align-items:flex-end; }
+  .cs-input-row textarea{
+    flex:1; min-height:52px; max-height:160px; resize:vertical;
+    font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:15px; line-height:1.6; color:var(--ink);
+    background:#f7f1de; border:1px solid var(--parchment-edge); padding:12px 14px;
+  }
+  .cs-input-row textarea:focus{ outline:2px solid var(--gold); outline-offset:1px; }
+  .cs-input-row button{
+    font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:13.5px; font-weight:500;
+    background:var(--cedar); color:#f7efd8; border:none; padding:14px 20px; cursor:pointer; flex:none;
+  }
+  .cs-input-row button:hover{ background:#4a2a1d; }
+  .cs-input-row button:disabled{ opacity:.5; cursor:default; }
+  .cs-status{ font-size:12px; color:var(--ink-soft); margin-top:9px; min-height:15px; }
+
+  footer{
+    max-width:720px; margin:30px auto 0; padding-inline:18px; text-align:center;
+    color:var(--mh-accent); opacity:.7; font-size:12px; position:relative; z-index:1;
+    transition:color 2s ease;
+  }
+
+  @media (max-width:480px){ .scroll{ padding-inline:20px; } .cs-msg{ max-width:92%; } }
+</style>
+
+<div class="sky"></div>
+
+<div class="wrap">
+  <div class="masthead">
+    <div class="eyebrow">힘들 때 솔로몬에게</div>
+    <h1 class="title">솔로몬과의 대화</h1>
+    <div class="sub">마음에 있는 이야기를 편하게 적어보세요</div>
+    <a class="back" href="index.html">← 솔로몬의 편지로 돌아가기</a>
+  </div>
+
+  <div class="scroll">
+    <div class="kicker">상담 기록</div>
+    <div class="cs-session-row">
+      <select id="csSessionSelect"><option value="">+ 새 상담 시작</option></select>
+      <button type="button" id="csNewBtn">+ 새 상담</button>
+      <button type="button" id="csDeleteBtn" disabled>이 상담 삭제</button>
+    </div>
+
+    <div class="cs-chat" id="csChat"><p class="cs-empty">마음에 있는 이야기를 편하게 적어보세요. 솔로몬이 귀 기울여 들어줄 거예요.</p></div>
+
+    <div class="cs-input-row">
+      <textarea id="csInput" placeholder="마음에 있는 이야기를 적어보세요... (Enter로 보내기, Shift+Enter로 줄바꿈)"></textarea>
+      <button type="button" id="csSendBtn">보내기</button>
+    </div>
+    <div class="cs-status" id="csStatus"></div>
+  </div>
+</div>
+
+<footer>여기서 나눈 이야기는 상담 기록으로 저장되며, 언제든 삭제할 수 있어요</footer>
+
+<script>
+(function(){
+  var BOOK_INDEX = {"창세기":1,"출애굽기":2,"레위기":3,"민수기":4,"신명기":5,"여호수아":6,"사사기":7,"룻기":8,"사무엘상":9,"사무엘하":10,"열왕기상":11,"열왕기하":12,"역대상":13,"역대하":14,"에스라":15,"느헤미야":16,"에스더":17,"욥기":18,"시편":19,"잠언":20,"전도서":21,"아가":22,"이사야":23,"예레미야":24,"예레미야애가":25,"에스겔":26,"다니엘":27,"호세아":28,"요엘":29,"아모스":30,"오바댜":31,"요나":32,"미가":33,"나훔":34,"하박국":35,"스바냐":36,"학개":37,"스가랴":38,"말라기":39,"마태복음":40,"마가복음":41,"누가복음":42,"요한복음":43,"사도행전":44,"로마서":45,"고린도전서":46,"고린도후서":47,"갈라디아서":48,"에베소서":49,"빌립보서":50,"골로새서":51,"데살로니가전서":52,"데살로니가후서":53,"디모데전서":54,"디모데후서":55,"디도서":56,"빌레몬서":57,"히브리서":58,"야고보서":59,"베드로전서":60,"베드로후서":61,"요한일서":62,"요한이서":63,"요한삼서":64,"유다서":65,"요한계시록":66};
+
+  var DB_PROMISE = (window.claude && typeof window.claude.use === 'function') ? window.claude.use('db') : Promise.resolve(null);
+  var SAMPLE_PROMISE = (window.claude && typeof window.claude.use === 'function') ? window.claude.use('sample') : Promise.resolve(null);
+
+  function pad(n, w){ n = String(n); while (n.length < w) n = '0' + n; return n; }
+  function chapterDocId(book, chapter){
+    var num = BOOK_INDEX[book];
+    if (!num) return null;
+    return pad(num, 2) + '-' + pad(chapter, 3);
+  }
+  function escHtml(s){
+    return String(s || '').replace(/[<>&]/g, function(c){ return c === '<' ? '&lt;' : c === '>' ? '&gt;' : '&amp;'; });
+  }
+  function fmtDate(ts){
+    if (!ts) return '';
+    var d = new Date(ts);
+    return (d.getMonth()+1) + '월 ' + d.getDate() + '일 ' + (d.getHours()<10?'0':'') + d.getHours() + ':' + (d.getMinutes()<10?'0':'') + d.getMinutes();
+  }
+
+  async function resolveVerseRefs(db, refs){
+    if (!db || !refs || !refs.length) return [];
+    var out = [];
+    for (var i = 0; i < refs.length; i++){
+      var ref = refs[i];
+      var docId = ref && ref.book && ref.chapter ? chapterDocId(ref.book, ref.chapter) : null;
+      if (!docId) continue;
+      try {
+        var koSnap = await db.doc('bible/' + docId).get();
+        if (!koSnap || !koSnap.exists) continue;
+        var enSnap = await db.doc('bible_en/' + docId).get().catch(function(){ return null; });
+        var koData = koSnap.data();
+        var enData = enSnap && enSnap.exists ? enSnap.data() : null;
+        var start = ref.start || 1, end = ref.end || start;
+        var inRange = function(v){ var n = parseInt(v.n, 10); return n >= start && n <= end; };
+        var koLines = (koData.verses || []).filter(inRange).map(function(v){ return v.n + '. ' + v.t; });
+        var enLines = enData ? (enData.verses || []).filter(inRange).map(function(v){ return v.n + '. ' + v.t; }) : [];
+        if (!koLines.length) continue;
+        out.push({
+          label: ref.book + ' ' + ref.chapter + '장 ' + start + (end !== start ? '-' + end : '') + '절',
+          labelEn: (enData && enData.book_en ? enData.book_en : '') + ' ' + ref.chapter + ':' + start + (end !== start ? '-' + end : ''),
+          koText: koLines.join('\n'),
+          enText: enLines.join('\n')
+        });
+      } catch (e) { /* 이 구절만 건너뛴다 */ }
+    }
+    return out;
+  }
+
+  var sessionSelect = document.getElementById('csSessionSelect');
+  var newBtn = document.getElementById('csNewBtn');
+  var deleteBtn = document.getElementById('csDeleteBtn');
+  var chatEl = document.getElementById('csChat');
+  var inputEl = document.getElementById('csInput');
+  var sendBtn = document.getElementById('csSendBtn');
+  var statusEl = document.getElementById('csStatus');
+
+  var sessions = [];
+  var currentSession = null;
+  var sending = false;
+
+  function renderSessionOptions(){
+    var opts = '<option value="">+ 새 상담 시작</option>' + sessions.map(function(s){
+      return '<option value="' + escHtml(s.id) + '">' + escHtml(s.title) + ' · ' + fmtDate(s.updatedAt) + '</option>';
+    }).join('');
+    sessionSelect.innerHTML = opts;
+    sessionSelect.value = currentSession && currentSession.id ? currentSession.id : '';
+  }
+
+  function updateDeleteBtnState(){
+    deleteBtn.disabled = !(currentSession && currentSession.id);
+  }
+
+  function renderMessage(m){
+    if (m.role === 'user') {
+      return '<div class="cs-msg user"><div class="cs-bubble">' + escHtml(m.text) + '</div><div class="cs-time">' + fmtDate(m.ts) + '</div></div>';
+    }
+    var versesHtml = '';
+    if (m.verses && m.verses.length) {
+      versesHtml = m.verses.map(function(v){
+        return '<div class="cs-verse-card">' +
+          '<div class="cs-verse-ref">📖 ' + escHtml(v.label) + (v.labelEn ? ' · ' + escHtml(v.labelEn) : '') + '</div>' +
+          '<div class="cs-verse-tabs"><button type="button" class="cs-vtab active" data-lang="ko">한글</button><button type="button" class="cs-vtab" data-lang="en">영어</button></div>' +
+          '<div class="cs-verse-text ko-text">' + escHtml(v.koText) + '</div>' +
+          '<div class="cs-verse-text en-text" hidden>' + escHtml(v.enText) + '</div>' +
+          '</div>';
+      }).join('');
+    }
+    return '<div class="cs-msg solomon"><div class="cs-bubble">' + escHtml(m.text) + '</div>' + versesHtml + '<div class="cs-time">솔로몬 · ' + fmtDate(m.ts) + '</div></div>';
+  }
+
+  function renderChat(){
+    if (!currentSession || !currentSession.messages || !currentSession.messages.length) {
+      chatEl.innerHTML = '<p class="cs-empty">마음에 있는 이야기를 편하게 적어보세요. 솔로몬이 귀 기울여 들어줄 거예요.</p>';
+      updateDeleteBtnState();
+      return;
+    }
+    chatEl.innerHTML = currentSession.messages.map(renderMessage).join('');
+    chatEl.querySelectorAll('.cs-vtab').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var card = btn.closest('.cs-verse-card');
+        card.querySelectorAll('.cs-vtab').forEach(function(t){ t.classList.remove('active'); });
+        btn.classList.add('active');
+        var lang = btn.getAttribute('data-lang');
+        card.querySelector('.ko-text').hidden = lang !== 'ko';
+        card.querySelector('.en-text').hidden = lang !== 'en';
+      });
+    });
+    updateDeleteBtnState();
+    chatEl.scrollTop = chatEl.scrollHeight;
+  }
+
+  async function loadSessions(){
+    var db = await DB_PROMISE;
+    if (!db) return;
+    try {
+      var qs = await db.collection('counsel').get();
+      sessions = (qs && qs.docs ? qs.docs : []).map(function(s){
+        var d = s.data() || {};
+        return { id: s.id, title: d.title || '상담', updatedAt: d.updatedAt || 0 };
+      }).sort(function(a, b){ return b.updatedAt - a.updatedAt; });
+      renderSessionOptions();
+    } catch (e) { /* 목록을 못 불러와도 새 상담은 계속 가능 */ }
+  }
+
+  sessionSelect.addEventListener('change', async function(){
+    var id = sessionSelect.value;
+    if (!id) { currentSession = null; renderChat(); return; }
+    statusEl.textContent = '불러오는 중...';
+    var db = await DB_PROMISE;
+    if (!db) { statusEl.textContent = ''; return; }
+    try {
+      var snap = await db.doc('counsel/' + id).get();
+      if (snap && snap.exists) {
+        var d = snap.data();
+        currentSession = { id: id, title: d.title, messages: d.messages || [], createdAt: d.createdAt, updatedAt: d.updatedAt };
+      }
+    } catch (e) {}
+    statusEl.textContent = '';
+    renderChat();
+  });
+
+  newBtn.addEventListener('click', function(){
+    currentSession = null;
+    sessionSelect.value = '';
+    statusEl.textContent = '';
+    renderChat();
+    inputEl.focus();
+  });
+
+  deleteBtn.addEventListener('click', async function(){
+    if (!currentSession || !currentSession.id) return;
+    var id = currentSession.id;
+    var db = await DB_PROMISE;
+    if (!db) return;
+    try { await db.doc('counsel/' + id).delete(); } catch (e) {}
+    sessions = sessions.filter(function(s){ return s.id !== id; });
+    currentSession = null;
+    renderSessionOptions();
+    renderChat();
+  });
+
+  function buildPersonaPrompt(){
+    return '당신은 솔로몬입니다. "솔로몬의 편지"라는 이 앱의 화자로서, 사랑하는 딸 은아에게 말하듯 다정하고 지혜롭게 답합니다. ' +
+      '설교하듯 가르치려 들지 말고, 먼저 마음을 깊이 들어주고 공감한 다음, 성경(특히 잠언·전도서·시편·복음서)에 뿌리를 둔 지혜와 위로를 자연스럽게 건네세요. ' +
+      '필요할 때만 성경 구절을 1~2개 제안하고, 본문을 직접 인용해 적지 마세요 — 참조(책 이름, 장, 절)만 알려주면 실제 본문은 다른 시스템이 정확하게 붙여줍니다. ' +
+      '반복적인 격식체 대신 자연스럽고 따뜻한 말투로, 2~5문장 정도로 간결하게 답하세요.\n\n' +
+      '반드시 아래 JSON 형식으로만 답하세요 (다른 설명 없이 JSON만):\n' +
+      '{"reply": "답변 본문", "verses": [{"book": "정확한 한글 성경 책 이름 (예: 잠언, 시편, 마태복음)", "chapter": 숫자, "start": 숫자, "end": 숫자}]}\n' +
+      '어울리는 구절이 없으면 verses는 빈 배열 []로 두세요.';
+  }
+
+  var MAX_HISTORY_MESSAGES = 24; // 토큰 비용 억제를 위해 최근 대화만 함께 보낸다 (전체 기록은 db에 그대로 저장됨)
+  function buildHistoryText(messages){
+    var recent = messages.slice(0, -1).slice(-MAX_HISTORY_MESSAGES);
+    if (!recent.length) return '(처음 나누는 대화입니다)';
+    return recent.map(function(m){ return (m.role === 'user' ? '은아: ' : '솔로몬: ') + m.text; }).join('\n');
+  }
+
+  async function sendMessage(){
+    if (sending) return;
+    var text = inputEl.value.trim();
+    if (!text) return;
+
+    sending = true;
+    sendBtn.disabled = true;
+    inputEl.disabled = true;
+    statusEl.textContent = '솔로몬이 답장을 쓰고 있어요...';
+
+    if (!currentSession) {
+      currentSession = { id: null, title: text.slice(0, 24), messages: [], createdAt: Date.now(), updatedAt: Date.now() };
+    }
+    currentSession.messages.push({ role: 'user', text: text, ts: Date.now() });
+    inputEl.value = '';
+    renderChat();
+
+    var sample = await SAMPLE_PROMISE;
+    if (!sample) {
+      statusEl.textContent = '⚠️ 이 화면에서는 상담 기능을 쓸 수 없어요.';
+      sending = false; sendBtn.disabled = false; inputEl.disabled = false;
+      return;
+    }
+
+    var prompt = buildPersonaPrompt() +
+      '\n\n[지금까지의 대화]\n' + buildHistoryText(currentSession.messages) +
+      '\n\n[새 메시지]\n은아: ' + text;
+
+    try {
+      var result = await sample.json(prompt, { modelTier: 'default' });
+      var replyText = (result && result.reply) ? String(result.reply) : '지금은 마음을 다 담아 답하기 어렵구나. 다시 한 번 말해줄 수 있겠니?';
+      var verseRefs = (result && Array.isArray(result.verses)) ? result.verses : [];
+      var db = await DB_PROMISE;
+      var resolvedVerses = await resolveVerseRefs(db, verseRefs);
+      currentSession.messages.push({ role: 'solomon', text: replyText, verses: resolvedVerses, ts: Date.now() });
+      renderChat();
+      await saveCurrentSession();
+      statusEl.textContent = '';
+    } catch (e) {
+      statusEl.textContent = '⚠️ 답장을 받지 못했어요. 잠시 후 다시 시도해 주세요.';
+    }
+
+    sending = false;
+    sendBtn.disabled = false;
+    inputEl.disabled = false;
+    inputEl.focus();
+  }
+
+  async function saveCurrentSession(){
+    var db = await DB_PROMISE;
+    if (!db || !currentSession) return;
+    if (!currentSession.id) {
+      currentSession.id = Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+    }
+    currentSession.updatedAt = Date.now();
+    var payload = {
+      title: currentSession.title,
+      messages: currentSession.messages,
+      createdAt: currentSession.createdAt,
+      updatedAt: currentSession.updatedAt
+    };
+    try {
+      await db.doc('counsel/' + currentSession.id).set(payload);
+      var idx = sessions.findIndex(function(s){ return s.id === currentSession.id; });
+      var summary = { id: currentSession.id, title: currentSession.title, updatedAt: currentSession.updatedAt };
+      if (idx === -1) sessions.unshift(summary); else sessions[idx] = summary;
+      sessions.sort(function(a, b){ return b.updatedAt - a.updatedAt; });
+      renderSessionOptions();
+      updateDeleteBtnState();
+    } catch (e) { /* 저장 실패해도 화면의 대화는 남아있다 */ }
+  }
+
+  sendBtn.addEventListener('click', sendMessage);
+  inputEl.addEventListener('keydown', function(e){
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
+
+  loadSessions();
+  renderChat();
+})();
+</script>
+
+<style>
+  .scroll-top-btn{
+    position:fixed; right:18px; bottom:18px; z-index:9998;
+    width:44px; height:44px; border-radius:50%;
+    background:var(--cedar,#5b3324); color:#f7efd8; border:none; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 6px 16px rgba(0,0,0,.35);
+    opacity:0; transform:translateY(10px); pointer-events:none;
+    transition:opacity .2s ease, transform .2s ease, background .2s ease;
+  }
+  .scroll-top-btn.show{ opacity:1; transform:translateY(0); pointer-events:auto; }
+  .scroll-top-btn:hover{ background:var(--gold,#c9a24b); }
+  .scroll-top-btn svg{ width:20px; height:20px; }
+  @media (max-width:480px){ .scroll-top-btn{ right:14px; bottom:14px; width:40px; height:40px; } }
+</style>
+<script>
+(function(){
+  if (window.__scrollTopInit) return;
+  window.__scrollTopInit = true;
+  var btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'scroll-top-btn';
+  btn.setAttribute('aria-label', '맨 위로');
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>';
+  document.body.appendChild(btn);
+  function update(){
+    if (window.scrollY > 320) btn.classList.add('show'); else btn.classList.remove('show');
+  }
+  window.addEventListener('scroll', update, { passive: true });
+  update();
+  btn.addEventListener('click', function(){
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+})();
+</script>
+
+</body></html>
