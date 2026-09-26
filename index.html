@@ -154,7 +154,6 @@
     padding:7px 14px; border-radius:999px;
     background:var(--mh-nav-bg);
     border:1px solid var(--mh-line);
-    backdrop-filter:blur(6px);
     white-space:nowrap;
     transition:color 2s ease, background 2s ease, border-color 2s ease;
   }
@@ -544,8 +543,8 @@
   }
   var small = document.getElementById('starsSmall');
   var big = document.getElementById('starsBig');
-  if (small) paintStars(small, 140, 0);
-  if (big) paintStars(big, 45, 1);
+  if (small) paintStars(small, 60, 0);
+  if (big) paintStars(big, 16, 1);
 
   // -- 하늘 배경: 시간대에 맞춰 밤/낮/노을을 보간 --
   // .scroll(양피지 편지 본문)에서 쓰는 --gold/--gold-bright/--star 와는 분리된
