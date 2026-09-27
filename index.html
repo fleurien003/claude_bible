@@ -708,6 +708,7 @@
       saveVerses(verses);
     }
 
+    var userEditing = false;
     var picked = null; // 지금 미리보기로 불러온 구절 { ref, text }
     var lookupTicket = 0;
     function showPreview(msg, isErr){
@@ -767,7 +768,7 @@
       editBtn.type = 'button';
       editBtn.className = 'mv-edit-btn';
       editBtn.textContent = '이번주 구절 바꾸기';
-      editBtn.addEventListener('click', showForm);
+      editBtn.addEventListener('click', function(){ userEditing = true; showForm(); });
       displayEl.appendChild(refEl);
       displayEl.appendChild(textEl);
       displayEl.appendChild(editBtn);
@@ -784,12 +785,38 @@
       refInput.focus();
     }
 
-    if (verses[wk] && verses[wk].ref) showDisplay(verses[wk]); else showForm();
+    // 기기마다 따로 저장되던(localStorage) 구절을 아티팩트 db(memory_verse/<주 시작일>)에 두어
+    // 노트북·폰 어디서 열어도 같은 구절이 보이게 한다. localStorage는 db를 못 읽을 때의 예비용.
+    function saveToDb(entry){
+      return DB_PROMISE.then(function(db){
+        if (db) return db.doc('memory_verse/' + wk).set(entry);
+      }).catch(function(){});
+    }
+    function render(){
+      if (verses[wk] && verses[wk].ref) showDisplay(verses[wk]); else showForm();
+    }
+    render();
+    DB_PROMISE.then(function(db){
+      if (!db) return;
+      return db.doc('memory_verse/' + wk).get().then(function(snap){
+        if (snap && snap.exists && snap.data().ref) {
+          var remote = snap.data();
+          verses[wk] = { ref: remote.ref, text: remote.text, ts: remote.ts };
+          saveVerses(verses);
+          if (!userEditing) render(); // "바꾸기"를 눌러 고치는 중이면 방해하지 않는다
+        } else if (verses[wk] && verses[wk].ref && !verses[wk].auto) {
+          // 이 기기에만 저장돼 있던 구절 → db로 올려 다른 기기에서도 보이게
+          saveToDb({ ref: verses[wk].ref, text: verses[wk].text, ts: verses[wk].ts || new Date().toISOString() });
+        }
+      });
+    }).catch(function(){});
 
     saveBtn.addEventListener('click', function(){
       if (!picked) return;
       verses[wk] = { ref: picked.ref, text: picked.text, ts: new Date().toISOString() };
       saveVerses(verses);
+      saveToDb(verses[wk]);
+      userEditing = false;
       showDisplay(verses[wk]);
     });
   })();
