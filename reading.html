@@ -74,6 +74,31 @@
   .rv .ko{ font-size:15.5px; color:var(--ink); margin:0; }
   .rv .en{ font-size:13px; color:var(--ink-soft); font-style:italic; margin:3px 0 0; }
   .rv sup{ font-size:11px; color:var(--gold); font-weight:600; margin-right:4px; }
+  /* 절 번호를 눌러 구절 고르기 (폰에서도 되도록 — 드래그는 단어 뜻 전용) */
+  .rv .ko sup{
+    display:inline-block; min-width:22px; padding:2px 5px; margin-left:-5px; text-align:center;
+    border-radius:999px; cursor:pointer; user-select:none; -webkit-user-select:none;
+    -webkit-tap-highlight-color:transparent; vertical-align:super;
+  }
+  .rv .ko sup:hover{ background:rgba(201,162,75,.18); }
+  .rv.picked{ background:rgba(201,162,75,.16); box-shadow:-8px 0 0 rgba(201,162,75,.16), 8px 0 0 rgba(201,162,75,.16); border-radius:2px; }
+  .rv.picked .ko sup{ background:var(--gold); color:#fff; }
+  .verse-save-bar{
+    position:fixed; left:50%; bottom:18px; z-index:9997; transform:translate(-50%, 20px);
+    display:flex; align-items:center; gap:8px; max-width:calc(100vw - 32px);
+    background:var(--cedar,#5b3324); color:#f7efd8; border-radius:999px;
+    padding:6px 6px 6px 16px; box-shadow:0 6px 18px rgba(0,0,0,.35);
+    font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:13px;
+    opacity:0; pointer-events:none; transition:opacity .15s ease, transform .15s ease;
+  }
+  .verse-save-bar.open{ opacity:1; pointer-events:auto; transform:translate(-50%, 0); }
+  .verse-save-bar .vsb-label{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .verse-save-bar button{
+    border:none; border-radius:999px; cursor:pointer; font:inherit; font-weight:700; padding:8px 14px; white-space:nowrap;
+  }
+  .verse-save-bar .vsb-save{ background:var(--gold,#c9a24b); color:#20160a; }
+  .verse-save-bar .vsb-cancel{ background:transparent; color:#f7efd8; padding:8px 10px; }
+  @media (max-width:480px){ .verse-save-bar{ bottom:66px; } }
   .gnote{ font-size:12.5px; color:var(--ink-soft); margin-bottom:10px; }
 
   .qt-loading, .qt-error{ margin:0; font-size:15px; color:var(--ink-soft); font-style:italic; }
@@ -794,9 +819,21 @@
       var bookEn = dayEl.getAttribute('data-book-en');
       var chapter = dayEl.getAttribute('data-chapter');
       if (!bookKr || !chapter) return null;
-      var verses = [];
+      var rvs = [];
       dayEl.querySelectorAll('.rv[data-verse]').forEach(function(rv){
-        if (!range.intersectsNode(rv)) return;
+        if (range.intersectsNode(rv)) rvs.push(rv);
+      });
+      return buildBibleRef(dayEl, rvs);
+    } catch (err) { return null; }
+  }
+  function buildBibleRef(dayEl, rvs){
+    try {
+      var bookKr = dayEl.getAttribute('data-book-kr');
+      var bookEn = dayEl.getAttribute('data-book-en');
+      var chapter = dayEl.getAttribute('data-chapter');
+      if (!bookKr || !chapter) return null;
+      var verses = [];
+      rvs.forEach(function(rv){
         var koEl = rv.querySelector('.ko');
         var enEl = rv.querySelector('.en');
         verses.push({
@@ -866,6 +903,69 @@
     if (menuEl && !(e.target.closest && e.target.closest('.select-menu'))) hideMenu();
   });
   document.addEventListener('scroll', hideMenu, true);
+
+  // -- 절 번호 탭으로 구절 저장 (폰·노트북 공통). 첫 탭 = 시작 절, 다른 절 탭 = 끝 절까지 범위.
+  //    같은 절을 다시 누르면 선택 해제. 다른 장을 누르면 새로 시작. --
+  var pick = null; // { dayEl, a, b }
+  var barEl = null;
+  function ensureBar(){
+    if (barEl) return barEl;
+    barEl = document.createElement('div');
+    barEl.className = 'verse-save-bar';
+    barEl.innerHTML = '<span class="vsb-label"></span><button type="button" class="vsb-save">\ud83d\udccc 저장</button><button type="button" class="vsb-cancel" aria-label="선택 취소">\u2715</button>';
+    document.body.appendChild(barEl);
+    barEl.querySelector('.vsb-cancel').addEventListener('click', clearPick);
+    barEl.querySelector('.vsb-save').addEventListener('click', savePick);
+    return barEl;
+  }
+  function pickedRvs(){
+    if (!pick) return [];
+    var lo = Math.min(pick.a, pick.b), hi = Math.max(pick.a, pick.b);
+    return Array.prototype.filter.call(pick.dayEl.querySelectorAll('.rv[data-verse]'), function(rv){
+      var n = parseInt(rv.getAttribute('data-verse'), 10);
+      return n >= lo && n <= hi;
+    });
+  }
+  function paintPick(){
+    document.querySelectorAll('.rv.picked').forEach(function(rv){ rv.classList.remove('picked'); });
+    var bar = ensureBar();
+    if (!pick) { bar.classList.remove('open'); return; }
+    pickedRvs().forEach(function(rv){ rv.classList.add('picked'); });
+    var lo = Math.min(pick.a, pick.b), hi = Math.max(pick.a, pick.b);
+    bar.querySelector('.vsb-label').textContent = pick.dayEl.getAttribute('data-book-kr') + ' ' + pick.dayEl.getAttribute('data-chapter') + ':' + lo + (hi > lo ? '-' + hi : '');
+    var saveBtn = bar.querySelector('.vsb-save');
+    saveBtn.textContent = '\ud83d\udccc 저장';
+    saveBtn.disabled = false;
+    bar.classList.add('open');
+  }
+  function clearPick(){ pick = null; paintPick(); }
+  function savePick(){
+    var rvs = pickedRvs();
+    var ref = pick && buildBibleRef(pick.dayEl, rvs);
+    if (!ref) return;
+    var text = rvs.map(function(rv){
+      var koEl = rv.querySelector('.ko');
+      return koEl ? koEl.textContent.replace(/^\s*\d+\s*/, '').trim() : '';
+    }).filter(Boolean).join(' ');
+    var btn = barEl.querySelector('.vsb-save');
+    btn.disabled = true;
+    saveQuote(text, null, ref);
+    btn.textContent = '\u2713 저장했어요';
+    setTimeout(clearPick, 900);
+  }
+  document.addEventListener('click', function(e){
+    var sup = e.target && e.target.closest ? e.target.closest('.rv .ko sup') : null;
+    if (!sup) return;
+    var rv = sup.closest('.rv');
+    var dayEl = rv.closest('.reading-day');
+    if (!dayEl) return;
+    var n = parseInt(rv.getAttribute('data-verse'), 10);
+    if (!pick || pick.dayEl !== dayEl) pick = { dayEl: dayEl, a: n, b: n };
+    else if (pick.a === pick.b && pick.a === n) pick = null;          // 한 절만 고른 상태에서 같은 절 → 해제
+    else if (n === pick.a || n === pick.b) pick.a = pick.b = (n === pick.a ? pick.b : pick.a); // 끝 절 다시 누르면 그 끝만 해제
+    else pick.b = n;                                                   // 범위 늘리기/줄이기
+    paintPick();
+  });
 })();
 </script>
 
