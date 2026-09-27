@@ -304,6 +304,12 @@
 
   .sermon-box{ border-left: 3px solid var(--gn-gold); padding-left: 14px; }
   .sermon-box textarea{ min-height: 140px; }
+  /* 설교 말씀 접기 — 요약이 있으면 원문은 앞부분만 보이게 */
+  .sermon-box textarea.sermon-note.folded{
+    min-height: 0; max-height: 132px; overflow: hidden; cursor: pointer;
+    -webkit-mask-image: linear-gradient(#000 55%, transparent);
+    mask-image: linear-gradient(#000 55%, transparent);
+  }
   .reflection-block{ margin-top: 16px; }
   .reflection-label{ font-size: 12px; color: var(--gn-sage); font-weight: 700; margin-bottom: 6px; }
   .reflection-block textarea{ min-height: 70px; border-left: 3px solid var(--gn-sage); padding-left: 13px; }
@@ -594,8 +600,9 @@
     <div class="sec-label">SERMON</div>
     <div class="sec-title">설교 말씀</div>
     <div class="sermon-box">
-      <textarea placeholder="말씀 제목, 요약, 마음에 남은 부분을 자유롭게 적어보세요..."></textarea>
+      <textarea class="sermon-note" placeholder="말씀 제목, 요약, 마음에 남은 부분을 자유롭게 적어보세요..."></textarea>
       <div class="sermon-actions">
+        <button class="head-btn" id="sermonFoldBtn" onclick="toggleSermonFold()" style="display:none;">▾ 설교 말씀 펼치기</button>
         <button class="head-btn" id="summarizeBtn" onclick="summarizeSermon()">700자로 요약하기</button>
       </div>
       <div class="summary-result" id="summaryResult"></div>
@@ -904,7 +911,8 @@
     prayerList.appendChild(block);
   }
 
-  loadInitial(); // 마지막으로 저장된 기록 복원 (없으면 빈 상태 유지)
+  // 아래쪽 let 선언(cachedWeeks 등)이 끝난 뒤에 돌도록 한 박자 미룬다 — 바로 부르면 초기화 전 접근 오류로 조용히 실패한다
+  Promise.resolve().then(loadInitial); // 마지막으로 저장된 기록 복원 (없으면 빈 상태 유지)
   checkConnection(); // 저장 연결 상태 표시
 
   async function checkConnection(){
@@ -952,6 +960,8 @@
     const sermonBox = document.querySelector('.sermon-box textarea');
     sermonBox.value = data.sermon || '';
     autoGrow(sermonBox);
+    showSermonSummary(data.summary);
+    setSermonFold(!!data.summary);
 
     loadSermonVerses(data.sermonVerses);
 
@@ -1078,6 +1088,39 @@
     if(cb) cb();
   }
 
+  // 설교 말씀 접기/펼치기 — 원문이 길 때만 버튼을 보여주고, 요약을 만들면 자동으로 접는다
+  const SERMON_FOLD_MIN = 160;
+  let sermonSummary = '';
+  function setSermonFold(folded){
+    const note = document.querySelector('.sermon-box textarea');
+    const btn = document.getElementById('sermonFoldBtn');
+    note.classList.remove('folded');
+    autoGrow(note);
+    const isLong = note.scrollHeight > SERMON_FOLD_MIN;
+    btn.style.display = isLong ? '' : 'none';
+    if(folded && isLong) note.classList.add('folded');
+    btn.textContent = note.classList.contains('folded') ? '▾ 설교 말씀 펼치기' : '▴ 설교 말씀 접기';
+  }
+  function toggleSermonFold(){
+    const note = document.querySelector('.sermon-box textarea');
+    setSermonFold(!note.classList.contains('folded'));
+  }
+  (function(){
+    const note = document.querySelector('.sermon-box textarea');
+    // 접힌 상태에서 누르면(고치려는 것이니) 펼친다
+    note.addEventListener('focus', function(){ if(note.classList.contains('folded')) setSermonFold(false); });
+    note.addEventListener('input', function(){
+      const btn = document.getElementById('sermonFoldBtn');
+      btn.style.display = note.scrollHeight > SERMON_FOLD_MIN ? '' : 'none';
+    });
+  })();
+  function showSermonSummary(text){
+    sermonSummary = text || '';
+    const resultBox = document.getElementById('summaryResult');
+    resultBox.textContent = sermonSummary;
+    resultBox.classList.toggle('open', !!sermonSummary);
+  }
+
   // 설교 말씀 700자 요약
   async function summarizeSermon(){
     const sermonBox = document.querySelector('.sermon-box textarea');
@@ -1114,6 +1157,9 @@
         { modelTier: 'default', onText: ({ text }) => { resultBox.textContent = text; } }
       );
       resultBox.textContent = text.trim();
+      sermonSummary = text.trim();
+      setSermonFold(true);
+      scheduleAutoSave();
     }catch(e){
       const messages = {
         not_granted: '요약 기능 사용 권한이 없어요.',
@@ -1151,9 +1197,8 @@
     const reflectionBox = document.querySelector('.reflection-text');
     reflectionBox.value = '';
     autoGrow(reflectionBox);
-    const summaryResult = document.getElementById('summaryResult');
-    summaryResult.textContent = '';
-    summaryResult.classList.remove('open');
+    showSermonSummary('');
+    setSermonFold(false);
 
     document.getElementById('thanksList').innerHTML = '';
     thanksCount = 0;
@@ -1235,7 +1280,8 @@
       return { name, prayer, comment, commentOpen };
     }).filter(p => p.name || p.prayer);
     const sermonVerses = svRowsData();
-    return { title, sermon, sermonVerses, reflection, thanks, people, savedAt: Date.now() };
+    const summary = sermonSummary;
+    return { title, sermon, summary, sermonVerses, reflection, thanks, people, savedAt: Date.now() };
   }
 
   let autoSaveTimer = null;
