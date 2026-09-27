@@ -603,7 +603,7 @@
       <textarea class="sermon-note" placeholder="말씀 제목, 요약, 마음에 남은 부분을 자유롭게 적어보세요..."></textarea>
       <div class="sermon-actions">
         <button class="head-btn" id="sermonFoldBtn" onclick="toggleSermonFold()" style="display:none;">▾ 설교 말씀 펼치기</button>
-        <button class="head-btn" id="summarizeBtn" onclick="summarizeSermon()">700자로 요약하기</button>
+        <button class="head-btn" id="summarizeBtn" onclick="summarizeSermon()">설교 요약하기 (700~1000자)</button>
       </div>
       <div class="summary-result" id="summaryResult"></div>
       <div class="reflection-block">
@@ -1121,7 +1121,7 @@
     resultBox.classList.toggle('open', !!sermonSummary);
   }
 
-  // 설교 말씀 700자 요약
+  // 설교 말씀 요약 (700자 내외, 필요하면 1000자까지) — 감상 없이 설교 내용만
   async function summarizeSermon(){
     const sermonBox = document.querySelector('.sermon-box textarea');
     const noteText = sermonBox.value.trim();
@@ -1153,7 +1153,7 @@
         return;
       }
       const { text } = await sample(
-        `다음은 설교를 들으며 적은 개인 노트야. 이걸 한국어로 700자 내외로 요약해줘. 핵심 메시지와 개인적인 깨달음이 잘 드러나게, 소제목이나 목록 없이 자연스러운 문단으로 써줘.\n\n${noteText}`,
+        `다음은 설교를 들으며 적은 노트야. 설교 내용만 한국어로 요약해줘.\n- 설교자가 전한 내용(본문, 핵심 메시지, 주요 논지와 예화)을 흐름 순서대로 빠짐없이 담아줘.\n- 감상·소감·적용·"인상 깊었다", "개인적으로는" 같은 말은 절대 넣지 마. 어떤 부분이 인상 깊은지는 읽는 사람이 정해.\n- 노트에 없는 내용을 지어내지 마.\n- 분량은 700자 내외. 모든 내용을 일목요연하게 담기에 700자가 부족하면 1000자까지 써도 돼. 1000자는 넘기지 마.\n- 소제목이나 목록 없이 자연스러운 문단으로 써줘.\n\n${noteText}`,
         { modelTier: 'default', onText: ({ text }) => { resultBox.textContent = text; } }
       );
       resultBox.textContent = text.trim();
