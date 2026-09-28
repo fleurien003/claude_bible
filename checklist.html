@@ -285,16 +285,15 @@
   })();
 
   var CATEGORIES = {
-    christian:  { label:'크리스찬',        color:'#c9a24b' },
-    pureum:     { label:'퓨어솜',          color:'#3b6fd6' },
-    saver:      { label:'세이버',          color:'#e07a4e' },
-    evidence:   { label:'에비던스',        color:'#c0392b' },
-    blogExp:    { label:'엘라이트',        color:'#a83279' },
-    blogHome:   { label:'블로그·홈피드',    color:'#c0392b' },
-    appointment:{ label:'약속',            color:'#2e8b57' },
-    health:     { label:'건강',            color:'#1f3a68' },
-    growth:     { label:'자기계발',        color:'#7986cb' },
-    house:      { label:'집안일',          color:'#7a7a7a' }
+    christian:  { label:'CHRISTIAN',  color:'#c9a24b' },
+    pureum:     { label:'PURESOMME',  color:'#3b6fd6' },
+    saver:      { label:'SAVER',      color:'#e07a4e' },
+    evidence:   { label:'EVIDENCE',   color:'#c0392b' },
+    blogExp:    { label:'ELITE',      color:'#a83279' }, // 블로그·홈피드(TIDINGS)도 여기로 통합됨
+    appointment:{ label:'PLANS',      color:'#2e8b57' },
+    health:     { label:'HEALTH',     color:'#1f3a68' },
+    growth:     { label:'INPUT',      color:'#7986cb' },
+    house:      { label:'HOME',       color:'#7a7a7a' }
   };
 
   // 카테고리별로 연동된 구글 캘린더 — 오늘 날짜의 일정을 그 카테고리 안에 자동으로 보여준다.
@@ -317,59 +316,29 @@
 
   function item(cat, text){ return { cat: cat, text: text }; }
 
-  var DEFAULT_TEMPLATE = {
-    mon: [
-      item('christian','QT + 오늘의 통독 (08:30~09:00)'),
+  // 월~목 동일한 고정 루틴 (은아가 정해준 순서 그대로).
+  // ❓ 표시는 아직 구체적인 내용을 못 받아서 비워둔 자리 — 나중에 채워야 함.
+  function buildMonThuTemplate(){
+    return [
+      item('','아히야 브리핑'),
+      item('christian','QT'),
+      item('saver','❓ 세이버 업무 (내용 필요)'),
+      item('evidence','콘텐츠 모니터링'),
       item('pureum','브랜드 커넥트'),
       item('pureum','루틴 업무 (마케팅·재고·CS·영업 대응)'),
       item('evidence','세무 블로그 업로드'),
-      item('evidence','콘텐츠 모니터링'),
       item('blogExp','체험단 콘텐츠 업로드 (5~6개)'),
-      item('blogHome','홈피드 콘텐츠 업로드'),
-      item('christian','골방기도'),
-      item('growth','AI 학습 10분'),
-      item('house','집안일')
-    ],
-    tue: [
-      item('christian','QT + 오늘의 통독 (08:30~09:00)'),
-      item('pureum','브랜드 커넥트'),
-      item('pureum','루틴 업무'),
-      item('evidence','세무 블로그 업로드'),
-      item('evidence','콘텐츠 모니터링'),
-      item('blogExp','체험단 콘텐츠 업로드 (5~6개)'),
-      item('blogHome','홈피드 콘텐츠 업로드'),
-      item('health','운동'),
-      item('christian','골방기도'),
-      item('growth','AI 학습 10분'),
-      item('house','집안일')
-    ],
-    wed: [
-      item('christian','QT + 오늘의 통독 (08:30~09:00)'),
-      item('pureum','업데이트 콘텐츠 확인'),
-      item('pureum','숏클립 제작'),
-      item('pureum','루틴 업무'),
-      item('evidence','세무 블로그 업로드'),
-      item('evidence','콘텐츠 모니터링'),
-      item('blogExp','체험단 콘텐츠 업로드 (5~6개)'),
-      item('blogHome','홈피드 콘텐츠 업로드'),
-      item('christian','골방기도'),
-      item('growth','AI 학습 10분'),
-      item('house','집안일')
-    ],
-    thu: [
-      item('christian','QT + 오늘의 통독 (08:30~09:00)'),
-      item('pureum','업데이트 콘텐츠 확인'),
-      item('pureum','숏클립 제작'),
-      item('pureum','루틴 업무'),
-      item('evidence','세무 블로그 업로드 (이번 주 마지막)'),
-      item('evidence','콘텐츠 모니터링'),
-      item('blogExp','체험단 콘텐츠 업로드 (이번 주 마지막)'),
-      item('blogHome','홈피드 콘텐츠 업로드 (이번 주 마지막)'),
-      item('health','운동'),
-      item('christian','골방기도'),
-      item('growth','AI 학습 10분'),
-      item('house','집안일')
-    ],
+      item('blogExp','홈피드 콘텐츠 업로드'),
+      item('house','집안일'),
+      item('christian','통독 + 기도')
+    ];
+  }
+
+  var DEFAULT_TEMPLATE = {
+    mon: buildMonThuTemplate(),
+    tue: buildMonThuTemplate(),
+    wed: buildMonThuTemplate(),
+    thu: buildMonThuTemplate(),
     fri: [
       item('christian','QT + 오늘의 통독'),
       item('pureum','경쟁사·업계 마케팅 모니터링'),
@@ -475,14 +444,15 @@
 
   // one-time migration: '사이드' 카테고리가 '세이버'/'에비던스'로 분리되면서
   // 기존에 저장된 cat:'side' 항목은 모두 '에비던스'(세무)로 이관 (체크 상태·기기 간 동기화는 영향 없음)
+  // + '블로그·홈피드'(blogHome) 카테고리가 없어지고 '엘라이트'(blogExp)로 통합됨
   (function migrateSideCategory(){
     var changed = false;
-    DAY_KEYS.forEach(function(dk){
-      (template[dk] || []).forEach(function(it){ if (it.cat === 'side') { it.cat = 'evidence'; changed = true; } });
-    });
-    Object.keys(extra).forEach(function(dk){
-      (extra[dk] || []).forEach(function(it){ if (it.cat === 'side') { it.cat = 'evidence'; changed = true; } });
-    });
+    function fix(it){
+      if (it.cat === 'side') { it.cat = 'evidence'; changed = true; }
+      else if (it.cat === 'blogHome') { it.cat = 'blogExp'; changed = true; }
+    }
+    DAY_KEYS.forEach(function(dk){ (template[dk] || []).forEach(fix); });
+    Object.keys(extra).forEach(function(dk){ (extra[dk] || []).forEach(fix); });
     if (changed) { templateTs = templateStore.save(template); extraTs = extraStore.save(extra); }
   })();
 
@@ -577,6 +547,11 @@
 
   // -- category select for add-row --
   var newCatEl = document.getElementById('newCat');
+  (function(){
+    var noneOpt = document.createElement('option');
+    noneOpt.value = ''; noneOpt.textContent = '(카테고리 없음)';
+    newCatEl.appendChild(noneOpt);
+  })();
   Object.keys(CATEGORIES).forEach(function(k){
     var opt = document.createElement('option');
     opt.value = k; opt.textContent = CATEGORIES[k].label;
@@ -634,7 +609,7 @@
       var isChecked = !!checks[checkKey];
       if (isChecked) doneCount++;
 
-      var cat = CATEGORIES[it.cat] || { label: it.cat, color:'#999' };
+      var cat = it.cat ? (CATEGORIES[it.cat] || { label: it.cat, color:'#999' }) : { label: '', color:'#c9c2b6' };
 
       var li = document.createElement('li');
       li.className = 'item' + (isChecked ? ' checked' : '');
@@ -652,15 +627,17 @@
 
       var textWrap = document.createElement('div');
       textWrap.style.flex = '1';
-      var label = document.createElement('span');
-      label.className = 'cat-label';
-      label.style.setProperty('--cat-color', cat.color);
-      label.textContent = cat.label;
+      if (cat.label) {
+        var label = document.createElement('span');
+        label.className = 'cat-label';
+        label.style.setProperty('--cat-color', cat.color);
+        label.textContent = cat.label;
+        textWrap.appendChild(label);
+        textWrap.appendChild(document.createElement('br'));
+      }
       var text = document.createElement('span');
       text.className = 'text';
       text.textContent = it.text;
-      textWrap.appendChild(label);
-      textWrap.appendChild(document.createElement('br'));
       textWrap.appendChild(text);
 
       var delBtn = document.createElement('button');
