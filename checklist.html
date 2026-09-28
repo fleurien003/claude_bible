@@ -284,8 +284,9 @@
   var CATEGORIES = {
     christian:  { label:'크리스찬',        color:'#c9a24b' },
     pureum:     { label:'퓨어솜',          color:'#3b6fd6' },
-    side:       { label:'사이드',          color:'#c0392b' },
-    blogExp:    { label:'블로그·체험단',    color:'#c0392b' },
+    saver:      { label:'세이버',          color:'#e07a4e' },
+    evidence:   { label:'에비던스',        color:'#c0392b' },
+    blogExp:    { label:'엘라이트',        color:'#a83279' },
     blogHome:   { label:'블로그·홈피드',    color:'#c0392b' },
     appointment:{ label:'약속',            color:'#2e8b57' },
     health:     { label:'건강',            color:'#1f3a68' },
@@ -303,8 +304,8 @@
       item('christian','QT + 오늘의 통독 (08:30~09:00)'),
       item('pureum','브랜드 커넥트'),
       item('pureum','루틴 업무 (마케팅·재고·CS·영업 대응)'),
-      item('side','세무 블로그 업로드'),
-      item('side','콘텐츠 모니터링'),
+      item('evidence','세무 블로그 업로드'),
+      item('evidence','콘텐츠 모니터링'),
       item('blogExp','체험단 콘텐츠 업로드 (5~6개)'),
       item('blogHome','홈피드 콘텐츠 업로드'),
       item('christian','골방기도'),
@@ -315,8 +316,8 @@
       item('christian','QT + 오늘의 통독 (08:30~09:00)'),
       item('pureum','브랜드 커넥트'),
       item('pureum','루틴 업무'),
-      item('side','세무 블로그 업로드'),
-      item('side','콘텐츠 모니터링'),
+      item('evidence','세무 블로그 업로드'),
+      item('evidence','콘텐츠 모니터링'),
       item('blogExp','체험단 콘텐츠 업로드 (5~6개)'),
       item('blogHome','홈피드 콘텐츠 업로드'),
       item('health','운동'),
@@ -329,8 +330,8 @@
       item('pureum','업데이트 콘텐츠 확인'),
       item('pureum','숏클립 제작'),
       item('pureum','루틴 업무'),
-      item('side','세무 블로그 업로드'),
-      item('side','콘텐츠 모니터링'),
+      item('evidence','세무 블로그 업로드'),
+      item('evidence','콘텐츠 모니터링'),
       item('blogExp','체험단 콘텐츠 업로드 (5~6개)'),
       item('blogHome','홈피드 콘텐츠 업로드'),
       item('christian','골방기도'),
@@ -342,8 +343,8 @@
       item('pureum','업데이트 콘텐츠 확인'),
       item('pureum','숏클립 제작'),
       item('pureum','루틴 업무'),
-      item('side','세무 블로그 업로드 (이번 주 마지막)'),
-      item('side','콘텐츠 모니터링'),
+      item('evidence','세무 블로그 업로드 (이번 주 마지막)'),
+      item('evidence','콘텐츠 모니터링'),
       item('blogExp','체험단 콘텐츠 업로드 (이번 주 마지막)'),
       item('blogHome','홈피드 콘텐츠 업로드 (이번 주 마지막)'),
       item('health','운동'),
@@ -369,7 +370,7 @@
       item('christian','주일예배 (10:00~13:00)'),
       item('christian','골방기도'),
       item('growth','인스타 스터디 (요리·베이킹·OOTD 레퍼런스 20분)'),
-      item('side','다음 주 사이드 플랜'),
+      item('evidence','다음 주 사이드 플랜'),
       item('house','침구 정리')
     ]
   };
@@ -395,6 +396,19 @@
   var checks = loadJSON(CHECKS_KEY, {});
   var removed = loadJSON(REMOVED_KEY, {});
   var extra = loadJSON(EXTRA_KEY, {});
+
+  // one-time migration: '사이드' 카테고리가 '세이버'/'에비던스'로 분리되면서
+  // 기존에 저장된 cat:'side' 항목은 모두 '에비던스'(세무)로 이관 (체크 상태는 영향 없음)
+  (function migrateSideCategory(){
+    var changed = false;
+    DAY_KEYS.forEach(function(dk){
+      (template[dk] || []).forEach(function(it){ if (it.cat === 'side') { it.cat = 'evidence'; changed = true; } });
+    });
+    Object.keys(extra).forEach(function(dk){
+      (extra[dk] || []).forEach(function(it){ if (it.cat === 'side') { it.cat = 'evidence'; changed = true; } });
+    });
+    if (changed) { saveJSON(TEMPLATE_KEY, template); saveJSON(EXTRA_KEY, extra); }
+  })();
 
   function pad(n){ return n < 10 ? '0'+n : ''+n; }
   function dateKey(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
