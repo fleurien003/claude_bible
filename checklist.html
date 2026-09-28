@@ -197,6 +197,8 @@
 
     <div class="legend" id="legend"></div>
 
+    <a class="back" href="https://claude.ai/artifact/2rKeYVVx1FnvDvkDd21m4U" target="_blank" rel="noopener" style="display:inline-block;margin:-6px 0 16px;">📊 블로그·홈피드 대시보드 열기 →</a>
+
     <ul class="items" id="itemList"></ul>
 
     <div class="add-row">
@@ -294,6 +296,21 @@
     house:      { label:'집안일',          color:'#7a7a7a' }
   };
 
+  // 카테고리별로 연동된 구글 캘린더 — 오늘 날짜의 일정을 그 카테고리 안에 자동으로 보여준다.
+  // 블로그·홈피드는 연동되는 캘린더가 없고 별도 대시보드에서 관리 중이라, 링크만 둔다.
+  var CATEGORY_CALENDAR = {
+    christian:   'fb26f9545a8db05751f60167744f74ab53b9af8c56ca7f93124be85a55b65962@group.calendar.google.com', // CHRISTIAN
+    pureum:      '94896bbb775f9bccbc7423b9d822e4d7400bd6f896afde7145b88cc703249751@group.calendar.google.com', // PURESOMME
+    saver:       'family12010520502025617885@group.calendar.google.com', // s_세이버
+    evidence:    '7fccf899d7fb32c0718e52496d474c8ab85b6df721a9d2eb279361c1f3fbb9fe@group.calendar.google.com', // s_에비던스
+    blogExp:     'family13035616985683376181@group.calendar.google.com', // s_엘라이트
+    appointment: 'fleurien003@gmail.com', // PLANS
+    health:      '31a37b2c6019db593a58775b78462f9628fd215e2c322f23b05614d64c784c32@group.calendar.google.com', // HEALTH
+    growth:      'eaa35e4d1cec2fb6b386d226bf5b007ac7320b8680988fa4a881e2aeb36ec111@group.calendar.google.com', // INPUT
+    house:       '18ca67be4399f498b6abd4415044aba23831f835c2920be6b2702ea8caab384c@group.calendar.google.com'  // HOME
+  };
+  var BLOG_HOME_DASHBOARD_URL = 'https://claude.ai/artifact/2rKeYVVx1FnvDvkDd21m4U';
+
   var DAY_KEYS = ['sun','mon','tue','wed','thu','fri','sat'];
   var DAY_LABELS = { sun:'일', mon:'월', tue:'화', wed:'수', thu:'목', fri:'금', sat:'토' };
 
@@ -390,6 +407,8 @@
 
   var CHECKLIST_DB_PROMISE = (window.claude && typeof window.claude.use === 'function')
     ? window.claude.use('db') : Promise.resolve(null);
+  var CHECKLIST_MCP_PROMISE = (window.claude && typeof window.claude.use === 'function')
+    ? window.claude.use('mcp') : Promise.resolve(null);
   var EPOCH = '1970-01-01T00:00:00Z';
 
   // 이 4개(반복 일정표·체크·숨김·이번만 추가)는 원래 기기별로만(localStorage) 저장돼 있었다.
@@ -466,6 +485,45 @@
     if (changed) { templateTs = templateStore.save(template); extraTs = extraStore.save(extra); }
   })();
 
+  // 구글 캘린더 연동 — 오늘 날짜의 일정을 카테고리별로 가져와 그 카테고리 안에 함께 보여준다.
+  // 연결이 안 돼 있거나(needs_reauth 등) 권한이 없으면 조용히 비워두고, 기존 반복 항목만 보여준다.
+  var calendarEvents = {}; // cat -> [{cat, text}]
+  function todayRange(){
+    var now = new Date();
+    var start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+    var end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+    return { startTime: start.toISOString(), endTime: end.toISOString() };
+  }
+  function initCalendarSync(){
+    CHECKLIST_MCP_PROMISE.then(function(mcp){
+      if (!mcp) return;
+      var range = todayRange();
+      Object.keys(CATEGORY_CALENDAR).forEach(function(cat){
+        var calendarId = CATEGORY_CALENDAR[cat];
+        try {
+          mcp.watchTool('Google Calendar', 'list_events',
+            { calendarId: calendarId, startTime: range.startTime, endTime: range.endTime, orderBy: 'startTime' },
+            function(ev){
+              if (ev.type === 'data') {
+                var payload = ev.result && ev.result.payload;
+                var rawItems = (payload && (payload.items || payload.events)) || [];
+                calendarEvents[cat] = rawItems.map(function(e, idx){
+                  var title = e.summary || e.title || '(제목 없음)';
+                  return { id: 'gcal_' + cat + '_' + (e.id || idx), it: { cat: cat, text: '📅 ' + title } };
+                });
+              } else if (ev.error && (ev.error.code === 'needs_reauth' || ev.error.code === 'server_not_connected' || ev.error.code === 'not_in_manifest' || ev.error.code === 'consent_required')) {
+                calendarEvents[cat] = [];
+              }
+              // 그 외 일시적 오류(server_unavailable 등)는 마지막으로 받은 값을 그대로 둔다
+              render();
+            },
+            { refetchInterval: 5 * 60 * 1000 }
+          );
+        } catch (e) {}
+      });
+    }).catch(function(){});
+  }
+
   function pad(n){ return n < 10 ? '0'+n : ''+n; }
   function dateKey(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
 
@@ -519,11 +577,14 @@
 
     var baseList = template[selectedDay] || [];
     var extraList = extra[dk] || [];
+    var calList = (selectedDay === todayDayKey) ? Object.keys(CATEGORY_CALENDAR).reduce(function(acc, cat){
+      return acc.concat(calendarEvents[cat] || []);
+    }, []) : [];
     var combined = baseList.map(function(it, idx){
       return { it: it, id: itemId(selectedDay, idx, it.text) };
     }).concat(extraList.map(function(it, idx){
       return { it: it, id: 'extra_' + dk + '_' + idx };
-    })).filter(function(entry){ return !removed[dk + '__' + entry.id]; });
+    })).concat(calList).filter(function(entry){ return !removed[dk + '__' + entry.id]; });
 
     var listEl = document.getElementById('itemList');
     listEl.innerHTML = '';
@@ -640,6 +701,7 @@
   });
 
   render();
+  initCalendarSync();
 
   // 다른 기기에서 바뀐 게 있으면 맞춰서 다시 그린다 (이 기기가 처음이면 지금 값을 db로 올린다)
   templateStore.reconcile(template, templateTs, function(remoteValue, ts){
