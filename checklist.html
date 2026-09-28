@@ -429,6 +429,7 @@
       item('blogExp','체험단 콘텐츠 업로드 (5~6개)','15:00','16:00'),
       item('blogExp','홈피드 콘텐츠 업로드','15:00','16:00'),
       item('house','집안일'),
+      item('growth','AI 학습 10분','19:00','19:10'),
       item('christian','통독 + 기도','22:00','23:00')
     ];
   }
@@ -566,6 +567,26 @@
     templateTs = templateStore.save(template);
     routineV2Applied = true;
     routineV2Ts = routineV2Store.save(true);
+  }
+
+  // one-time migration: 월~목에 INPUT(growth) 항목이 빠져있으면 채워 넣는다.
+  // ⚠️ 시간(19:00~19:10)은 아직 확정 안 돼서 임의로 정한 값 — 나중에 편집으로 바꿀 수 있음
+  var routineInputStore = makeSyncedStore('solomonChecklistRoutineInputFlag', 'checklist/routineInputFlag');
+  var routineInputInit = routineInputStore.loadInitial(false);
+  var routineInputApplied = routineInputInit.value, routineInputTs = routineInputInit.ts;
+  if (!routineInputApplied) {
+    var addedInput = false;
+    ['mon','tue','wed','thu'].forEach(function(dk){
+      var hasGrowth = (template[dk] || []).some(function(it){ return it.cat === 'growth'; });
+      if (!hasGrowth) {
+        template[dk] = template[dk] || [];
+        template[dk].push(item('growth','AI 학습 10분','19:00','19:10'));
+        addedInput = true;
+      }
+    });
+    if (addedInput) templateTs = templateStore.save(template);
+    routineInputApplied = true;
+    routineInputTs = routineInputStore.save(true);
   }
 
   // 구글 캘린더 연동 — 오늘 날짜의 일정을 카테고리별로 가져와 그 카테고리 안에 함께 보여준다.
@@ -1105,6 +1126,7 @@
   removedStore.reconcile(removed, removedTs, function(remoteValue, ts){ removed = remoteValue; removedTs = ts; render(); });
   extraStore.reconcile(extra, extraTs, function(remoteValue, ts){ extra = remoteValue; extraTs = ts; render(); });
   routineV2Store.reconcile(routineV2Applied, routineV2Ts, function(remoteValue, ts){ routineV2Applied = remoteValue; routineV2Ts = ts; });
+  routineInputStore.reconcile(routineInputApplied, routineInputTs, function(remoteValue, ts){ routineInputApplied = remoteValue; routineInputTs = ts; });
 })();
 </script>
 
