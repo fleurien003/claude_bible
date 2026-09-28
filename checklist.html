@@ -137,38 +137,66 @@
     opacity:.5; font-size:14px; line-height:1; cursor:pointer; padding:2px 4px;
   }
   .timeline-block .del:hover{ opacity:1; color:var(--pomegranate); }
-  .block-edit{ display:flex; flex-direction:column; gap:5px; }
-  .block-edit input[type=text]{ font:inherit; font-size:12.5px; padding:4px 6px; border:1px solid var(--parchment-edge); }
-  .block-edit .time-row{ display:flex; gap:4px; align-items:center; }
-  .block-edit input[type=time]{ font:inherit; font-size:11.5px; padding:2px 4px; border:1px solid var(--parchment-edge); width:82px; }
-  .block-edit .edit-btns{ display:flex; gap:6px; }
+  .block-edit{ display:flex; flex-direction:column; gap:8px; padding:2px; }
+  .block-edit input[type=text]{
+    font:inherit; font-size:13px; padding:7px 8px; border-radius:3px;
+    border:1px solid var(--parchment-edge); background:#fffdf7; color:var(--ink);
+  }
+  .block-edit input[type=text]:focus{ outline:2px solid var(--gold); outline-offset:1px; }
+  .block-edit .time-row{
+    display:flex; gap:6px; align-items:center; background:#fffdf7;
+    border:1px solid var(--parchment-edge); border-radius:3px; padding:0 8px; width:fit-content;
+  }
+  .block-edit .time-row .tilde{ color:var(--ink-soft); font-size:11px; }
+  .block-edit input[type=time]{ font:inherit; font-size:11.5px; padding:6px 2px; border:none; background:none; width:78px; }
+  .block-edit input[type=time]:focus{ outline:none; }
+  .block-edit .edit-btns{ display:flex; gap:8px; align-items:center; }
   .block-edit .edit-btns button{
-    font:inherit; font-size:11.5px; font-weight:600; border:none; padding:4px 9px; cursor:pointer;
+    font:inherit; font-size:11.5px; font-weight:600; border:none; padding:6px 12px; cursor:pointer; border-radius:3px;
   }
   .block-edit .save{ background:var(--cedar); color:#f7efd8; }
-  .block-edit .cancel{ background:none; color:var(--ink-soft); text-decoration:underline; }
+  .block-edit .save:hover{ background:#4a2a1d; }
+  .block-edit .cancel{ background:none; color:var(--ink-soft); padding:6px 4px; }
+  .block-edit .cancel:hover{ color:var(--pomegranate); }
   .unsched-label{ font-size:11px; letter-spacing:.15em; color:var(--ink-soft); margin:0 0 8px; }
 
   .legend{ display:flex; flex-wrap:wrap; gap:8px 14px; margin:0 0 18px; }
   .legend .dot-row{ display:flex; align-items:center; gap:5px; font-size:11.5px; color:var(--ink-soft); }
   .legend .dot{ width:9px; height:9px; border-radius:50%; background:var(--dot-color,#999); flex:none; }
 
-  .add-row{
-    display:flex; gap:8px; flex-wrap:wrap; align-items:center;
-    border-top:1px dashed var(--parchment-edge); padding-top:16px; margin-top:4px;
+  .add-form{
+    margin-top:16px;
+    background:rgba(91,51,36,.045); border:1px solid var(--parchment-edge);
+    padding:16px; border-radius:3px;
   }
-  .add-row select, .add-row input[type=text]{
-    font-family:inherit; font-size:13.5px; padding:9px 10px;
-    border:1px solid var(--parchment-edge); background:#fffdf7; color:var(--ink);
+  .add-form-label{
+    font-size:11px; letter-spacing:.14em; font-weight:600; color:var(--ink-soft);
+    text-transform:uppercase; margin-bottom:10px;
   }
-  .add-row select{ flex:0 0 auto; }
-  .add-row input[type=text]{ flex:1 1 160px; min-width:0; }
-  .add-row button{
+  .add-form input[type=text], .add-form select, .add-form input[type=time]{
+    font-family:inherit; font-size:13.5px; color:var(--ink);
+    background:#fffdf7; border:1px solid var(--parchment-edge); border-radius:3px;
+  }
+  .add-form input[type=text]:focus, .add-form select:focus, .add-form input[type=time]:focus{
+    outline:2px solid var(--gold); outline-offset:1px;
+  }
+  .add-form .add-text{ width:100%; padding:10px 12px; margin-bottom:10px; box-sizing:border-box; }
+  .add-form-row{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:8px; }
+  .add-form-row:last-child{ margin-bottom:0; }
+  .add-form select{ flex:1 1 140px; min-width:0; padding:9px 10px; }
+  .time-field{
+    display:flex; align-items:center; gap:6px;
+    background:#fffdf7; border:1px solid var(--parchment-edge); border-radius:3px; padding:0 8px;
+  }
+  .time-field input[type=time]{ border:none; padding:8px 2px; background:none; width:auto; }
+  .time-field input[type=time]:focus{ outline:none; }
+  .time-field .tilde{ color:var(--ink-soft); font-size:12px; }
+  .add-form button{
     font-family:inherit; font-size:13.5px; font-weight:600; letter-spacing:.02em;
-    background:var(--cedar); color:#f7efd8; border:none; padding:9px 16px; cursor:pointer; flex:none;
+    background:var(--cedar); color:#f7efd8; border:none; padding:10px 20px; cursor:pointer;
+    border-radius:3px; flex:none; margin-left:auto;
   }
-  .add-row button:hover{ background:#4a2a1d; }
-  .calendar-note{ font-size:11.5px; color:var(--ink-soft); font-style:italic; margin:10px 0 0; }
+  .add-form button:hover{ background:#4a2a1d; }
 
   .progress{ font-size:12px; color:var(--ink-soft); margin-bottom:14px; }
 
@@ -251,19 +279,26 @@
     <div class="unsched-label" id="unschedLabel" hidden>시간 미정</div>
     <ul class="items" id="itemList"></ul>
 
-    <div class="add-row">
-      <select id="newCat"></select>
-      <select id="newRepeat">
-        <option value="weekly" selected>매주 이 요일 반복</option>
-        <option value="daily">매일 반복</option>
-        <option value="once">이번만 (반복 안 함)</option>
-      </select>
-      <input type="text" id="newText" placeholder="새 항목 추가...">
-      <input type="time" id="newStart" title="시작 시간 (선택)">
-      <input type="time" id="newEnd" title="끝 시간 (선택)">
-      <button id="addBtn" type="button">추가</button>
+    <div class="add-form">
+      <div class="add-form-label">새 항목 추가</div>
+      <input type="text" id="newText" class="add-text" placeholder="무엇을 하시나요?">
+      <div class="add-form-row">
+        <select id="newCat"></select>
+        <select id="newRepeat">
+          <option value="weekly" selected>매주 이 요일 반복</option>
+          <option value="daily">매일 반복</option>
+          <option value="once">이번만 (반복 안 함)</option>
+        </select>
+      </div>
+      <div class="add-form-row">
+        <div class="time-field">
+          <input type="time" id="newStart" title="시작 시간 (선택)">
+          <span class="tilde">~</span>
+          <input type="time" id="newEnd" title="끝 시간 (선택)">
+        </div>
+        <button id="addBtn" type="button">추가</button>
+      </div>
     </div>
-    <p class="calendar-note">📌 다음 업데이트 예정: 구글 캘린더에 같은 카테고리 이름으로 오늘 일정이 있으면 자동으로 조각에 추가 (계정 재연동 필요)</p>
   </div>
 </div>
 
@@ -748,8 +783,11 @@
         startInput.type = 'time'; startInput.value = it.start || '';
         var endInput = document.createElement('input');
         endInput.type = 'time'; endInput.value = it.end || '';
+        var tilde = document.createElement('span');
+        tilde.className = 'tilde';
+        tilde.textContent = '~';
         timeRow.appendChild(startInput);
-        timeRow.appendChild(document.createTextNode('~'));
+        timeRow.appendChild(tilde);
         timeRow.appendChild(endInput);
         var btnRow = document.createElement('div');
         btnRow.className = 'edit-btns';
