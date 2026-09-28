@@ -507,6 +507,19 @@
     if (changed) { templateTs = templateStore.save(template); extraTs = extraStore.save(extra); }
   })();
 
+  // one-time migration: 월~목 고정 루틴을 은아가 확정한 시간대 버전으로 강제 교체.
+  // (이 기기에 예전부터 저장돼 있던 template은 DEFAULT_TEMPLATE을 갱신해도 자동으로 안 바뀌므로,
+  //  플래그를 두고 딱 한 번만 덮어쓴다 — 이후에 직접 수정한 내용은 다시 건드리지 않는다)
+  var routineV2Store = makeSyncedStore('solomonChecklistRoutineV2Flag', 'checklist/routineV2Flag');
+  var routineV2Init = routineV2Store.loadInitial(false);
+  var routineV2Applied = routineV2Init.value, routineV2Ts = routineV2Init.ts;
+  if (!routineV2Applied) {
+    ['mon','tue','wed','thu'].forEach(function(dk){ template[dk] = buildMonThuTemplate(); });
+    templateTs = templateStore.save(template);
+    routineV2Applied = true;
+    routineV2Ts = routineV2Store.save(true);
+  }
+
   // 구글 캘린더 연동 — 오늘 날짜의 일정을 카테고리별로 가져와 그 카테고리 안에 함께 보여준다.
   // 연결이 안 돼 있거나(needs_reauth 등) 권한이 없으면 조용히 비워두고, 기존 반복 항목만 보여준다.
   var calendarEvents = {}; // cat -> [{cat, text}]
@@ -952,6 +965,7 @@
   checksStore.reconcile(checks, checksTs, function(remoteValue, ts){ checks = remoteValue; checksTs = ts; render(); });
   removedStore.reconcile(removed, removedTs, function(remoteValue, ts){ removed = remoteValue; removedTs = ts; render(); });
   extraStore.reconcile(extra, extraTs, function(remoteValue, ts){ extra = remoteValue; extraTs = ts; render(); });
+  routineV2Store.reconcile(routineV2Applied, routineV2Ts, function(remoteValue, ts){ routineV2Applied = remoteValue; routineV2Ts = ts; });
 })();
 </script>
 
