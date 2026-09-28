@@ -79,6 +79,8 @@
   .trans-toggle button.active{ background:var(--cedar); color:#f7efd8; border-color:var(--cedar); }
   .trans-toggle button:disabled{ opacity:.4; cursor:default; }
   .gist p{ margin:0; font-size:16px; max-width:none; }
+  .gist.qt-side{ border-left-color:var(--gold); padding:16px 20px 14px 24px; }
+  .gist.qt-side p{ font-size:14.5px; color:var(--ink-soft); line-height:1.8; white-space:pre-line; }
 
   .qt-section-title{
     font-family:'Nanum Square','Noto Sans KR',sans-serif; font-weight:600; font-size:12.5px;
@@ -222,6 +224,11 @@
         </span>
       </div>
       <div id="bibleText"><p class="qt-loading">오늘의 본문을 불러오는 중이니, 잠시 기다리라…</p></div>
+    </div>
+
+    <div class="gist qt-side" id="qtPrayerBox" hidden>
+      <div class="glabel">오늘의 QT 기도</div>
+      <p id="qtPrayer"></p>
     </div>
 
     <div class="prompt" id="promptLine">오늘의 물음: 오늘 읽은 장에서 가장 마음에 머문 구절은 무엇인가?</div>
@@ -430,6 +437,13 @@
         if (titleEl) titleEl.textContent = data.reference || '오늘의 본문';
         if (data.question) promptEl.textContent = '오늘의 물음: ' + data.question;
         renderCurrentTranslation();
+        // 두란노 QT 기도문 — 홈·오늘의 기도(prayer.html)와 같은 qt/<날짜>.prayer
+        var qtPrayerBox = document.getElementById('qtPrayerBox');
+        var qtPrayerEl = document.getElementById('qtPrayer');
+        if (data.prayer && qtPrayerBox && qtPrayerEl) {
+          qtPrayerEl.textContent = data.prayer;
+          qtPrayerBox.hidden = false;
+        }
       }).catch(function(){ if (titleEl) titleEl.textContent = '오늘의 본문'; showQtTextError(); });
     }).catch(function(){ if (titleEl) titleEl.textContent = '오늘의 본문'; showQtTextError(); });
   }
