@@ -197,7 +197,8 @@
 
     <div class="legend" id="legend"></div>
 
-    <a class="back" href="https://claude.ai/artifact/2rKeYVVx1FnvDvkDd21m4U" target="_blank" rel="noopener" style="display:inline-block;margin:-6px 0 16px;">📊 블로그·홈피드 대시보드 열기 →</a>
+    <a class="back" href="https://claude.ai/artifact/2rKeYVVx1FnvDvkDd21m4U" target="_blank" rel="noopener" style="display:inline-block;margin:-6px 0 8px;">📊 블로그·홈피드 대시보드 열기 →</a>
+    <div id="calSyncStatus" style="font-size:11.5px;color:var(--ink-soft,#6b5636);margin:0 0 16px;"></div>
 
     <ul class="items" id="itemList"></ul>
 
@@ -488,40 +489,70 @@
   // 구글 캘린더 연동 — 오늘 날짜의 일정을 카테고리별로 가져와 그 카테고리 안에 함께 보여준다.
   // 연결이 안 돼 있거나(needs_reauth 등) 권한이 없으면 조용히 비워두고, 기존 반복 항목만 보여준다.
   var calendarEvents = {}; // cat -> [{cat, text}]
+  var calendarStatus = {}; // cat -> 'pending' | 'ok' | 'error:<code>'
+  var calendarStatusEl = null;
   function todayRange(){
     var now = new Date();
     var start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
     var end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
     return { startTime: start.toISOString(), endTime: end.toISOString() };
   }
+  function renderCalendarStatus(){
+    if (!calendarStatusEl) calendarStatusEl = document.getElementById('calSyncStatus');
+    if (!calendarStatusEl) return;
+    var codes = Object.keys(CATEGORY_CALENDAR).map(function(cat){ return calendarStatus[cat]; });
+    var text;
+    if (calendarStatus.__unavailable) {
+      text = '⚠️ 캘린더 연동을 쓸 수 없는 화면이에요 (claude.ai에서 직접 열어야 해요).';
+    } else if (codes.every(function(c){ return c === 'ok'; })) {
+      text = '📅 캘린더 연동됨 · ' + new Date().toLocaleTimeString('ko-KR', { hour:'2-digit', minute:'2-digit' }) + ' 기준';
+    } else if (codes.some(function(c){ return c === 'ok'; })) {
+      var failed = Object.keys(CATEGORY_CALENDAR).filter(function(cat){ return calendarStatus[cat] && calendarStatus[cat] !== 'ok'; });
+      text = '⚠️ 일부만 연동됨 · 실패: ' + failed.map(function(c){ return (CATEGORIES[c]||{label:c}).label + '(' + calendarStatus[c] + ')'; }).join(', ');
+    } else if (codes.some(function(c){ return c && c !== 'pending'; })) {
+      text = '⚠️ 캘린더 연동 안 됨 · ' + (calendarStatus[Object.keys(CATEGORY_CALENDAR)[0]] || '');
+    } else {
+      text = '📅 캘린더 연동 확인 중…';
+    }
+    calendarStatusEl.textContent = text;
+  }
   function initCalendarSync(){
     CHECKLIST_MCP_PROMISE.then(function(mcp){
-      if (!mcp) return;
+      if (!mcp) { calendarStatus.__unavailable = true; renderCalendarStatus(); return; }
       var range = todayRange();
       Object.keys(CATEGORY_CALENDAR).forEach(function(cat){
         var calendarId = CATEGORY_CALENDAR[cat];
+        calendarStatus[cat] = 'pending';
         try {
           mcp.watchTool('Google Calendar', 'list_events',
             { calendarId: calendarId, startTime: range.startTime, endTime: range.endTime, orderBy: 'startTime' },
             function(ev){
               if (ev.type === 'data') {
+                calendarStatus[cat] = 'ok';
                 var payload = ev.result && ev.result.payload;
                 var rawItems = (payload && (payload.items || payload.events)) || [];
                 calendarEvents[cat] = rawItems.map(function(e, idx){
                   var title = e.summary || e.title || '(제목 없음)';
                   return { id: 'gcal_' + cat + '_' + (e.id || idx), it: { cat: cat, text: '📅 ' + title } };
                 });
-              } else if (ev.error && (ev.error.code === 'needs_reauth' || ev.error.code === 'server_not_connected' || ev.error.code === 'not_in_manifest' || ev.error.code === 'consent_required')) {
-                calendarEvents[cat] = [];
+              } else {
+                calendarStatus[cat] = 'error:' + (ev.error && ev.error.code || 'unknown');
+                if (ev.error && (ev.error.code === 'needs_reauth' || ev.error.code === 'server_not_connected' || ev.error.code === 'not_in_manifest' || ev.error.code === 'consent_required')) {
+                  calendarEvents[cat] = [];
+                }
+                // 그 외 일시적 오류(server_unavailable 등)는 마지막으로 받은 값을 그대로 둔다
               }
-              // 그 외 일시적 오류(server_unavailable 등)는 마지막으로 받은 값을 그대로 둔다
+              renderCalendarStatus();
               render();
             },
             { refetchInterval: 5 * 60 * 1000 }
           );
-        } catch (e) {}
+        } catch (e) {
+          calendarStatus[cat] = 'error:exception';
+        }
       });
-    }).catch(function(){});
+      renderCalendarStatus();
+    }).catch(function(){ calendarStatus.__unavailable = true; renderCalendarStatus(); });
   }
 
   function pad(n){ return n < 10 ? '0'+n : ''+n; }

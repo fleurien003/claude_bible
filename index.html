@@ -513,6 +513,7 @@
       <div class="kicker">오늘 다스릴 조각</div>
       <h2>오늘의 조각</h2>
       <div id="portionList"><p class="qt-loading">불러오는 중…</p></div>
+      <div id="portionCalStatus" style="font-size:11.5px;color:var(--ink-soft);margin:6px 0 0;"></div>
       <p class="portion-link"><a href="checklist.html">전체 목록 보기 · 항목 추가/편집 →</a></p>
     </section>
 
@@ -1041,6 +1042,69 @@
   var PORTION_DAY_KEYS = ['sun','mon','tue','wed','thu','fri','sat'];
   function portionItemId(dayKey, idx, text){ return dayKey + '_' + idx + '_' + text.length; }
 
+  // 구글 캘린더 연동 — checklist.html과 같은 매핑. 이 위젯은 항상 "오늘"만 보여주므로
+  // 요일 탭 구분 없이 오늘 일정을 그대로 카테고리에 합친다.
+  var PORTION_CATEGORY_CALENDAR = {
+    christian:   'fb26f9545a8db05751f60167744f74ab53b9af8c56ca7f93124be85a55b65962@group.calendar.google.com', // CHRISTIAN
+    pureum:      '94896bbb775f9bccbc7423b9d822e4d7400bd6f896afde7145b88cc703249751@group.calendar.google.com', // PURESOMME
+    saver:       'family12010520502025617885@group.calendar.google.com', // s_세이버
+    evidence:    '7fccf899d7fb32c0718e52496d474c8ab85b6df721a9d2eb279361c1f3fbb9fe@group.calendar.google.com', // s_에비던스
+    blogExp:     'family13035616985683376181@group.calendar.google.com', // s_엘라이트
+    appointment: 'fleurien003@gmail.com', // PLANS
+    health:      '31a37b2c6019db593a58775b78462f9628fd215e2c322f23b05614d64c784c32@group.calendar.google.com', // HEALTH
+    growth:      'eaa35e4d1cec2fb6b386d226bf5b007ac7320b8680988fa4a881e2aeb36ec111@group.calendar.google.com', // INPUT
+    house:       '18ca67be4399f498b6abd4415044aba23831f835c2920be6b2702ea8caab384c@group.calendar.google.com'  // HOME
+  };
+  var PORTION_MCP_PROMISE = (window.claude && typeof window.claude.use === 'function')
+    ? window.claude.use('mcp') : Promise.resolve(null);
+  var portionCalendarEvents = {}; // cat -> [{cat, text, id}]
+  var portionCalendarStatus = {};
+  function portionTodayRange(){
+    var start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+    var end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+    return { startTime: start.toISOString(), endTime: end.toISOString() };
+  }
+  function renderPortionCalendarStatus(){
+    var el = document.getElementById('portionCalStatus');
+    if (!el) return;
+    var codes = Object.keys(PORTION_CATEGORY_CALENDAR).map(function(cat){ return portionCalendarStatus[cat]; });
+    if (portionCalendarStatus.__unavailable) el.textContent = '';
+    else if (codes.every(function(c){ return c === 'ok'; })) el.textContent = '📅 캘린더 연동됨';
+    else if (codes.some(function(c){ return c === 'ok'; })) el.textContent = '⚠️ 캘린더 일부만 연동됨';
+    else if (codes.some(function(c){ return c && c !== 'pending'; })) el.textContent = '⚠️ 캘린더 연동 안 됨';
+    else el.textContent = '📅 캘린더 확인 중…';
+  }
+  function initPortionCalendarSync(rerender){
+    PORTION_MCP_PROMISE.then(function(mcp){
+      if (!mcp) { portionCalendarStatus.__unavailable = true; renderPortionCalendarStatus(); return; }
+      var range = portionTodayRange();
+      Object.keys(PORTION_CATEGORY_CALENDAR).forEach(function(cat){
+        portionCalendarStatus[cat] = 'pending';
+        try {
+          mcp.watchTool('Google Calendar', 'list_events',
+            { calendarId: PORTION_CATEGORY_CALENDAR[cat], startTime: range.startTime, endTime: range.endTime, orderBy: 'startTime' },
+            function(ev){
+              if (ev.type === 'data') {
+                portionCalendarStatus[cat] = 'ok';
+                var payload = ev.result && ev.result.payload;
+                var rawItems = (payload && (payload.items || payload.events)) || [];
+                portionCalendarEvents[cat] = rawItems.map(function(e, idx){
+                  return { cat: cat, text: '📅 ' + (e.summary || e.title || '(제목 없음)'), __calId: 'gcal_' + cat + '_' + (e.id || idx) };
+                });
+              } else {
+                portionCalendarStatus[cat] = 'error:' + (ev.error && ev.error.code || 'unknown');
+              }
+              renderPortionCalendarStatus();
+              rerender();
+            },
+            { refetchInterval: 5 * 60 * 1000 }
+          );
+        } catch (e) { portionCalendarStatus[cat] = 'error:exception'; }
+      });
+      renderPortionCalendarStatus();
+    }).catch(function(){ portionCalendarStatus.__unavailable = true; renderPortionCalendarStatus(); });
+  }
+
   // 체크리스트 페이지(checklist.html)가 저장하는 값과 형식을 맞춘다 — 로컬 저장은
   // {__syncValue, __syncTs}로 감싸져 있고(예전 방식은 감싸지 않은 값 그대로), 같은 값이
   // 아티팩트 db(checklist/<이름>)에도 있으면 더 최근 쪽을 쓴다.
@@ -1054,6 +1118,8 @@
   function saveSyncedLocal(key, value, ts){
     try { localStorage.setItem(key, JSON.stringify({ __syncValue: value, __syncTs: ts })); } catch (e) {}
   }
+
+  var lastPortionTemplate = null, lastPortionChecks = {}, lastPortionChecksTs = '1970-01-01T00:00:00Z';
 
   function loadPortionToday(){
     var listEl = document.getElementById('portionList');
@@ -1086,12 +1152,21 @@
   }
 
   function renderPortionList(template, checks, checksTs){
+    lastPortionTemplate = template; lastPortionChecks = checks; lastPortionChecksTs = checksTs;
     var listEl = document.getElementById('portionList');
     if (!listEl) return;
     var dayKey = PORTION_DAY_KEYS[now.getDay()];
-    var items = template && template[dayKey] ? template[dayKey] : null;
+    var baseItems = template && template[dayKey] ? template[dayKey] : [];
+    var calItems = Object.keys(PORTION_CATEGORY_CALENDAR).reduce(function(acc, cat){
+      return acc.concat(portionCalendarEvents[cat] || []);
+    }, []);
+    var entries = baseItems.map(function(it, idx){
+      return { it: it, id: portionItemId(dayKey, idx, it.text) };
+    }).concat(calItems.map(function(it){
+      return { it: it, id: it.__calId };
+    }));
     listEl.innerHTML = '';
-    if (!items || !items.length) {
+    if (!entries.length) {
       var empty = document.createElement('p');
       empty.className = 'qt-loading';
       empty.textContent = '아직 오늘의 조각이 없다. 전체 목록에서 만들어 보라.';
@@ -1100,8 +1175,8 @@
     }
     var ul = document.createElement('ul');
     ul.className = 'portion-list';
-    items.forEach(function(it, idx){
-      var id = portionItemId(dayKey, idx, it.text);
+    entries.forEach(function(entry){
+      var it = entry.it, id = entry.id;
       var checkKey = todayKey + '__' + id;
       var isChecked = !!checks[checkKey];
       var cat = PORTION_CATEGORIES[it.cat] || { color:'#999' };
@@ -1133,6 +1208,7 @@
     listEl.appendChild(ul);
   }
   loadPortionToday();
+  initPortionCalendarSync(function(){ renderPortionList(lastPortionTemplate, lastPortionChecks, lastPortionChecksTs); });
 
 })();
 </script>
