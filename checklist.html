@@ -144,12 +144,11 @@
   }
   .block-edit input[type=text]:focus{ outline:2px solid var(--gold); outline-offset:1px; }
   .block-edit .time-row{
-    display:flex; gap:6px; align-items:center; background:#fffdf7;
-    border:1px solid var(--parchment-edge); border-radius:3px; padding:0 8px; width:fit-content;
+    display:flex; gap:4px; align-items:center; background:#fffdf7;
+    border:1px solid var(--parchment-edge); border-radius:3px; padding:0 6px; width:fit-content;
   }
   .block-edit .time-row .tilde{ color:var(--ink-soft); font-size:11px; }
-  .block-edit input[type=time]{ font:inherit; font-size:11.5px; padding:6px 2px; border:none; background:none; width:78px; }
-  .block-edit input[type=time]:focus{ outline:none; }
+  .block-edit .time-row .time-pick-label{ font-size:11.5px; padding:6px 4px; }
   .block-edit .edit-btns{ display:flex; gap:8px; align-items:center; }
   .block-edit .edit-btns button{
     font:inherit; font-size:11.5px; font-weight:600; border:none; padding:6px 12px; cursor:pointer; border-radius:3px;
@@ -173,11 +172,11 @@
     font-size:11px; letter-spacing:.14em; font-weight:600; color:var(--ink-soft);
     text-transform:uppercase; margin-bottom:10px;
   }
-  .add-form input[type=text], .add-form select, .add-form input[type=time]{
+  .add-form input[type=text], .add-form select{
     font-family:inherit; font-size:13.5px; color:var(--ink);
     background:#fffdf7; border:1px solid var(--parchment-edge); border-radius:3px;
   }
-  .add-form input[type=text]:focus, .add-form select:focus, .add-form input[type=time]:focus{
+  .add-form input[type=text]:focus, .add-form select:focus{
     outline:2px solid var(--gold); outline-offset:1px;
   }
   .add-form .add-text{ width:100%; padding:10px 12px; margin-bottom:10px; box-sizing:border-box; }
@@ -185,12 +184,26 @@
   .add-form-row:last-child{ margin-bottom:0; }
   .add-form select{ flex:1 1 140px; min-width:0; padding:9px 10px; }
   .time-field{
-    display:flex; align-items:center; gap:6px;
-    background:#fffdf7; border:1px solid var(--parchment-edge); border-radius:3px; padding:0 8px;
+    display:flex; align-items:center; gap:4px;
+    background:#fffdf7; border:1px solid var(--parchment-edge); border-radius:3px; padding:0 6px;
   }
-  .time-field input[type=time]{ border:none; padding:8px 2px; background:none; width:auto; }
-  .time-field input[type=time]:focus{ outline:none; }
   .time-field .tilde{ color:var(--ink-soft); font-size:12px; }
+
+  /* -- 커스텀 시간 선택기 (5분 단위, 회색 톤) -- */
+  .time-pick{ position:relative; cursor:pointer; user-select:none; }
+  .time-pick-label{
+    display:block; padding:8px 6px; font-size:12.5px; color:var(--ink); white-space:nowrap;
+    border-radius:3px;
+  }
+  .time-pick.open .time-pick-label{ background:#e4e1da; }
+  .time-pick-menu{
+    position:absolute; top:calc(100% + 4px); left:0; z-index:30;
+    background:#fffdf7; border:1px solid var(--parchment-edge); border-radius:4px;
+    box-shadow:0 8px 22px rgba(0,0,0,.2); max-height:190px; overflow-y:auto; min-width:104px;
+  }
+  .time-pick-opt{ padding:7px 14px; font-size:12.5px; color:var(--ink); white-space:nowrap; }
+  .time-pick-opt:hover{ background:#ececea; }
+  .time-pick-opt.sel{ background:#d9d6cf; font-weight:700; }
   .add-form button{
     font-family:inherit; font-size:13.5px; font-weight:600; letter-spacing:.02em;
     background:var(--cedar); color:#f7efd8; border:none; padding:10px 20px; cursor:pointer;
@@ -292,9 +305,9 @@
       </div>
       <div class="add-form-row">
         <div class="time-field">
-          <input type="time" id="newStart" title="시작 시간 (선택)">
+          <div id="newStartPick"></div>
           <span class="tilde">~</span>
-          <input type="time" id="newEnd" title="끝 시간 (선택)">
+          <div id="newEndPick"></div>
         </div>
         <button id="addBtn" type="button">추가</button>
       </div>
@@ -574,6 +587,80 @@
       return (h < 10 ? '0'+h : ''+h) + ':' + (m < 10 ? '0'+m : ''+m);
     } catch (e) { return null; }
   }
+
+  // -- 커스텀 시간 선택기: 구글 캘린더 스타일(오전/오후 h:mm), 5분 단위, 회색 톤 --
+  function fmtAMPM(hm){
+    if (!hm) return '--:--';
+    var parts = hm.split(':');
+    var h = parseInt(parts[0], 10), m = parts[1];
+    var ampm = h < 12 ? '오전' : '오후';
+    var h12 = h % 12; if (h12 === 0) h12 = 12;
+    return ampm + ' ' + h12 + ':' + m;
+  }
+  var TIME_OPTIONS = (function(){
+    var opts = [];
+    for (var h = 0; h < 24; h++){
+      for (var m = 0; m < 60; m += 5){
+        opts.push((h < 10 ? '0'+h : ''+h) + ':' + (m < 10 ? '0'+m : ''+m));
+      }
+    }
+    return opts;
+  })();
+  function makeTimePicker(initialHM){
+    var value = initialHM || null;
+    var wrap = document.createElement('div');
+    wrap.className = 'time-pick';
+    wrap.tabIndex = 0;
+    var label = document.createElement('span');
+    label.className = 'time-pick-label';
+    label.textContent = fmtAMPM(value);
+    wrap.appendChild(label);
+
+    var menu = document.createElement('div');
+    menu.className = 'time-pick-menu';
+    menu.hidden = true;
+    var optEls = {};
+    TIME_OPTIONS.forEach(function(hm){
+      var opt = document.createElement('div');
+      opt.className = 'time-pick-opt' + (hm === value ? ' sel' : '');
+      opt.textContent = fmtAMPM(hm);
+      opt.addEventListener('click', function(e){
+        e.stopPropagation();
+        setValue(hm);
+        closeMenu();
+        wrap.dispatchEvent(new CustomEvent('timepick-change'));
+      });
+      optEls[hm] = opt;
+      menu.appendChild(opt);
+    });
+    wrap.appendChild(menu);
+
+    function setValue(hm){
+      if (value && optEls[value]) optEls[value].classList.remove('sel');
+      value = hm || null;
+      if (value && optEls[value]) optEls[value].classList.add('sel');
+      label.textContent = fmtAMPM(value);
+    }
+    function openMenu(){
+      menu.hidden = false;
+      wrap.classList.add('open');
+      var sel = value && optEls[value];
+      if (sel) sel.scrollIntoView({ block: 'center' });
+      document.addEventListener('click', onDocClick);
+    }
+    function closeMenu(){
+      menu.hidden = true;
+      wrap.classList.remove('open');
+      document.removeEventListener('click', onDocClick);
+    }
+    function onDocClick(e){ if (!wrap.contains(e.target)) closeMenu(); }
+    wrap.addEventListener('click', function(e){
+      e.stopPropagation();
+      if (menu.hidden) openMenu(); else closeMenu();
+    });
+
+    return { el: wrap, getValue: function(){ return value; }, setValue: setValue };
+  }
   function renderCalendarStatus(){
     if (!calendarStatusEl) calendarStatusEl = document.getElementById('calSyncStatus');
     if (!calendarStatusEl) return;
@@ -711,6 +798,11 @@
     newCatEl.appendChild(opt);
   });
 
+  var newStartPicker = makeTimePicker(null);
+  var newEndPicker = makeTimePicker(null);
+  document.getElementById('newStartPick').appendChild(newStartPicker.el);
+  document.getElementById('newEndPick').appendChild(newEndPicker.el);
+
   function offsetToDate(dayKey){
     // find the nearest date (today or within next 6 days) matching this weekday,
     // so checks are scoped to a specific real date, not just a weekday label
@@ -779,16 +871,14 @@
         textInput.type = 'text'; textInput.value = it.text;
         var timeRow = document.createElement('div');
         timeRow.className = 'time-row';
-        var startInput = document.createElement('input');
-        startInput.type = 'time'; startInput.value = it.start || '';
-        var endInput = document.createElement('input');
-        endInput.type = 'time'; endInput.value = it.end || '';
+        var startPicker = makeTimePicker(it.start);
+        var endPicker = makeTimePicker(it.end);
         var tilde = document.createElement('span');
         tilde.className = 'tilde';
         tilde.textContent = '~';
-        timeRow.appendChild(startInput);
+        timeRow.appendChild(startPicker.el);
         timeRow.appendChild(tilde);
-        timeRow.appendChild(endInput);
+        timeRow.appendChild(endPicker.el);
         var btnRow = document.createElement('div');
         btnRow.className = 'edit-btns';
         var saveBtn = document.createElement('button');
@@ -797,7 +887,7 @@
           e.stopPropagation();
           var newText = textInput.value.trim();
           if (!newText) return;
-          writeBack(entry, { text: newText, start: startInput.value || null, end: endInput.value || null });
+          writeBack(entry, { text: newText, start: startPicker.getValue(), end: endPicker.getValue() });
           editingId = null;
           render();
         });
@@ -961,10 +1051,8 @@
     if (!val) return;
     var cat = newCatEl.value;
     var repeat = document.getElementById('newRepeat').value;
-    var startEl = document.getElementById('newStart');
-    var endEl = document.getElementById('newEnd');
-    var start = startEl.value || null;
-    var end = endEl.value || null;
+    var start = newStartPicker.getValue();
+    var end = newEndPicker.getValue();
 
     if (repeat === 'daily') {
       DAY_KEYS.forEach(function(dk2){
@@ -983,8 +1071,8 @@
       templateTs = templateStore.save(template);
     }
     textEl.value = '';
-    startEl.value = '';
-    endEl.value = '';
+    newStartPicker.setValue(null);
+    newEndPicker.setValue(null);
     render();
   });
   document.getElementById('newText').addEventListener('keydown', function(e){
