@@ -490,6 +490,11 @@
         <p id="qtHelper"></p>
       </div>
 
+      <div class="gist qt-side" id="qtPrayerBox" hidden>
+        <div class="glabel">오늘의 QT 기도</div>
+        <p id="qtPrayer"></p>
+      </div>
+
       <p class="portion-link"><a href="qt.html">오늘 QT 기록하기 · 지난 묵상 보기 →</a></p>
     </section>
 
@@ -942,6 +947,14 @@
     if (data.helper && helperBox && helperEl) {
       helperEl.textContent = data.helper;
       helperBox.hidden = false;
+    }
+
+    // 두란노 QT 기도문 — prayer.html(오늘의 기도)과 같은 qt/<날짜> 문서의 prayer를 여기서도 보여준다
+    var qtPrayerBox = document.getElementById('qtPrayerBox');
+    var qtPrayerEl = document.getElementById('qtPrayer');
+    if (data.prayer && qtPrayerBox && qtPrayerEl) {
+      qtPrayerEl.textContent = data.prayer;
+      qtPrayerBox.hidden = false;
     }
   }
 
