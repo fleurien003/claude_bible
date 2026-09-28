@@ -149,6 +149,15 @@
   }
   .block-edit .time-row .tilde{ color:var(--ink-soft); font-size:11px; }
   .block-edit .time-row .time-pick-label{ font-size:11.5px; padding:6px 4px; }
+  .repeat-row{ display:flex; flex-direction:column; gap:5px; }
+  .repeat-label{ font-size:10px; letter-spacing:.1em; color:var(--ink-soft); font-weight:600; }
+  .repeat-days{ display:flex; gap:4px; }
+  .day-toggle{
+    font:inherit; font-size:11.5px; width:24px; height:24px; line-height:1;
+    border:1px solid var(--parchment-edge); background:#fffdf7; color:var(--ink-soft);
+    border-radius:50%; cursor:pointer; padding:0;
+  }
+  .day-toggle.on{ background:var(--cedar); color:#f7efd8; border-color:var(--cedar); font-weight:700; }
   .block-edit .edit-btns{ display:flex; gap:8px; align-items:center; }
   .block-edit .edit-btns button{
     font:inherit; font-size:11.5px; font-weight:600; border:none; padding:6px 12px; cursor:pointer; border-radius:3px;
@@ -414,6 +423,7 @@
   var DAY_LABELS = { sun:'일', mon:'월', tue:'화', wed:'수', thu:'목', fri:'금', sat:'토' };
 
   function item(cat, text, start, end){ return { cat: cat, text: text, start: start || null, end: end || null }; }
+  function itemSig(it){ return (it.cat || '') + '|' + it.text + '|' + (it.start || '') + '|' + (it.end || ''); }
 
   // 월~목 동일한 고정 루틴 (은아가 정해준 시간대 순서 그대로).
   // ❓ 표시는 아직 구체적인 내용을 못 받아서 비워둔 자리 — 나중에 채워야 함.
@@ -913,6 +923,34 @@
         timeRow.appendChild(startPicker.el);
         timeRow.appendChild(tilde);
         timeRow.appendChild(endPicker.el);
+
+        // 반복 요일 — 매주 이 요일들에 이 항목을 그대로 반복시킬지 고르는 토글.
+        // 구글 캘린더처럼 "몇 주마다/언제까지"는 없고, 이 앱 구조상 "그 요일 템플릿에 있나 없나"로만 표현됨.
+        var dayToggles = null;
+        if (entry.src === 'template') {
+          var origSig = itemSig(it);
+          var activeDays = DAY_KEYS.filter(function(dkk){ return (template[dkk] || []).some(function(x){ return itemSig(x) === origSig; }); });
+          var repeatRow = document.createElement('div');
+          repeatRow.className = 'repeat-row';
+          var repeatLabelEl = document.createElement('div');
+          repeatLabelEl.className = 'repeat-label';
+          repeatLabelEl.textContent = '반복 요일';
+          var dayBtnWrap = document.createElement('div');
+          dayBtnWrap.className = 'repeat-days';
+          dayToggles = {};
+          DAY_KEYS.forEach(function(dkk){
+            var b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'day-toggle' + (activeDays.indexOf(dkk) !== -1 ? ' on' : '');
+            b.textContent = DAY_LABELS[dkk];
+            b.addEventListener('click', function(e){ e.stopPropagation(); b.classList.toggle('on'); });
+            dayToggles[dkk] = b;
+            dayBtnWrap.appendChild(b);
+          });
+          repeatRow.appendChild(repeatLabelEl);
+          repeatRow.appendChild(dayBtnWrap);
+        }
+
         var btnRow = document.createElement('div');
         btnRow.className = 'edit-btns';
         var saveBtn = document.createElement('button');
@@ -921,7 +959,30 @@
           e.stopPropagation();
           var newText = textInput.value.trim();
           if (!newText) return;
-          writeBack(entry, { text: newText, start: startPicker.getValue(), end: endPicker.getValue() });
+          var newStart = startPicker.getValue(), newEnd = endPicker.getValue();
+
+          if (entry.src === 'template' && dayToggles) {
+            var origSig2 = itemSig(it);
+            var newContent = item(it.cat, newText, newStart, newEnd);
+            DAY_KEYS.forEach(function(dkk){
+              var isOn = dayToggles[dkk].classList.contains('on');
+              var arr = template[dkk] = template[dkk] || [];
+              if (dkk === selectedDay) {
+                // 지금 편집 중인 바로 그 항목
+                if (isOn) arr[entry.idx] = newContent;
+                else arr.splice(entry.idx, 1);
+                return;
+              }
+              var matchIdx = -1;
+              for (var i = 0; i < arr.length; i++){ if (itemSig(arr[i]) === origSig2) { matchIdx = i; break; } }
+              if (isOn && matchIdx === -1) arr.push(newContent);
+              else if (isOn && matchIdx !== -1) arr[matchIdx] = newContent;
+              else if (!isOn && matchIdx !== -1) arr.splice(matchIdx, 1);
+            });
+            templateTs = templateStore.save(template);
+          } else {
+            writeBack(entry, { text: newText, start: newStart, end: newEnd });
+          }
           editingId = null;
           render();
         });
@@ -932,6 +993,7 @@
         btnRow.appendChild(cancelBtn);
         form.appendChild(textInput);
         form.appendChild(timeRow);
+        if (repeatRow) form.appendChild(repeatRow);
         form.appendChild(btnRow);
         el.appendChild(form);
         return el;
