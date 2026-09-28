@@ -459,6 +459,35 @@
     try { localStorage.setItem(READING_STORAGE_KEY, JSON.stringify(map)); } catch (e) {}
   }
   var readingJournal = loadReadingJournal();
+  var readingNoteTouched = false; // 지금 보고 있는 날짜를 사용자가 고치기 시작하면, 다른 기기 기록으로 덮어쓰지 않는다
+
+  // 통독 묵상 기록도 암송 구절·QT 묵상처럼 기기마다 따로(localStorage) 저장돼 있던 것을
+  // 아티팩트 db(reading_journal/<날짜>)로 옮긴다 — 노트북에서 쓴 기록이 폰에서도 보이도록.
+  function syncReadingEntryToDb(k, entry){
+    DB_PROMISE.then(function(db){ if (db) return db.doc('reading_journal/' + k).set(entry); }).catch(function(){});
+  }
+  function mergeRemoteReadingJournal(){
+    DB_PROMISE.then(function(db){
+      if (!db) return;
+      return db.collection('reading_journal').get().then(function(snap){
+        var changed = false;
+        var seenKeys = {};
+        snap.forEach(function(doc){
+          seenKeys[doc.id] = true;
+          var remote = doc.data();
+          var local = readingJournal[doc.id];
+          if (!local || new Date(remote.ts || 0) > new Date(local.ts || 0)) {
+            readingJournal[doc.id] = remote;
+            changed = true;
+          } else if (local) {
+            syncReadingEntryToDb(doc.id, local);
+          }
+        });
+        Object.keys(readingJournal).forEach(function(k){ if (!seenKeys[k]) syncReadingEntryToDb(k, readingJournal[k]); });
+        if (changed && !readingNoteTouched) refreshJournalUI(selectedKey);
+      });
+    }).catch(function(){});
+  }
   var readingNoteEl = document.getElementById('readingNote');
   var readingStatusEl = document.getElementById('readingNoteStatus');
   var meditateLabelEl = document.getElementById('meditateLabel');
@@ -548,6 +577,7 @@
   function switchToDate(key){
     if (!key) return;
     selectedKey = key;
+    readingNoteTouched = false;
     if (viewDateInput) viewDateInput.value = key;
     updateViewingDateLabel(key);
     loadReadingFor(key);
@@ -578,6 +608,7 @@
       }
       readingJournal[selectedKey] = { note: val, ts: new Date().toISOString() };
       saveReadingJournalMap(readingJournal);
+      syncReadingEntryToDb(selectedKey, readingJournal[selectedKey]);
       if (readingStatusEl) {
         var d = new Date();
         readingStatusEl.textContent = '저장되었습니다 · ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
@@ -589,6 +620,7 @@
   // 자동으로 임시 저장한다 (버튼을 눌러야만 저장되던 이전 방식 때문에 실제로 기록을
   // 잃어버린 적이 있어 추가함).
   if (readingNoteEl) {
+    readingNoteEl.addEventListener('input', function(){ readingNoteTouched = true; }, { once: true });
     var readingAutosaveTimer = null;
     readingNoteEl.addEventListener('input', function(){
       if (readingAutosaveTimer) clearTimeout(readingAutosaveTimer);
@@ -597,10 +629,12 @@
         if (!val || !val.trim()) return;
         readingJournal[selectedKey] = { note: val, ts: new Date().toISOString() };
         saveReadingJournalMap(readingJournal);
+        syncReadingEntryToDb(selectedKey, readingJournal[selectedKey]);
         if (readingStatusEl) readingStatusEl.textContent = '임시 저장됨 (자동) · 안심하고 계속 쓰라';
       }, 600);
     });
   }
+  mergeRemoteReadingJournal();
 })();
 </script>
 

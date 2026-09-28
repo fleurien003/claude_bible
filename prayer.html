@@ -305,10 +305,46 @@
     var myPrayer = loadMyPrayer();
     var noteEl = document.getElementById('myPrayerNote');
     var statusEl = document.getElementById('myPrayerStatus');
-    if (myPrayer[todayKey] && noteEl) {
-      noteEl.value = myPrayer[todayKey].note || '';
-      if (statusEl) statusEl.textContent = '오늘 이미 기록하였습니다. 다시 저장하면 덮어씁니다.';
+    var noteTouched = false; // 사용자가 오늘 칸을 고치기 시작하면, 다른 기기 기록으로 덮어쓰지 않는다
+    if (noteEl) noteEl.addEventListener('input', function(){ noteTouched = true; }, { once: true });
+
+    function renderToday(){
+      if (myPrayer[todayKey] && noteEl) {
+        noteEl.value = myPrayer[todayKey].note || '';
+        if (statusEl) statusEl.textContent = '오늘 이미 기록하였습니다. 다시 저장하면 덮어씁니다.';
+      }
     }
+    renderToday();
+
+    // 나의 기도 기록도 암송 구절·QT 묵상처럼 기기마다 따로(localStorage) 저장돼 있던 것을
+    // 아티팩트 db(my_prayer/<날짜>)로 옮긴다 — 노트북에서 쓴 기록이 폰에서도 보이도록.
+    function syncEntryToDb(k, entry){
+      DB_PROMISE.then(function(db){ if (db) return db.doc('my_prayer/' + k).set(entry); }).catch(function(){});
+    }
+    DB_PROMISE.then(function(db){
+      if (!db) return;
+      return db.collection('my_prayer').get().then(function(snap){
+        var changed = false;
+        var seenKeys = {};
+        snap.forEach(function(doc){
+          seenKeys[doc.id] = true;
+          var remote = doc.data();
+          var local = myPrayer[doc.id];
+          if (!local || new Date(remote.ts || 0) > new Date(local.ts || 0)) {
+            myPrayer[doc.id] = remote;
+            changed = true;
+          } else if (local) {
+            syncEntryToDb(doc.id, local);
+          }
+        });
+        Object.keys(myPrayer).forEach(function(k){ if (!seenKeys[k]) syncEntryToDb(k, myPrayer[k]); });
+        if (changed) {
+          saveMyPrayerMap(myPrayer);
+          if (!noteTouched) renderToday();
+        }
+      });
+    }).catch(function(){});
+
     var saveBtn = document.getElementById('saveMyPrayer');
     if (saveBtn) {
       saveBtn.addEventListener('click', function(){
@@ -319,6 +355,7 @@
         }
         myPrayer[todayKey] = { note: val, ts: new Date().toISOString() };
         saveMyPrayerMap(myPrayer);
+        syncEntryToDb(todayKey, myPrayer[todayKey]);
         if (statusEl) {
           var d = new Date();
           statusEl.textContent = '저장되었습니다 · ' + pad(d.getHours()) + ':' + pad(d.getMinutes());

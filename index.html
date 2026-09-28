@@ -1041,12 +1041,53 @@
   var PORTION_DAY_KEYS = ['sun','mon','tue','wed','thu','fri','sat'];
   function portionItemId(dayKey, idx, text){ return dayKey + '_' + idx + '_' + text.length; }
 
+  // 체크리스트 페이지(checklist.html)가 저장하는 값과 형식을 맞춘다 — 로컬 저장은
+  // {__syncValue, __syncTs}로 감싸져 있고(예전 방식은 감싸지 않은 값 그대로), 같은 값이
+  // 아티팩트 db(checklist/<이름>)에도 있으면 더 최근 쪽을 쓴다.
+  function loadSyncedLocal(key){
+    try {
+      var raw = JSON.parse(localStorage.getItem(key) || 'null');
+      if (raw && typeof raw === 'object' && '__syncTs' in raw) return { value: raw.__syncValue, ts: raw.__syncTs };
+      return raw ? { value: raw, ts: '1970-01-01T00:00:00Z' } : null;
+    } catch (e) { return null; }
+  }
+  function saveSyncedLocal(key, value, ts){
+    try { localStorage.setItem(key, JSON.stringify({ __syncValue: value, __syncTs: ts })); } catch (e) {}
+  }
+
   function loadPortionToday(){
     var listEl = document.getElementById('portionList');
     if (!listEl) return;
-    var template = null, checks = {};
-    try { template = JSON.parse(localStorage.getItem('solomonChecklistTemplate_v1') || 'null'); } catch (e) {}
-    try { checks = JSON.parse(localStorage.getItem('solomonChecklistChecks_v1') || '{}') || {}; } catch (e) {}
+    var templateLocal = loadSyncedLocal('solomonChecklistTemplate_v1');
+    var checksLocal = loadSyncedLocal('solomonChecklistChecks_v1');
+    var template = templateLocal ? templateLocal.value : null;
+    var checks = checksLocal ? checksLocal.value : {};
+    var checksTs = checksLocal ? checksLocal.ts : '1970-01-01T00:00:00Z';
+
+    DB_PROMISE.then(function(db){
+      if (!db) return;
+      return Promise.all([
+        db.doc('checklist/template').get().catch(function(){ return null; }),
+        db.doc('checklist/checks').get().catch(function(){ return null; })
+      ]).then(function(results){
+        var tSnap = results[0], cSnap = results[1];
+        var changed = false;
+        if (tSnap && tSnap.exists && (!templateLocal || new Date(tSnap.data().ts || 0) > new Date(templateLocal.ts))) {
+          template = tSnap.data().value; changed = true;
+        }
+        if (cSnap && cSnap.exists && new Date(cSnap.data().ts || 0) > new Date(checksTs)) {
+          checks = cSnap.data().value; checksTs = cSnap.data().ts; changed = true;
+        }
+        if (changed) renderPortionList(template, checks, checksTs);
+      });
+    }).catch(function(){});
+
+    renderPortionList(template, checks, checksTs);
+  }
+
+  function renderPortionList(template, checks, checksTs){
+    var listEl = document.getElementById('portionList');
+    if (!listEl) return;
     var dayKey = PORTION_DAY_KEYS[now.getDay()];
     var items = template && template[dayKey] ? template[dayKey] : null;
     listEl.innerHTML = '';
@@ -1075,7 +1116,9 @@
       cb.style.setProperty('--p-color', cat.color);
       cb.addEventListener('change', function(){
         checks[checkKey] = cb.checked;
-        try { localStorage.setItem('solomonChecklistChecks_v1', JSON.stringify(checks)); } catch (e) {}
+        checksTs = new Date().toISOString();
+        saveSyncedLocal('solomonChecklistChecks_v1', checks, checksTs);
+        DB_PROMISE.then(function(db){ if (db) return db.doc('checklist/checks').set({ value: checks, ts: checksTs }); }).catch(function(){});
         li.className = cb.checked ? 'checked' : '';
       });
 
