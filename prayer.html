@@ -326,7 +326,7 @@
       return db.collection('my_prayer').get().then(function(snap){
         var changed = false;
         var seenKeys = {};
-        snap.forEach(function(doc){
+        (snap.docs || []).forEach(function(doc){
           seenKeys[doc.id] = true;
           var remote = doc.data();
           var local = myPrayer[doc.id];

@@ -479,7 +479,7 @@
       return db.collection('qt_journal').get().then(function(snap){
         var changed = false;
         var seenKeys = {};
-        snap.forEach(function(doc){
+        (snap.docs || []).forEach(function(doc){
           seenKeys[doc.id] = true;
           var remote = doc.data();
           var local = journal[doc.id];
