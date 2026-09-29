@@ -430,7 +430,7 @@
   // ❓ 표시는 아직 구체적인 내용을 못 받아서 비워둔 자리 — 나중에 채워야 함.
   function buildMonThuTemplate(){
     return [
-      item('','아히야 브리핑','07:00','08:00'),
+      item('','클레어 브리핑','07:00','08:00'),
       item('christian','QT','08:00','09:00'),
       item('saver','❓ 세이버 업무 (내용 필요)','09:00','10:00'),
       item('evidence','콘텐츠 모니터링','09:00','10:00'),
@@ -604,6 +604,16 @@
     routineInputApplied = true;
     routineInputTs = routineInputStore.save(true);
   }
+
+  // 이름 변경: '아히야 브리핑' → '클레어 브리핑'. 옛 텍스트를 찾아서 바꾸는 방식이라
+  // 한 번 바뀌고 나면 다시 찾을 옛 텍스트가 없으므로 별도 플래그 없이도 딱 한 번만 동작함.
+  (function renameAhijaToClaire(){
+    var renamed = false;
+    DAY_KEYS.forEach(function(dk){
+      (template[dk] || []).forEach(function(it){ if (it.text === '아히야 브리핑') { it.text = '클레어 브리핑'; renamed = true; } });
+    });
+    if (renamed) templateTs = templateStore.save(template);
+  })();
 
   // 구글 캘린더 연동 — 오늘 날짜의 일정을 카테고리별로 가져와 그 카테고리 안에 함께 보여준다.
   // 연결이 안 돼 있거나(needs_reauth 등) 권한이 없으면 조용히 비워두고, 기존 반복 항목만 보여준다.
