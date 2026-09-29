@@ -115,6 +115,7 @@
   .timeline-track{
     position:relative; flex:1; min-width:0;
     border-left:1px solid var(--parchment-edge);
+    cursor:copy;
   }
   .timeline-track .gridline{ position:absolute; left:0; right:0; border-top:1px dashed var(--parchment-edge); opacity:.6; }
   .timeline-block{
@@ -857,6 +858,27 @@
   newStartPicker.el.addEventListener('timepick-change', function(){
     var s = newStartPicker.getValue();
     if (s) newEndPicker.setValue(addOneHour(s));
+  });
+
+  // 타임라인의 빈 자리를 클릭하면 그 시간(~+1시간)을 새 항목 추가 폼에 미리 채워주고
+  // 바로 텍스트를 입력할 수 있게 스크롤·포커스한다. 기존 블록을 클릭한 건 여기서 무시
+  // (그건 그 블록 자체의 편집 클릭으로 처리됨).
+  document.getElementById('timelineTrack').addEventListener('click', function(e){
+    if (e.target.closest('.timeline-block')) return;
+    var rect = e.currentTarget.getBoundingClientRect();
+    var offsetY = e.clientY - rect.top;
+    var rawMin = TIMELINE_START_MIN + (offsetY / PX_PER_HOUR) * 60;
+    var snapped = Math.round(rawMin / 5) * 5;
+    if (snapped < TIMELINE_START_MIN) snapped = TIMELINE_START_MIN;
+    if (snapped > TIMELINE_END_MIN - 5) snapped = TIMELINE_END_MIN - 5;
+    var h = Math.floor(snapped / 60), m = snapped % 60;
+    var hm = (h < 10 ? '0'+h : ''+h) + ':' + (m < 10 ? '0'+m : ''+m);
+    newStartPicker.setValue(hm);
+    newEndPicker.setValue(addOneHour(hm));
+    var addForm = document.querySelector('.add-form');
+    if (addForm) addForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    var newTextEl = document.getElementById('newText');
+    if (newTextEl) newTextEl.focus();
   });
 
   function offsetToDate(dayKey){
