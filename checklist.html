@@ -139,11 +139,11 @@
   }
   .timeline-block .del:hover{ opacity:1; color:var(--pomegranate); }
   .block-edit{ display:flex; flex-direction:column; gap:8px; padding:2px; }
-  .block-edit input[type=text]{
+  .block-edit input[type=text], .block-edit select{
     font:inherit; font-size:13px; padding:7px 8px; border-radius:3px;
     border:1px solid var(--parchment-edge); background:#fffdf7; color:var(--ink);
   }
-  .block-edit input[type=text]:focus{ outline:2px solid var(--gold); outline-offset:1px; }
+  .block-edit input[type=text]:focus, .block-edit select:focus{ outline:2px solid var(--gold); outline-offset:1px; }
   .block-edit .time-row{
     display:flex; gap:4px; align-items:center; background:#fffdf7;
     border:1px solid var(--parchment-edge); border-radius:3px; padding:0 6px; width:fit-content;
@@ -779,6 +779,7 @@
   var todayDayKey = DAY_KEYS[today.getDay()];
   var selectedDay = todayDayKey;
   var editingId = null; // 지금 인라인 편집 중인 항목의 id (있으면)
+  var draftEntry = null; // 타임라인 빈 자리를 클릭해서 만든, 아직 저장 안 된 새 항목 초안
 
   var TIMELINE_START_MIN = 6 * 60;
   var TIMELINE_END_MIN = 24 * 60;
@@ -860,9 +861,9 @@
     if (s) newEndPicker.setValue(addOneHour(s));
   });
 
-  // 타임라인의 빈 자리를 클릭하면 그 시간(~+1시간)을 새 항목 추가 폼에 미리 채워주고
-  // 바로 텍스트를 입력할 수 있게 스크롤·포커스한다. 기존 블록을 클릭한 건 여기서 무시
-  // (그건 그 블록 자체의 편집 클릭으로 처리됨).
+  // 타임라인의 빈 자리를 클릭하면 그 위치에 바로 1시간짜리 항목 초안 블록이 생기고,
+  // 그 블록 안에서 카테고리·내용·반복 요일을 정해서 저장할 수 있다. 기존 블록을 클릭한 건
+  // 여기서 무시 (그건 그 블록 자체의 편집 클릭으로 처리됨).
   document.getElementById('timelineTrack').addEventListener('click', function(e){
     if (e.target.closest('.timeline-block')) return;
     var rect = e.currentTarget.getBoundingClientRect();
@@ -873,12 +874,9 @@
     if (snapped > TIMELINE_END_MIN - 5) snapped = TIMELINE_END_MIN - 5;
     var h = Math.floor(snapped / 60), m = snapped % 60;
     var hm = (h < 10 ? '0'+h : ''+h) + ':' + (m < 10 ? '0'+m : ''+m);
-    newStartPicker.setValue(hm);
-    newEndPicker.setValue(addOneHour(hm));
-    var addForm = document.querySelector('.add-form');
-    if (addForm) addForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    var newTextEl = document.getElementById('newText');
-    if (newTextEl) newTextEl.focus();
+    draftEntry = { cat: '', text: '', start: hm, end: addOneHour(hm) };
+    editingId = 'draft';
+    render();
   });
 
   function offsetToDate(dayKey){
@@ -916,6 +914,7 @@
     })).concat(calList.map(function(entry){
       return { it: entry.it, id: entry.id, src: 'gcal' };
     })).filter(function(entry){ return !removed[dk + '__' + entry.id]; });
+    if (draftEntry) combined.push({ it: draftEntry, id: 'draft', src: 'draft' });
 
     // 이 항목이 속한 원본 배열에 쓰기 (편집·삭제용) — gcal 항목은 편집 불가
     function writeBack(entry, patch){
@@ -937,16 +936,35 @@
       var isChecked = !!checks[checkKey];
       var cat = it.cat ? (CATEGORIES[it.cat] || { label: it.cat, color:'#999' }) : { label: '', color:'#c9c2b6' };
       var editable = entry.src === 'template' || entry.src === 'extra';
+      var isDraft = entry.src === 'draft';
 
       var el = document.createElement(tag);
       el.className = (tag === 'li' ? 'item' : 'timeline-block') + (isChecked ? ' checked' : '') + (entry.src === 'gcal' ? ' gcal' : '');
       el.style.setProperty('--cat-color', cat.color);
 
-      if (editable && editingId === id) {
+      if ((editable && editingId === id) || isDraft) {
         var form = document.createElement('div');
         form.className = 'block-edit';
+        var draftCatEl = null;
+        if (isDraft) {
+          draftCatEl = document.createElement('select');
+          var noneOpt2 = document.createElement('option');
+          noneOpt2.value = ''; noneOpt2.textContent = '(카테고리 없음)';
+          draftCatEl.appendChild(noneOpt2);
+          Object.keys(CATEGORIES).forEach(function(k){
+            var opt2 = document.createElement('option');
+            opt2.value = k; opt2.textContent = CATEGORIES[k].label;
+            draftCatEl.appendChild(opt2);
+          });
+          draftCatEl.value = it.cat || '';
+          draftCatEl.addEventListener('click', function(e){ e.stopPropagation(); });
+          draftCatEl.addEventListener('change', function(e){
+            e.stopPropagation();
+            el.style.setProperty('--cat-color', (CATEGORIES[draftCatEl.value] || { color:'#c9c2b6' }).color);
+          });
+        }
         var textInput = document.createElement('input');
-        textInput.type = 'text'; textInput.value = it.text;
+        textInput.type = 'text'; textInput.value = it.text; textInput.placeholder = '무엇을 하시나요?';
         var timeRow = document.createElement('div');
         timeRow.className = 'time-row';
         var startPicker = makeTimePicker(it.start);
@@ -965,9 +983,9 @@
         // 반복 요일 — 매주 이 요일들에 이 항목을 그대로 반복시킬지 고르는 토글.
         // 구글 캘린더처럼 "몇 주마다/언제까지"는 없고, 이 앱 구조상 "그 요일 템플릿에 있나 없나"로만 표현됨.
         var dayToggles = null;
-        if (entry.src === 'template') {
+        if (entry.src === 'template' || isDraft) {
           var origSig = itemSig(it);
-          var activeDays = DAY_KEYS.filter(function(dkk){ return (template[dkk] || []).some(function(x){ return itemSig(x) === origSig; }); });
+          var activeDays = isDraft ? [selectedDay] : DAY_KEYS.filter(function(dkk){ return (template[dkk] || []).some(function(x){ return itemSig(x) === origSig; }); });
           var repeatRow = document.createElement('div');
           repeatRow.className = 'repeat-row';
           var repeatLabelEl = document.createElement('div');
@@ -999,7 +1017,17 @@
           if (!newText) return;
           var newStart = startPicker.getValue(), newEnd = endPicker.getValue();
 
-          if (entry.src === 'template' && dayToggles) {
+          if (isDraft) {
+            var draftCat = draftCatEl.value;
+            var draftContent = item(draftCat, newText, newStart, newEnd);
+            DAY_KEYS.forEach(function(dkk){
+              if (!dayToggles[dkk].classList.contains('on')) return;
+              template[dkk] = template[dkk] || [];
+              template[dkk].push(draftContent);
+            });
+            templateTs = templateStore.save(template);
+            draftEntry = null;
+          } else if (entry.src === 'template' && dayToggles) {
             var origSig2 = itemSig(it);
             var newContent = item(it.cat, newText, newStart, newEnd);
             DAY_KEYS.forEach(function(dkk){
@@ -1026,9 +1054,15 @@
         });
         var cancelBtn = document.createElement('button');
         cancelBtn.type = 'button'; cancelBtn.className = 'cancel'; cancelBtn.textContent = '취소';
-        cancelBtn.addEventListener('click', function(e){ e.stopPropagation(); editingId = null; render(); });
+        cancelBtn.addEventListener('click', function(e){
+          e.stopPropagation();
+          if (isDraft) draftEntry = null;
+          editingId = null;
+          render();
+        });
         btnRow.appendChild(saveBtn);
         btnRow.appendChild(cancelBtn);
+        if (draftCatEl) form.appendChild(draftCatEl);
         form.appendChild(textInput);
         form.appendChild(timeRow);
         if (repeatRow) form.appendChild(repeatRow);
