@@ -516,19 +516,24 @@
         pushRemote(value, ts);
         return ts;
       },
-      reconcile: function(currentValue, currentTs, onRemoteNewer){
+      // getCurrent: 비교 시점에 "지금 살아있는" {value, ts}를 새로 읽어오는 함수.
+      // db 응답이 늦게 오는 사이 사용자가 체크·삭제 등으로 이미 더 최신 값을 만들었을 수 있어서,
+      // reconcile을 호출한 시점의 스냅샷이 아니라 항상 이 함수로 최신 값을 다시 확인한다
+      // (그렇지 않으면 방금 한 조작이 오래된 원격 값에 덮어써져 "눌러도 반응 없음"처럼 보인다).
+      reconcile: function(getCurrent, onRemoteNewer){
         CHECKLIST_DB_PROMISE.then(function(db){
           if (!db) return;
           return db.doc(dbDocId).get().then(function(snap){
+            var cur = getCurrent();
             if (!snap.exists) {
               // db에 아직 아무도 올린 적이 없다 — 이 기기가 처음이니, 예전 방식(ts 없음)으로
               // 쌓여 있던 실제 값이라도 지금 시각으로 올려서 잃어버리지 않게 한다.
-              pushRemote(currentValue, currentTs === EPOCH ? new Date().toISOString() : currentTs);
+              pushRemote(cur.value, cur.ts === EPOCH ? new Date().toISOString() : cur.ts);
               return;
             }
             var remote = snap.data();
-            if (new Date(remote.ts || 0) > new Date(currentTs || 0)) onRemoteNewer(remote.value, remote.ts);
-            else if (currentTs !== EPOCH) pushRemote(currentValue, currentTs); // db가 더 오래되면 이 기기 것으로 맞춰 올린다
+            if (new Date(remote.ts || 0) > new Date(cur.ts || 0)) onRemoteNewer(remote.value, remote.ts);
+            else if (cur.ts !== EPOCH) pushRemote(cur.value, cur.ts); // db가 더 오래되면 이 기기 것으로 맞춰 올린다
           });
         }).catch(function(){});
       }
@@ -1179,17 +1184,19 @@
   render();
   initCalendarSync();
 
-  // 다른 기기에서 바뀐 게 있으면 맞춰서 다시 그린다 (이 기기가 처음이면 지금 값을 db로 올린다)
-  templateStore.reconcile(template, templateTs, function(remoteValue, ts){
+  // 다른 기기에서 바뀐 게 있으면 맞춰서 다시 그린다 (이 기기가 처음이면 지금 값을 db로 올린다).
+  // getCurrent는 반드시 "지금" 값을 새로 읽어서 반환해야 함 — 응답이 오는 사이 사용자가
+  // 체크·삭제했을 수 있어서, reconcile 호출 시점의 값을 그대로 캡처해두면 안 됨.
+  templateStore.reconcile(function(){ return { value: template, ts: templateTs }; }, function(remoteValue, ts){
     template = remoteValue; templateTs = ts;
     DAY_KEYS.forEach(function(k){ if (!template[k]) template[k] = DEFAULT_TEMPLATE[k] || []; });
     render();
   });
-  checksStore.reconcile(checks, checksTs, function(remoteValue, ts){ checks = remoteValue; checksTs = ts; render(); });
-  removedStore.reconcile(removed, removedTs, function(remoteValue, ts){ removed = remoteValue; removedTs = ts; render(); });
-  extraStore.reconcile(extra, extraTs, function(remoteValue, ts){ extra = remoteValue; extraTs = ts; render(); });
-  routineV2Store.reconcile(routineV2Applied, routineV2Ts, function(remoteValue, ts){ routineV2Applied = remoteValue; routineV2Ts = ts; });
-  routineInputStore.reconcile(routineInputApplied, routineInputTs, function(remoteValue, ts){ routineInputApplied = remoteValue; routineInputTs = ts; });
+  checksStore.reconcile(function(){ return { value: checks, ts: checksTs }; }, function(remoteValue, ts){ checks = remoteValue; checksTs = ts; render(); });
+  removedStore.reconcile(function(){ return { value: removed, ts: removedTs }; }, function(remoteValue, ts){ removed = remoteValue; removedTs = ts; render(); });
+  extraStore.reconcile(function(){ return { value: extra, ts: extraTs }; }, function(remoteValue, ts){ extra = remoteValue; extraTs = ts; render(); });
+  routineV2Store.reconcile(function(){ return { value: routineV2Applied, ts: routineV2Ts }; }, function(remoteValue, ts){ routineV2Applied = remoteValue; routineV2Ts = ts; });
+  routineInputStore.reconcile(function(){ return { value: routineInputApplied, ts: routineInputTs }; }, function(remoteValue, ts){ routineInputApplied = remoteValue; routineInputTs = ts; });
 })();
 </script>
 

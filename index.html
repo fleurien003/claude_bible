@@ -1138,11 +1138,16 @@
       ]).then(function(results){
         var tSnap = results[0], cSnap = results[1];
         var changed = false;
+        // checks는 "지금" 값(lastPortionChecksTs)과 비교해야 한다 — 이 응답이 오는 사이
+        // 사용자가 이미 체크했을 수 있는데, 여기서 로드 시점의 오래된 값과 비교하면
+        // 방금 한 체크가 더 오래된 원격 값에 덮어써져 "눌러도 반응 없음"처럼 보인다.
         if (tSnap && tSnap.exists && (!templateLocal || new Date(tSnap.data().ts || 0) > new Date(templateLocal.ts))) {
           template = tSnap.data().value; changed = true;
         }
-        if (cSnap && cSnap.exists && new Date(cSnap.data().ts || 0) > new Date(checksTs)) {
+        if (cSnap && cSnap.exists && new Date(cSnap.data().ts || 0) > new Date(lastPortionChecksTs || 0)) {
           checks = cSnap.data().value; checksTs = cSnap.data().ts; changed = true;
+        } else {
+          checks = lastPortionChecks; checksTs = lastPortionChecksTs;
         }
         if (changed) renderPortionList(template, checks, checksTs);
       });
