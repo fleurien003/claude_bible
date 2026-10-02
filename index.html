@@ -876,9 +876,172 @@
   var greetingSet = GREETING_SETS[now.getDay()];
   var closingSet = CLOSING_SETS[now.getDay()];
   var greetingEl = document.getElementById('greetingText');
-  if (greetingEl) greetingEl.textContent = greetingSet[todayDoy % greetingSet.length];
   var closingEl = document.getElementById('closingText');
+  // 아래는 AI가 db(qt db 자체가 아니라 별도 연결) 접속이 안 될 때 쓰는 예비 문구 — 요일 유형별로
+  // 고정 문구가 몇 개뿐이라 실제로는 격주·몇 주마다 그대로 반복됐다. 아래에서 정상적으로는
+  // 매일 새로 짓고, 이 값은 그게 안 될 때만 쓴다.
+  if (greetingEl) greetingEl.textContent = greetingSet[todayDoy % greetingSet.length];
   if (closingEl) closingEl.textContent = closingSet[todayDoy % closingSet.length];
+
+  // -- 여는말·맺음말을 매일 새로 짓는다 (요일 조건 + 그날의 상황) --
+  // 그날의 QT 제목, 이번 주 나의 기도제목, 구글 캘린더로 본 하루의 바쁨 정도를 함께 넘겨
+  // 그날 상황에 맞는 편지를 짓는다. 일정 제목은 AI에 넘기지 않고 건수·시간대만 넘긴다.
+  // 하루 첫 방문자가 만들면 daily_letter/<날짜>에 저장해 두고, 그날의 다른 방문자·새로고침은
+  // 그 저장된 글을 그대로 읽는다(AI 호출은 하루 1회). AI를 못 쓰거나 실패하면 위의 고정 문구가 남는다.
+  var LETTER_CTX_VERSION = 2; // 상황 반영 전(v1)에 저장된 오늘 글은 한 번 새로 짓는다
+  var DAY_TYPE_KEYS = ['sun','mon','work','work','work','home','rest'];
+  var DAY_TYPE_BRIEF = {
+    sun:  '오늘은 주일이다. 예배로 한 주를 시작하는 마음, 공동체 안에서 함께 세워지는 것, 지난 은혜를 돌아보는 것 등을 다룬다.',
+    mon:  '오늘은 월요일, 회사로 출근하며 새 주간을 여는 날이다. 주일에 받은 말씀을 일터로 가져가는 것, 한 주의 첫 걸음을 하나님께 맡기는 것, 한 주를 미리 다 짊어지지 않는 것 등을 다룬다.',
+    work: '오늘은 화~목, 회사로 출근하는 평일이다. 하나님 나라를 먼저 구하고 그다음 하루 일을 시작하는 것, 일을 주께 하듯 하는 것, 결정을 하나님께 맡기는 것 등을 다룬다.',
+    home: '오늘은 금요일, 재택근무하는 날이다. 눈에 보이는 감독자 없이도 성실한 것, 골방 기도로 하루를 여는 것, 더디게 느껴지는 수고도 헛되지 않음 등을 다룬다.',
+    rest: '오늘은 토요일, 쉬는 날이다. 쉼이 게으름이 아니라 순종이라는 것, 채우려 애쓰지 않고 가만히 있는 것 등을 다룬다.'
+  };
+  var CALENDAR_LABEL = {
+    christian:'교회·신앙(CHRISTIAN)', pureum:'퓨어솜(PURESOMME)', saver:'세이버', evidence:'에비던스',
+    blogExp:'엘라이트', appointment:'약속·개인(PLANS)', health:'건강(HEALTH)', growth:'배움(INPUT)', house:'집안일(HOME)'
+  };
+  var dayType = DAY_TYPE_KEYS[now.getDay()];
+  var greetingExample = greetingSet[0], closingExample = closingSet[0];
+
+  function withTimeout(promise, ms){
+    return Promise.race([promise, new Promise(function(resolve){ setTimeout(function(){ resolve(null); }, ms); })]);
+  }
+  function loadLetterQT(db){
+    return db.doc('qt/' + todayKey).get().then(function(snap){
+      if (!snap || !snap.exists) return null;
+      var d = snap.data();
+      return { subtitle: d.subtitle || '', reference: d.reference || '' };
+    }).catch(function(){ return null; });
+  }
+  function loadLetterPrayer(db){
+    return db.doc('prayer/current').get().then(function(snap){
+      if (!snap || !snap.exists) return null;
+      var mine = (snap.data().people || []).filter(function(p){ return p.name === '은아'; })[0];
+      return mine && mine.prayer ? String(mine.prayer) : null;
+    }).catch(function(){ return null; });
+  }
+  // 오늘 일정의 "바쁨"만 요약한다: 캘린더별 건수, 시간 지정 일정의 총 시간·첫 시작·마지막 끝, 저녁 일정 여부.
+  function loadLetterBusyness(){
+    return PORTION_MCP_PROMISE.then(function(mcp){
+      if (!mcp) return null;
+      var range = portionTodayRange();
+      var cats = Object.keys(PORTION_CATEGORY_CALENDAR);
+      return Promise.all(cats.map(function(cat){
+        return mcp.callTool('Google Calendar', 'list_events',
+          { calendarId: PORTION_CATEGORY_CALENDAR[cat], startTime: range.startTime, endTime: range.endTime, orderBy: 'startTime' },
+          { cache: { staleTime: 5 * 60 * 1000 } }
+        ).then(function(res){
+          var p = res && res.payload;
+          return { cat: cat, ok: true, events: (p && (p.events || p.items)) || [] };
+        }).catch(function(){ return { cat: cat, ok: false, events: [] }; });
+      })).then(function(results){
+        if (!results.some(function(r){ return r.ok; })) return null;
+        var perCat = [], timedCount = 0, allDayCount = 0, minutes = 0, first = null, last = null, evening = false;
+        results.forEach(function(r){
+          var n = 0;
+          r.events.forEach(function(e){
+            if (e.status === 'cancelled') return;
+            n++;
+            var s = e.start && e.start.dateTime, en = e.end && e.end.dateTime;
+            if (!s) { allDayCount++; return; }
+            var sd = new Date(s), ed = en ? new Date(en) : sd;
+            timedCount++;
+            minutes += Math.max(0, (ed - sd) / 60000);
+            if (!first || sd < first) first = sd;
+            if (!last || ed > last) last = ed;
+            if (ed.getHours() >= 19 || sd.getHours() >= 18) evening = true;
+          });
+          if (n) perCat.push(CALENDAR_LABEL[r.cat] + ' ' + n + '건');
+        });
+        function hm(d){ return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+        // 바쁨 단계 기준(시간 지정 일정 4건 이상 또는 합계 5시간 이상이면 빡빡함)은 임의로 정한 값
+        var level = timedCount === 0 && allDayCount === 0 ? '일정이 비어 있는 여유로운 날'
+          : (timedCount >= 4 || minutes >= 300) ? '일정이 빽빽한 바쁜 날'
+          : timedCount >= 2 ? '일정이 적당히 있는 날' : '일정이 한두 개뿐인 비교적 여유로운 날';
+        return {
+          level: level,
+          detail: [
+            perCat.length ? '캘린더별: ' + perCat.join(', ') : '등록된 일정 없음',
+            timedCount ? '시간 지정 일정 ' + timedCount + '건, 합계 약 ' + Math.round(minutes / 60 * 10) / 10 + '시간 (' + hm(first) + '~' + hm(last) + ')' : '',
+            allDayCount ? '종일 일정 ' + allDayCount + '건' : '',
+            evening ? '저녁에도 일정이 있음' : ''
+          ].filter(Boolean).join(' / ')
+        };
+      });
+    }).catch(function(){ return null; });
+  }
+
+  function buildDailyLetterPrompt(ctx){
+    var situation = [];
+    if (ctx.qt && ctx.qt.subtitle) situation.push('- 오늘의 QT 제목: "' + ctx.qt.subtitle + '"' + (ctx.qt.reference ? ' (본문 ' + ctx.qt.reference + ')' : ''));
+    if (ctx.prayer) situation.push('- 이번 주 나의 기도제목: ' + ctx.prayer);
+    if (ctx.busy) situation.push('- 오늘 일정의 바쁨: ' + ctx.busy.level + ' — ' + ctx.busy.detail);
+    return [
+      '너는 "솔로몬의 편지"라는 매일 아침 열리는 짧은 신앙 편지의 "여는말"과 "맺음말"을 짓는다. 아래 조건을 모두 지켜라.',
+      '',
+      '[오늘의 조건] ' + DAY_TYPE_BRIEF[dayType],
+      '',
+      '[오늘의 상황]',
+      situation.length ? situation.join('\n') : '- (오늘은 상황 정보를 불러오지 못했다. 요일 조건만으로 쓴다.)',
+      '',
+      '[상황 반영 방법]',
+      '- QT 제목이 있으면 여는말에 그 주제를 한 문장으로 자연스럽게 엮는다. 제목을 따옴표로 그대로 옮겨 적지 말고 뜻을 풀어 쓴다.',
+      '- 기도제목이 있으면 여는말이나 맺음말 중 한 곳에 한 문장으로 그 기도를 이어가도록 권한다. 기도제목의 사적인 세부를 길게 반복하지 않는다.',
+      '- 일정 정보는 바쁨의 정도와 시간대를 톤에만 반영한다. 일정 이름·건수·시각을 글에 적지 마라. 바쁜 날엔 짧은 숨 고르기와 맡김을, 여유로운 날엔 깊은 묵상과 쉼을, 저녁 일정이 있으면 맺음말에서 늦게까지 수고한 하루를 다독인다.',
+      '- 맺음말은 하루를 마치는 밤에 읽는 글이다. 오늘 하루의 바쁨을 지나온 사람에게 하듯 쓴다.',
+      '',
+      '[문체]',
+      '- 성경 속 솔로몬이 딸에게 쓰는 편지처럼, "내 딸아,"로 시작해 해라체("~하라", "~느니라", "~이다")로 쓴다.',
+      '- 성경 구절을 최소 2개 인용한다. 인용은 개역개정 본문을 큰따옴표로 쓰고 바로 뒤에 (책 장:절)을 붙인다.',
+      '- 여는말은 4~6문장, 맺음말은 4~6문장. 맺음말은 "네게 평강이 있을지어다." 로 끝낸다.',
+      '- 소제목·목록·이모지 없이 편지글 한 문단으로 쓴다.',
+      '',
+      '[반드시 지킬 것]',
+      '- 아래 예시는 톤과 조건을 보여주기 위한 참고일 뿐이다. 예시의 문장, 인용 구절, 비유를 그대로 가져오지 마라 — 매번 다른 구절, 다른 비유, 다른 표현으로 완전히 새로 써라.',
+      '- 없는 성경 구절을 지어내지 마라. 실제 있는 구절만 인용하라.',
+      '',
+      '[예시 — 참고만 하고 베끼지 말 것]',
+      '여는말: ' + greetingExample,
+      '맺음말: ' + closingExample,
+      '',
+      '다음 JSON 형식으로만 답하라(다른 설명 없이): {"greeting": "여는말 전체", "closing": "맺음말 전체"}'
+    ].join('\n');
+  }
+  function applyDailyLetter(data){
+    if (!data) return false;
+    var g = String(data.greeting || '').trim(), c = String(data.closing || '').trim();
+    if (g.length < 20 || g.length > 800 || c.length < 20 || c.length > 800) return false; // 너무 짧거나 길면 이상 생성으로 보고 쓰지 않는다
+    if (greetingEl) greetingEl.textContent = g;
+    if (closingEl) closingEl.textContent = c;
+    return true;
+  }
+  DB_PROMISE.then(function(db){
+    if (!db) throw new Error('no db');
+    return db.doc('daily_letter/' + todayKey).get().then(function(snap){
+      var saved = snap && snap.exists ? snap.data() : null;
+      if (saved && applyDailyLetter(saved) && saved.ctxVersion >= LETTER_CTX_VERSION) return; // 오늘 이미 상황 반영해 만든 글
+      if (!window.claude || typeof window.claude.use !== 'function') return;
+      // 상황 정보는 각각 실패해도 넘어가고, 캘린더 동의 창 등으로 늦어지면 15초 뒤 있는 것만으로 짓는다
+      return Promise.all([
+        withTimeout(loadLetterQT(db), 15000),
+        withTimeout(loadLetterPrayer(db), 15000),
+        withTimeout(loadLetterBusyness(), 15000),
+        window.claude.use('sample')
+      ]).then(function(r){
+        var ctx = { qt: r[0], prayer: r[1], busy: r[2] }, sample = r[3];
+        if (!sample) return;
+        return sample.json(buildDailyLetterPrompt(ctx), { modelTier: 'default' }).then(function(data){
+          if (!applyDailyLetter(data)) return;
+          return db.doc('daily_letter/' + todayKey).set({
+            greeting: data.greeting, closing: data.closing, dayType: dayType, ctxVersion: LETTER_CTX_VERSION,
+            ctx: { qt: !!(ctx.qt && ctx.qt.subtitle), prayer: !!ctx.prayer, busy: ctx.busy ? ctx.busy.level : null },
+            ts: new Date().toISOString()
+          });
+        });
+      });
+    });
+  }).catch(function(){ /* 실패하면 위에서 먼저 채운 고정 문구(또는 저장된 글)가 그대로 남는다 */ });
 
   var currentQT = null;
   var QT_TRANS_KEY = 'solomonQtTranslation';

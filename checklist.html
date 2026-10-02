@@ -101,7 +101,10 @@
   }
   li.item button.del{
     flex:none; border:none; background:none; color:var(--ink-soft); opacity:.5;
-    font-size:16px; line-height:1; cursor:pointer; padding:2px 4px;
+    font-size:18px; line-height:1; cursor:pointer;
+    /* 삭제가 안 눌린다는 보고가 있어 터치 영역을 넉넉히 키움 (기존엔 2px 4px로 너무 작았다) */
+    min-width:44px; min-height:44px; display:flex; align-items:center; justify-content:center;
+    margin:-10px -10px -10px 0; touch-action:manipulation;
   }
   li.item button.del:hover{ opacity:1; color:var(--pomegranate); }
   ul.items .empty{ font-size:13.5px; color:var(--ink-soft); font-style:italic; padding:6px 2px; }
@@ -134,8 +137,10 @@
   .timeline-block .cat-label{ font-size:9.5px; font-weight:600; letter-spacing:.02em; color:var(--cat-color, var(--ink-soft)); display:block; margin-bottom:4px; }
   .timeline-block .text{ font-size:12.5px; line-height:1.4; color:var(--ink); word-break:break-word; }
   .timeline-block .del{
-    position:absolute; top:2px; right:4px; border:none; background:none; color:var(--ink-soft);
-    opacity:.5; font-size:14px; line-height:1; cursor:pointer; padding:2px 4px;
+    position:absolute; top:-2px; right:-2px; border:none; background:none; color:var(--ink-soft);
+    opacity:.5; font-size:14px; line-height:1; cursor:pointer;
+    min-width:34px; min-height:34px; display:flex; align-items:center; justify-content:center;
+    touch-action:manipulation;
   }
   .timeline-block .del:hover{ opacity:1; color:var(--pomegranate); }
   .block-edit{ display:flex; flex-direction:column; gap:8px; padding:2px; }
@@ -442,7 +447,9 @@
       item('blogExp','홈피드 콘텐츠 업로드','15:00','16:00'),
       item('house','집안일'),
       item('growth','AI 학습 10분','19:00','19:10'),
-      item('christian','통독 + 기도','22:00','23:00')
+      item('health','운동','18:00','19:00'), // ⚠️ 구글 캘린더에서 삭제돼서 시간 임의로 정함
+      item('christian','통독 + 기도','22:00','23:00'),
+      item('','자기 전 핸드폰 금지','23:00','23:10') // ⚠️ 시간 임의로 정함
     ];
   }
 
@@ -615,6 +622,26 @@
     });
     if (renamed) templateTs = templateStore.save(template);
   })();
+
+  // one-time: 구글 캘린더에서 지운 '운동'·'자기 전 핸드폰 금지' 루틴을 체크리스트 자체 항목으로
+  // 월~목에 되살림 (더 이상 캘린더에 의존하지 않음). 한 번 넣은 뒤엔 은아가 지워도 다시 안 생기게
+  // 플래그로 딱 한 번만 동작시킴.
+  var routineHealthStore = makeSyncedStore('solomonChecklistRoutineHealthFlag', 'checklist/routineHealthFlag');
+  var routineHealthInit = routineHealthStore.loadInitial(false);
+  var routineHealthApplied = routineHealthInit.value, routineHealthTs = routineHealthInit.ts;
+  if (!routineHealthApplied) {
+    var addedHealth = false;
+    ['mon','tue','wed','thu'].forEach(function(dk){
+      template[dk] = template[dk] || [];
+      var hasExercise = template[dk].some(function(it){ return it.cat === 'health' && it.text === '운동'; });
+      if (!hasExercise) { template[dk].push(item('health','운동','18:00','19:00')); addedHealth = true; }
+      var hasNoPhone = template[dk].some(function(it){ return it.text === '자기 전 핸드폰 금지'; });
+      if (!hasNoPhone) { template[dk].push(item('','자기 전 핸드폰 금지','23:00','23:10')); addedHealth = true; }
+    });
+    if (addedHealth) templateTs = templateStore.save(template);
+    routineHealthApplied = true;
+    routineHealthTs = routineHealthStore.save(true);
+  }
 
   // 구글 캘린더 연동 — 오늘 날짜의 일정을 카테고리별로 가져와 그 카테고리 안에 함께 보여준다.
   // 연결이 안 돼 있거나(needs_reauth 등) 권한이 없으면 조용히 비워두고, 기존 반복 항목만 보여준다.
@@ -1263,6 +1290,7 @@
   extraStore.reconcile(function(){ return { value: extra, ts: extraTs }; }, function(remoteValue, ts){ extra = remoteValue; extraTs = ts; render(); });
   routineV2Store.reconcile(function(){ return { value: routineV2Applied, ts: routineV2Ts }; }, function(remoteValue, ts){ routineV2Applied = remoteValue; routineV2Ts = ts; });
   routineInputStore.reconcile(function(){ return { value: routineInputApplied, ts: routineInputTs }; }, function(remoteValue, ts){ routineInputApplied = remoteValue; routineInputTs = ts; });
+  routineHealthStore.reconcile(function(){ return { value: routineHealthApplied, ts: routineHealthTs }; }, function(remoteValue, ts){ routineHealthApplied = remoteValue; routineHealthTs = ts; });
 })();
 </script>
 
