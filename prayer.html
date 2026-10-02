@@ -305,10 +305,46 @@
     var myPrayer = loadMyPrayer();
     var noteEl = document.getElementById('myPrayerNote');
     var statusEl = document.getElementById('myPrayerStatus');
-    if (myPrayer[todayKey] && noteEl) {
-      noteEl.value = myPrayer[todayKey].note || '';
-      if (statusEl) statusEl.textContent = '오늘 이미 기록하였습니다. 다시 저장하면 덮어씁니다.';
+    var noteTouched = false; // 사용자가 오늘 칸을 고치기 시작하면, 다른 기기 기록으로 덮어쓰지 않는다
+    if (noteEl) noteEl.addEventListener('input', function(){ noteTouched = true; }, { once: true });
+
+    function renderToday(){
+      if (myPrayer[todayKey] && noteEl) {
+        noteEl.value = myPrayer[todayKey].note || '';
+        if (statusEl) statusEl.textContent = '오늘 이미 기록하였습니다. 다시 저장하면 덮어씁니다.';
+      }
     }
+    renderToday();
+
+    // 나의 기도 기록도 암송 구절·QT 묵상처럼 기기마다 따로(localStorage) 저장돼 있던 것을
+    // 아티팩트 db(my_prayer/<날짜>)로 옮긴다 — 노트북에서 쓴 기록이 폰에서도 보이도록.
+    function syncEntryToDb(k, entry){
+      DB_PROMISE.then(function(db){ if (db) return db.doc('my_prayer/' + k).set(entry); }).catch(function(){});
+    }
+    DB_PROMISE.then(function(db){
+      if (!db) return;
+      return db.collection('my_prayer').get().then(function(snap){
+        var changed = false;
+        var seenKeys = {};
+        (snap.docs || []).forEach(function(doc){
+          seenKeys[doc.id] = true;
+          var remote = doc.data();
+          var local = myPrayer[doc.id];
+          if (!local || new Date(remote.ts || 0) > new Date(local.ts || 0)) {
+            myPrayer[doc.id] = remote;
+            changed = true;
+          } else if (local) {
+            syncEntryToDb(doc.id, local);
+          }
+        });
+        Object.keys(myPrayer).forEach(function(k){ if (!seenKeys[k]) syncEntryToDb(k, myPrayer[k]); });
+        if (changed) {
+          saveMyPrayerMap(myPrayer);
+          if (!noteTouched) renderToday();
+        }
+      });
+    }).catch(function(){});
+
     var saveBtn = document.getElementById('saveMyPrayer');
     if (saveBtn) {
       saveBtn.addEventListener('click', function(){
@@ -319,6 +355,7 @@
         }
         myPrayer[todayKey] = { note: val, ts: new Date().toISOString() };
         saveMyPrayerMap(myPrayer);
+        syncEntryToDb(todayKey, myPrayer[todayKey]);
         if (statusEl) {
           var d = new Date();
           statusEl.textContent = '저장되었습니다 · ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
@@ -664,35 +701,43 @@
 
 
 <style>
-  .scroll-top-btn{
-    position:fixed; right:18px; bottom:18px; z-index:9998;
+  .page-fab{
+    position:fixed; bottom:18px; z-index:9998;
     width:44px; height:44px; border-radius:50%;
     background:var(--cedar,#5b3324); color:#f7efd8; border:none; cursor:pointer;
-    display:flex; align-items:center; justify-content:center;
+    display:flex; align-items:center; justify-content:center; text-decoration:none;
     box-shadow:0 6px 16px rgba(0,0,0,.35);
-    opacity:0; transform:translateY(10px); pointer-events:none;
-    transition:opacity .2s ease, transform .2s ease, background .2s ease;
+    transition:background .2s ease;
   }
-  .scroll-top-btn.show{ opacity:1; transform:translateY(0); pointer-events:auto; }
-  .scroll-top-btn:hover{ background:var(--gold,#c9a24b); }
-  .scroll-top-btn svg{ width:20px; height:20px; }
-  @media (max-width:480px){ .scroll-top-btn{ right:14px; bottom:14px; width:40px; height:40px; } }
+  .page-fab:hover{ background:var(--gold,#c9a24b); }
+  .page-fab svg{ width:20px; height:20px; }
+  .page-fab.home{ left:18px; }
+  .page-fab.top{ right:18px; }
+  body{ padding-bottom:70px; }
+  @media (max-width:480px){
+    .page-fab{ bottom:14px; width:40px; height:40px; }
+    .page-fab.home{ left:14px; } .page-fab.top{ right:14px; }
+  }
 </style>
 <script>
 (function(){
   if (window.__scrollTopInit) return;
   window.__scrollTopInit = true;
+  // 왼쪽: 홈(솔로몬의 편지)으로 나가기 / 오른쪽: 맨 위로
+  var home = document.createElement('a');
+  home.href = 'index.html';
+  home.className = 'page-fab home';
+  home.setAttribute('aria-label', '홈으로');
+  home.title = '홈으로';
+  home.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>';
+  document.body.appendChild(home);
   var btn = document.createElement('button');
   btn.type = 'button';
-  btn.className = 'scroll-top-btn';
-  btn.setAttribute('aria-label', '\ub9e8 \uc704\ub85c');
+  btn.className = 'page-fab top';
+  btn.setAttribute('aria-label', '맨 위로');
+  btn.title = '맨 위로';
   btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>';
   document.body.appendChild(btn);
-  function update(){
-    if (window.scrollY > 320) btn.classList.add('show'); else btn.classList.remove('show');
-  }
-  window.addEventListener('scroll', update, { passive: true });
-  update();
   btn.addEventListener('click', function(){
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });

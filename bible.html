@@ -171,11 +171,18 @@
   });
 
   var LAST_KEY = 'solomonBibleLastRef';
+  var EPOCH = '1970-01-01T00:00:00Z';
   function loadLastRef(){
     try { return JSON.parse(localStorage.getItem(LAST_KEY) || 'null'); } catch (e) { return null; }
   }
-  function saveLastRef(bookIdx, chapter){
-    try { localStorage.setItem(LAST_KEY, JSON.stringify({ bookIdx: bookIdx, chapter: chapter })); } catch (e) {}
+  function saveLastRefLocal(bookIdx, chapter, ts){
+    try { localStorage.setItem(LAST_KEY, JSON.stringify({ bookIdx: bookIdx, chapter: chapter, ts: ts })); } catch (e) {}
+  }
+  // 마지막으로 읽은 위치도 기기마다 따로(localStorage) 저장돼 있던 것을 아티팩트 db로 옮긴다.
+  // 처음 여는 순간(아직 사용자가 아무 것도 누르기 전)에는 이 기기의 기본값(시편 1장 등)이
+  // 다른 기기의 실제 마지막 위치를 지워버리지 않도록, db가 이 기기 것보다 최신일 때만 이동한다.
+  function pushLastRefToDb(bookIdx, chapter, ts){
+    DB_PROMISE.then(function(db){ if (db) return db.doc('bible_last_ref/state').set({ bookIdx: bookIdx, chapter: chapter, ts: ts }); }).catch(function(){});
   }
 
   function populateChapters(bookIdx, selectedChapter){
@@ -273,22 +280,28 @@
     nextBtnBottom.disabled = atEnd;
   }
 
+  var userNavigated = false; // 사용자가 직접 책/장을 바꾸면, 이후 db에서 온 위치로 조용히 옮기지 않는다
   function go(bookIdx, chapter){
     bookSel.value = String(bookIdx);
     populateChapters(bookIdx, chapter);
     chapterSel.value = String(chapter);
     updateNavButtons(bookIdx, chapter);
-    saveLastRef(bookIdx, chapter);
+    var ts = new Date().toISOString();
+    saveLastRefLocal(bookIdx, chapter, ts);
+    pushLastRefToDb(bookIdx, chapter, ts);
     renderChapter(bookIdx, chapter);
   }
 
   bookSel.addEventListener('change', function(){
+    userNavigated = true;
     go(parseInt(bookSel.value, 10), 1);
   });
   chapterSel.addEventListener('change', function(){
+    userNavigated = true;
     go(parseInt(bookSel.value, 10), parseInt(chapterSel.value, 10));
   });
   function goPrev(){
+    userNavigated = true;
     var bookIdx = parseInt(bookSel.value, 10);
     var chapter = parseInt(chapterSel.value, 10) - 1;
     if (chapter < 1){
@@ -299,6 +312,7 @@
     go(bookIdx, chapter);
   }
   function goNext(){
+    userNavigated = true;
     var bookIdx = parseInt(bookSel.value, 10);
     var chapter = parseInt(chapterSel.value, 10) + 1;
     if (chapter > BOOK_CHAPTERS[BOOKS[bookIdx - 1]]){
@@ -316,7 +330,28 @@
   var last = loadLastRef();
   var startBook = (last && last.bookIdx >= 1 && last.bookIdx <= BOOKS.length) ? last.bookIdx : 19; // 기본값: 시편
   var startChapter = (last && last.chapter) || 1;
-  go(startBook, startChapter);
+  var startTs = (last && last.ts) || EPOCH; // 이 기기에 저장된 적 없으면, db가 있는 한 그쪽을 따른다
+  bookSel.value = String(startBook);
+  populateChapters(startBook, startChapter);
+  chapterSel.value = String(startChapter);
+  updateNavButtons(startBook, startChapter);
+  saveLastRefLocal(startBook, startChapter, startTs); // 이동이 아니라 화면만 그리는 것이므로 ts를 새로 찍지 않는다
+  renderChapter(startBook, startChapter);
+
+  DB_PROMISE.then(function(db){
+    if (!db) return;
+    return db.doc('bible_last_ref/state').get().then(function(snap){
+      if (!snap.exists) {
+        // db에 아직 아무 기록이 없다 — 이 기기가 처음이니 예전부터 쌓여 있던 위치를 올려 둔다.
+        if (startTs !== EPOCH) pushLastRefToDb(startBook, startChapter, startTs);
+        return;
+      }
+      if (userNavigated) return;
+      var remote = snap.data();
+      if (new Date(remote.ts || 0) > new Date(startTs)) go(remote.bookIdx, remote.chapter); // 다른 기기의 더 최근 위치로 조용히 이동
+      else if (startTs !== EPOCH) pushLastRefToDb(startBook, startChapter, startTs); // db가 더 오래됐으면 맞춰 올린다
+    });
+  }).catch(function(){});
 })();
 </script>
 
@@ -428,35 +463,43 @@
 
 
 <style>
-  .scroll-top-btn{
-    position:fixed; right:18px; bottom:18px; z-index:9998;
+  .page-fab{
+    position:fixed; bottom:18px; z-index:9998;
     width:44px; height:44px; border-radius:50%;
     background:var(--cedar,#5b3324); color:#f7efd8; border:none; cursor:pointer;
-    display:flex; align-items:center; justify-content:center;
+    display:flex; align-items:center; justify-content:center; text-decoration:none;
     box-shadow:0 6px 16px rgba(0,0,0,.35);
-    opacity:0; transform:translateY(10px); pointer-events:none;
-    transition:opacity .2s ease, transform .2s ease, background .2s ease;
+    transition:background .2s ease;
   }
-  .scroll-top-btn.show{ opacity:1; transform:translateY(0); pointer-events:auto; }
-  .scroll-top-btn:hover{ background:var(--gold,#c9a24b); }
-  .scroll-top-btn svg{ width:20px; height:20px; }
-  @media (max-width:480px){ .scroll-top-btn{ right:14px; bottom:14px; width:40px; height:40px; } }
+  .page-fab:hover{ background:var(--gold,#c9a24b); }
+  .page-fab svg{ width:20px; height:20px; }
+  .page-fab.home{ left:18px; }
+  .page-fab.top{ right:18px; }
+  body{ padding-bottom:70px; }
+  @media (max-width:480px){
+    .page-fab{ bottom:14px; width:40px; height:40px; }
+    .page-fab.home{ left:14px; } .page-fab.top{ right:14px; }
+  }
 </style>
 <script>
 (function(){
   if (window.__scrollTopInit) return;
   window.__scrollTopInit = true;
+  // 왼쪽: 홈(솔로몬의 편지)으로 나가기 / 오른쪽: 맨 위로
+  var home = document.createElement('a');
+  home.href = 'index.html';
+  home.className = 'page-fab home';
+  home.setAttribute('aria-label', '홈으로');
+  home.title = '홈으로';
+  home.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>';
+  document.body.appendChild(home);
   var btn = document.createElement('button');
   btn.type = 'button';
-  btn.className = 'scroll-top-btn';
+  btn.className = 'page-fab top';
   btn.setAttribute('aria-label', '맨 위로');
+  btn.title = '맨 위로';
   btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>';
   document.body.appendChild(btn);
-  function update(){
-    if (window.scrollY > 320) btn.classList.add('show'); else btn.classList.remove('show');
-  }
-  window.addEventListener('scroll', update, { passive: true });
-  update();
   btn.addEventListener('click', function(){
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });

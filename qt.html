@@ -79,6 +79,8 @@
   .trans-toggle button.active{ background:var(--cedar); color:#f7efd8; border-color:var(--cedar); }
   .trans-toggle button:disabled{ opacity:.4; cursor:default; }
   .gist p{ margin:0; font-size:16px; max-width:none; }
+  .gist.qt-side{ border-left-color:var(--gold); padding:16px 20px 14px 24px; }
+  .gist.qt-side p{ font-size:14.5px; color:var(--ink-soft); line-height:1.8; white-space:pre-line; }
 
   .qt-section-title{
     font-family:'Nanum Square','Noto Sans KR',sans-serif; font-weight:600; font-size:12.5px;
@@ -125,7 +127,14 @@
   .history li.clickable{ cursor:pointer; }
   .history li.clickable:hover .n{ color:var(--cedar); }
   .history .d{ font-family:'Nanum Square','Noto Sans KR',sans-serif; font-size:11.5px; color:var(--pomegranate); flex:none; min-width:74px; }
-  .history .n{ color:var(--ink-soft); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .history .n{ color:var(--ink-soft); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; }
+  .history li{ position:relative; }
+  .history .del{
+    flex:none; font-size:12px; color:var(--ink-soft); opacity:.5; background:none; border:none; cursor:pointer;
+    padding:2px 6px; font-family:'Nanum Square','Noto Sans KR',sans-serif;
+  }
+  .history .del:hover{ opacity:1; color:var(--pomegranate); }
+  .history .del.confirm{ opacity:1; color:#fff; background:var(--pomegranate); border-radius:4px; }
   .history .empty{ color:var(--ink-soft); font-size:14px; font-style:italic; }
 
   .archive{ margin-top:30px; padding-top:24px; border-top:1px dashed var(--parchment-edge); }
@@ -222,6 +231,11 @@
         </span>
       </div>
       <div id="bibleText"><p class="qt-loading">오늘의 본문을 불러오는 중이니, 잠시 기다리라…</p></div>
+    </div>
+
+    <div class="gist qt-side" id="qtPrayerBox" hidden>
+      <div class="glabel">오늘의 QT 기도</div>
+      <p id="qtPrayer"></p>
     </div>
 
     <div class="prompt" id="promptLine">오늘의 물음: 오늘 읽은 장에서 가장 마음에 머문 구절은 무엇인가?</div>
@@ -430,6 +444,13 @@
         if (titleEl) titleEl.textContent = data.reference || '오늘의 본문';
         if (data.question) promptEl.textContent = '오늘의 물음: ' + data.question;
         renderCurrentTranslation();
+        // 두란노 QT 기도문 — 홈·오늘의 기도(prayer.html)와 같은 qt/<날짜>.prayer
+        var qtPrayerBox = document.getElementById('qtPrayerBox');
+        var qtPrayerEl = document.getElementById('qtPrayer');
+        if (data.prayer && qtPrayerBox && qtPrayerEl) {
+          qtPrayerEl.textContent = data.prayer;
+          qtPrayerBox.hidden = false;
+        }
       }).catch(function(){ if (titleEl) titleEl.textContent = '오늘의 본문'; showQtTextError(); });
     }).catch(function(){ if (titleEl) titleEl.textContent = '오늘의 본문'; showQtTextError(); });
   }
@@ -444,6 +465,54 @@
   }
   function saveJournalMap(map){
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(map)); } catch (e) {}
+  }
+
+  // QT 묵상 기록도 암송 구절처럼 기기마다 따로(localStorage) 저장돼 있던 것을 아티팩트 db로
+  // 옮긴다 — 노트북에서 쓴 기록이 폰에서도 보이도록. localStorage는 오프라인 예비용으로 남긴다.
+  var JOURNAL_DB_PROMISE = DB_PROMISE;
+  function syncJournalEntryToDb(k, entry){
+    JOURNAL_DB_PROMISE.then(function(db){ if (db) return db.doc('qt_journal/' + k).set(entry); }).catch(function(){});
+  }
+  function mergeRemoteJournal(){
+    JOURNAL_DB_PROMISE.then(function(db){
+      if (!db) return;
+      return db.collection('qt_journal').get().then(function(snap){
+        var changed = false;
+        var seenKeys = {};
+        (snap.docs || []).forEach(function(doc){
+          seenKeys[doc.id] = true;
+          var remote = doc.data();
+          var local = journal[doc.id];
+          var remoteNewer = !local || new Date(remote.ts || 0) > new Date(local.ts || 0);
+          if (remote.deleted) {
+            // 다른 기기에서 지운 기록 — 이 기기가 그보다 오래된 사본을 갖고 있으면 따라 지운다.
+            // 이 기기 사본이 더 새로우면(삭제 이후 다시 쓴 경우) 되살려서 db에 올린다.
+            if (local && remoteNewer) { delete journal[doc.id]; changed = true; }
+            else if (local) { syncJournalEntryToDb(doc.id, local); }
+            return;
+          }
+          if (remoteNewer) {
+            journal[doc.id] = remote;
+            changed = true;
+          } else if (local) {
+            syncJournalEntryToDb(doc.id, local); // db가 더 오래된 경우 이 기기 것으로 맞춰 올린다
+          }
+        });
+        // 이 기기에만 있던(예전 localStorage 전용) 기록을 db로 올린다. db가 이미 아는 키(삭제
+        // 표시가 남은 키 포함)는 건드리지 않아야, 지운 기록이 다른 기기 때문에 되살아나지 않는다.
+        Object.keys(journal).forEach(function(k){
+          if (!seenKeys[k]) syncJournalEntryToDb(k, journal[k]);
+        });
+        if (changed) {
+          saveJournalMap(journal);
+          renderHistory(journal);
+          if (!noteTouched && journal[todayKey] && noteEl) {
+            noteEl.value = journal[todayKey].note || '';
+            if (statusEl) statusEl.textContent = '오늘 이미 기록하였습니다. 다시 저장하면 덮어씁니다.';
+          }
+        }
+      });
+    }).catch(function(){});
   }
 
   var archiveDateInput = document.getElementById('archiveDate');
@@ -478,8 +547,34 @@
       n.className = 'n';
       n.textContent = preview;
 
+      var del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'del';
+      del.textContent = '삭제';
+      del.setAttribute('aria-label', k + ' 기록 삭제');
+      // 아티팩트 화면(샌드박스 iframe) 안에서는 window.confirm이 동작하지 않는다 — 눌러도
+      // 조용히 아무 일도 안 일어난 것처럼 보인다. 그래서 브라우저 확인창 대신, 한 번 누르면
+      // "정말 삭제?"로 바뀌고 그 상태에서 한 번 더 눌러야 지워지는 2단계 버튼을 쓴다.
+      var delArmed = false;
+      del.addEventListener('click', function(e){
+        e.stopPropagation();
+        if (!delArmed) {
+          delArmed = true;
+          del.textContent = '삭제하시겠습니까?';
+          del.classList.add('confirm');
+          return;
+        }
+        deleteJournalEntry(k);
+      });
+      del.addEventListener('blur', function(){
+        delArmed = false;
+        del.textContent = '삭제';
+        del.classList.remove('confirm');
+      });
+
       li.appendChild(d);
       li.appendChild(n);
+      li.appendChild(del);
       li.addEventListener('click', function(){
         if (archiveDateInput) archiveDateInput.value = k;
         openArchive(k);
@@ -488,14 +583,27 @@
     });
   }
 
+  function deleteJournalEntry(k){
+    delete journal[k];
+    saveJournalMap(journal);
+    // 완전히 지우지 않고 "삭제됨" 표시만 남긴다 — 다른 기기가 예전 사본을 아직 갖고 있어도
+    // 다음에 맞춰볼 때 삭제됐다는 걸 알고 따라 지우게 하기 위해서다.
+    JOURNAL_DB_PROMISE.then(function(db){ if (db) return db.doc('qt_journal/' + k).set({ deleted: true, ts: new Date().toISOString() }); }).catch(function(){});
+    renderHistory(journal);
+    if (k === todayKey && noteEl) { noteEl.value = ''; if (statusEl) statusEl.textContent = ''; }
+  }
+
   var journal = loadJournal();
   var noteEl = document.getElementById('journalNote');
   var statusEl = document.getElementById('journalStatus');
+  var noteTouched = false; // 사용자가 오늘 칸을 직접 고치기 시작하면, 다른 기기 기록으로 덮어쓰지 않는다
+  if (noteEl) noteEl.addEventListener('input', function(){ noteTouched = true; }, { once: true });
   if (journal[todayKey] && noteEl) {
     noteEl.value = journal[todayKey].note || '';
     if (statusEl) statusEl.textContent = '오늘 이미 기록하였습니다. 다시 저장하면 덮어씁니다.';
   }
   renderHistory(journal);
+  mergeRemoteJournal();
 
   var saveBtn = document.getElementById('saveJournal');
   if (saveBtn) {
@@ -512,6 +620,7 @@
         ts: new Date().toISOString()
       };
       saveJournalMap(journal);
+      syncJournalEntryToDb(todayKey, journal[todayKey]);
       renderHistory(journal);
       if (statusEl) {
         var d2 = new Date();
@@ -537,6 +646,7 @@
           ts: new Date().toISOString()
         };
         saveJournalMap(journal);
+        syncJournalEntryToDb(todayKey, journal[todayKey]);
         if (statusEl) statusEl.textContent = '임시 저장됨 (자동) · 안심하고 계속 쓰라';
       }, 600);
     });
@@ -888,35 +998,43 @@
 
 
 <style>
-  .scroll-top-btn{
-    position:fixed; right:18px; bottom:18px; z-index:9998;
+  .page-fab{
+    position:fixed; bottom:18px; z-index:9998;
     width:44px; height:44px; border-radius:50%;
     background:var(--cedar,#5b3324); color:#f7efd8; border:none; cursor:pointer;
-    display:flex; align-items:center; justify-content:center;
+    display:flex; align-items:center; justify-content:center; text-decoration:none;
     box-shadow:0 6px 16px rgba(0,0,0,.35);
-    opacity:0; transform:translateY(10px); pointer-events:none;
-    transition:opacity .2s ease, transform .2s ease, background .2s ease;
+    transition:background .2s ease;
   }
-  .scroll-top-btn.show{ opacity:1; transform:translateY(0); pointer-events:auto; }
-  .scroll-top-btn:hover{ background:var(--gold,#c9a24b); }
-  .scroll-top-btn svg{ width:20px; height:20px; }
-  @media (max-width:480px){ .scroll-top-btn{ right:14px; bottom:14px; width:40px; height:40px; } }
+  .page-fab:hover{ background:var(--gold,#c9a24b); }
+  .page-fab svg{ width:20px; height:20px; }
+  .page-fab.home{ left:18px; }
+  .page-fab.top{ right:18px; }
+  body{ padding-bottom:70px; }
+  @media (max-width:480px){
+    .page-fab{ bottom:14px; width:40px; height:40px; }
+    .page-fab.home{ left:14px; } .page-fab.top{ right:14px; }
+  }
 </style>
 <script>
 (function(){
   if (window.__scrollTopInit) return;
   window.__scrollTopInit = true;
+  // 왼쪽: 홈(솔로몬의 편지)으로 나가기 / 오른쪽: 맨 위로
+  var home = document.createElement('a');
+  home.href = 'index.html';
+  home.className = 'page-fab home';
+  home.setAttribute('aria-label', '홈으로');
+  home.title = '홈으로';
+  home.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>';
+  document.body.appendChild(home);
   var btn = document.createElement('button');
   btn.type = 'button';
-  btn.className = 'scroll-top-btn';
-  btn.setAttribute('aria-label', '\ub9e8 \uc704\ub85c');
+  btn.className = 'page-fab top';
+  btn.setAttribute('aria-label', '맨 위로');
+  btn.title = '맨 위로';
   btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>';
   document.body.appendChild(btn);
-  function update(){
-    if (window.scrollY > 320) btn.classList.add('show'); else btn.classList.remove('show');
-  }
-  window.addEventListener('scroll', update, { passive: true });
-  update();
   btn.addEventListener('click', function(){
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
