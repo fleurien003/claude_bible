@@ -622,6 +622,7 @@
       <button class="copy-btn" id="copyBtn" onclick="copyPrayerText()">기도제목 복사</button>
     </div>
     <div id="prayerList"></div>
+    <button class="add-btn" onclick="addPrayerPersonAndFocus()">+ 기도제목 인물 추가</button>
   </section>
 
   <footer class="gn-footer">목장 나눔 노트 · 실시간 작성용</footer>
@@ -886,8 +887,9 @@
   `;
   prayerList.appendChild(eunaBlock);
 
-  // 나머지 6명 슬롯
-  for(let i = 1; i <= 6; i++){
+  // 나머지 인물 슬롯 (기본 6명, '+ 기도제목 인물 추가'로 늘릴 수 있음)
+  const DEFAULT_OTHER_SLOTS = 6;
+  function addPrayerPerson(){
     const block = document.createElement('div');
     block.className = 'prayer-person';
     block.innerHTML = `
@@ -902,7 +904,19 @@
       </div>
     `;
     prayerList.appendChild(block);
+    return block;
   }
+  // 은아 외 인물 슬롯 수를 n개로 맞춤 (부족하면 추가, 남으면 뒤에서 제거)
+  function setOtherSlotCount(n){
+    const blocks = prayerList.querySelectorAll('.prayer-person');
+    for(let i = blocks.length - 1; i > n; i--) blocks[i].remove();
+    for(let i = blocks.length - 1; i < n; i++) addPrayerPerson();
+  }
+  function addPrayerPersonAndFocus(){
+    const block = addPrayerPerson();
+    block.querySelector('.person-name').focus();
+  }
+  setOtherSlotCount(DEFAULT_OTHER_SLOTS);
 
   loadInitial(); // 마지막으로 저장된 기록 복원 (없으면 빈 상태 유지)
   checkConnection(); // 저장 연결 상태 표시
@@ -976,12 +990,12 @@
       addThanks();
     }
 
-    const persons = document.querySelectorAll('.prayer-person');
     const peopleData = data.people || [];
     const eunaData = peopleData.find(p => (p.name || '').trim() === '은아') || {};
     const others = peopleData.filter(p => p !== eunaData);
+    setOtherSlotCount(Math.max(DEFAULT_OTHER_SLOTS, others.length));
 
-    persons.forEach((block, idx) => {
+    document.querySelectorAll('.prayer-person').forEach((block, idx) => {
       const pd = idx === 0 ? eunaData : (others[idx - 1] || {});
 
       if(idx !== 0){ block.querySelector('.person-name').value = pd.name || ''; }
@@ -1159,6 +1173,7 @@
     thanksCount = 0;
     addThanks();
 
+    setOtherSlotCount(DEFAULT_OTHER_SLOTS);
     document.querySelectorAll('.prayer-person').forEach((block, idx) => {
       if(idx !== 0){ block.querySelector('.person-name').value = ''; }
 
